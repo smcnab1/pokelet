@@ -17,7 +17,8 @@ trap 'rm -rf "$STAGE"' EXIT
 # All build and signing operations are local. No app is launched.
 xcodebuild -quiet -project "$ROOT/Pokelet.xcodeproj" -scheme Pokelet -configuration Release \
   -destination 'generic/platform=macOS' -derivedDataPath "$ROOT/build/release" \
-  'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO SWIFT_TREAT_WARNINGS_AS_ERRORS=YES build
+  'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+  CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO build
 
 mkdir "$STAGE/candidate" "$STAGE/extracted"
 APP="$STAGE/candidate/Pokelet.app"
@@ -46,6 +47,16 @@ for arch in arm64 x86_64; do
     $1 == "minos" && $2 == "14.0" { target = 1 }
     END { exit !(macos && target) }
   '
+  /usr/bin/codesign --display --arch "$arch" --entitlements - --xml "$EXTRACTED" > "$STAGE/entitlements.plist"
+  if [[ -s "$STAGE/entitlements.plist" ]]; then
+    /usr/bin/plutil -lint "$STAGE/entitlements.plist"
+    DEBUGGABLE="$(/usr/bin/plutil -extract 'com\.apple\.security\.get-task-allow' raw \
+      "$STAGE/entitlements.plist" 2>/dev/null || true)"
+    if [[ "$DEBUGGABLE" == true ]]; then
+      printf 'Release build has the get-task-allow entitlement on %s.\n' "$arch" >&2
+      exit 1
+    fi
+  fi
 done
 
 # mkdir reserves the output name atomically so concurrent builds cannot overwrite it.
