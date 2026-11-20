@@ -1,28 +1,29 @@
-# First public release checklist
+# Public release checklist
 
-## Local candidate
+## Verify the source candidate
 
-- Build Debug and the universal Release archive. Run the headless tests, bundle smoke check, documentation links and workflow lint.
-- Confirm both architecture slices target macOS 14 or later. Verify the extracted bundle signature and the SHA-256 checksum.
-- Review original artwork, sound provenance and both MIT notices. Scan tracked changes for sensitive data and generated binaries.
-- Record all results in [VERIFICATION.md](../VERIFICATION.md).
+- Run the macOS workflow on the exact release commit. It runs tests, builds and analyses Debug, then verifies a universal Release ZIP and the DMG layout.
+- Confirm the `arm64` and `x86_64` slices target macOS 14.0. Confirm the extracted app signature, bundled licences and sounds, archive integrity and the SHA-256 checksum.
+- Record results in [VERIFICATION.md](../VERIFICATION.md). Keep Presentation Mode disabled in ordinary launches while the [live input recovery checks](INTERACTIVE_ACCEPTANCE.md) remain open. Run those tests on a desktop only with the owner’s approval.
 
-## Desktop approval and acceptance
+## Build the trusted DMG
 
-- Obtain separate approval to run the [interactive acceptance sequence](INTERACTIVE_ACCEPTANCE.md).
-- Confirm restore and fail-open cases with real input. Check the outstanding cases in [desktop acceptance](../VERIFICATION.md#desktop-acceptance). Keep Presentation Mode disabled on ordinary launches until its recovery checks are complete.
-- Review light and dark Settings, VoiceOver, input, capture and performance. Add representative screenshots and a short demo using safe data.
-- Choose the public version after acceptance. Confirm the signing and Apple notarisation plan. This candidate uses ad hoc signing.
+Use a Mac with Xcode, a valid **Developer ID Application** identity and its private key in Keychain, and a `notarytool` Keychain profile linked to the Apple Developer team. If Keychain lacks the identity, the Apple Developer Program account holder should create or import it for the team. Use Apple’s [Developer ID guidance](https://developer.apple.com/developer-id/) and [notarytool Keychain instructions](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow) to configure credentials locally.
 
-## Publication approval
+From the clean, verified release commit, set `POKELET_DEVELOPER_ID` to the certificate fingerprint and `POKELET_NOTARY_PROFILE` to the Keychain profile name. Then run:
 
-- Obtain explicit permission to create or update `smcnab1/pokelet`, push the branch, make the repository public, enable Pages or publish binaries.
-- Once authorised, enable private security reports, verify CI on the submitted commit, review and assign the PR, and associate any related issue.
-- Verify the final distribution from a clean download. Attach the universal ZIP and its SHA-256 checksum and update download links.
-- Preview the static site before enabling Pages. Add canonical and Open Graph image URLs after the final host is confirmed.
+```sh
+./script/package_dmg.sh --notarise
+```
 
-Proposed GitHub description: **Free animated cursor companion for macOS with cartoon pointers and click effects.**
+The script builds the universal app, signs the app with hardened runtime and a secure timestamp, signs the DMG, waits for Apple to accept it, and staples the DMG ticket. It checks the disk image signature and Gatekeeper assessment, mounts the DMG read-only without opening Finder, and verifies the mounted app, the Applications shortcut and the exact executable. It writes the DMG and its SHA-256 checksum to `dist/notarised/` after those checks pass. Supply a fresh output directory to repeat the process.
 
-Proposed topics: `macos`, `swift`, `swiftui`, `appkit`, `menu-bar`, `cursor`, `cursor-highlighter`, `screen-recording`, `presentations`.
+For a local layout test with the candidate build, run `./script/package_dmg.sh --check-layout dist/candidate/Pokelet.app`. The image is temporary. CI uses this mode without signing credentials and retains only explicitly requested, short-lived ad hoc ZIP artefacts.
 
-Proposed title after acceptance: **Pokelet 1.1 — Custom colours and cursor companion**. Use [the changelog](../CHANGELOG.md) for the release description. Mention macOS support, cursor replacement limits, signature status, download checksums and the status of Presentation Mode.
+## Publish
+
+1. On a separate test Mac or VM, download the staged DMG through a browser and install by dragging to Applications. Check launch, the default permission experience, pointer restoration, and a repeat launch from Applications.
+2. When Apple acceptance, Gatekeeper and the applicable safety checks are verified, publish the matching version tag and GitHub Release with the DMG and checksum. Use [the changelog](../CHANGELOG.md) to write short release notes. Include the macOS minimum and the current Presentation Mode status.
+3. Update the README and [landing page](site/index.html) to show the verified download prominently. Download the public asset again and verify it against the published checksum. Confirm the public website, release and installation links.
+
+Apple’s [distribution guidance](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution) describes signing the app and DMG, notarising the outer container and testing distribution on a separate Mac.

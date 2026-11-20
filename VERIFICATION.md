@@ -1,5 +1,13 @@
 # Pokelet verification
 
+## Public source launch
+
+On 20 November 2026, the 1.1.0 build 2 source candidate passed all 24 automated tests, a Debug build and static analysis, and universal Release packaging on Apple M2. The extracted ZIP verified against its SHA-256 checksum. Both slices target macOS 14.0. The packaging check rejects Xcode’s injected debug entitlement in either slice.
+
+The temporary DMG mounted read-only with the Applications shortcut and the exact app executable from the verified candidate. The mounted bundle passed signature, licence, icon and audio checks. Signing was ad hoc. The Mac had an Apple Development identity. Developer ID Application signing, notarisation, stapling and Gatekeeper testing of a trusted download remain pending.
+
+The launch review used headless checks and retained the [previous desktop evidence](#desktop-acceptance). Live expiry, permission revocation, held-button recovery and keyboard navigation to **End Presentation Mode** still need an approved desktop session. Presentation Mode remains disabled on ordinary launches.
+
 ## Local 1.1 candidate
 
 Built and checked on 20 November 2026 on Apple M2, macOS 27.3 (26C5035r), Xcode 27.2 (27B52). The bundle identifies itself as 1.1.0, build 2. The public release version will be decided after desktop acceptance.
@@ -30,7 +38,7 @@ The packaging command stages the archive, validates an extracted copy and refuse
 | Full-screen and capture | Companion mode followed the pointer in a full-screen Chrome window. A whole-display recording captured the native arrow, animated character and click effects. The [cropped GIF](docs/site/assets/pokelet-cursor-demo.gif) shows only the disposable test page. |
 | Sounds | The Soft Tap preview command returned without an app error while click audio was muted. The app imported a valid WAV, then rejected a malformed WAV and retained the existing custom sound. Audible output and output-device changes remain unverified. |
 
-Ordinary launches still disable Presentation Mode. The 15-minute limit, held-button drain and tap-loss recovery have headless coverage. Live expiry, revocation, and keyboard navigation to the separate **End Presentation Mode** menu action remain open. VoiceOver, native light appearance, Login Items, sleep and wake, multiple monitors, Intel and older macOS runtimes are also open. Hosted CI and Apple distribution trust have not been exercised. After testing, the original app was relaunched with Settings open and its pointer off.
+Ordinary launches still disable Presentation Mode. The 15-minute limit, held-button drain and tap-loss recovery have headless coverage. Live expiry, revocation, held-button recovery and keyboard navigation to the separate **End Presentation Mode** menu action remain open. VoiceOver, native light appearance, Login Items, sleep and wake, multiple monitors, Intel and older macOS runtimes are also open. After testing, the original app was relaunched with Settings open and its pointer off.
 
 ## Runtime measurements
 
