@@ -38,19 +38,22 @@ jobs:
         run: |
           git diff --check "HEAD^" HEAD
           python3 script/check_docs.py
+          for script in script/*.sh; do bash -n "$script"; done
           swift test -Xswiftc -warnings-as-errors
-      - name: Build Debug
+      - name: Build and analyse Debug
         run: |
           xcodebuild -quiet -project Pokelet.xcodeproj -scheme Pokelet -configuration Debug \
             -destination "platform=macOS,arch=$(uname -m)" -derivedDataPath build/debug \
-            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES build
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES build analyze
       - name: Validate the universal Release archive
-        run: ./script/package_release.sh
-      - name: Retain the candidate for manual testing
+        run: |
+          ./script/package_release.sh
+          ./script/package_dmg.sh --check-layout dist/candidate/Pokelet.app
+      - name: Retain the ad hoc candidate for manual testing
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: pokelet-universal-${{ github.sha }}
+          name: pokelet-ad-hoc-${{ github.sha }}
           path: |
             dist/candidate/Pokelet.zip
             dist/candidate/Pokelet.zip.sha256
