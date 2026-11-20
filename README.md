@@ -6,7 +6,23 @@ A free, MIT-licensed animated cursor companion for macOS. Give your pointer a ca
 
 ![Original and true-black artwork for the Finger, Cat Paw, Foam Finger and Comic Arrow](docs/site/assets/pokelet-pointer-character-colours.png)
 
-The gallery is rendered from Pokelet’s vector artwork. Settings screenshots and a live demo are pending desktop acceptance.
+The gallery is rendered from Pokelet’s vector artwork.
+
+<details>
+<summary>Settings screenshots</summary>
+
+![Pointer Settings showing all four true-black characters against light and dark swatches](docs/screenshots/pokelet-settings-pointer-dark.png)
+
+![Animations Settings with an in-window click preview and intensity controls](docs/screenshots/pokelet-settings-animations-dark.png)
+
+</details>
+
+<details>
+<summary>Watch the click animation demo</summary>
+
+![Pokelet’s Finger follows the native cursor and animates on clicks in a full-display recording](docs/site/assets/pokelet-cursor-demo.gif)
+
+</details>
 
 ## Get Pokelet
 
@@ -21,7 +37,7 @@ For an approved distribution, verify `Pokelet.zip` against the accompanying SHA-
 3. In **Animations**, try five levels of click intensity in the in-window preview. Click-only mode shows Pokelet briefly when you click. Pokelet follows macOS Reduce Motion.
 4. In **Sounds**, choose one of four click sounds, mute playback, or import a local file up to 3 seconds and 5 MB.
 
-**Companion** mode keeps the system cursor and places the character beside it. The optional **Replace in Pokelet Settings** mode aligns the character’s fingertip with the click point inside Pokelet’s active Settings window. Everywhere else it uses Companion mode. Quartz generally requires the calling app to be foregrounded for cursor hiding. [Apple’s cursor API](https://developer.apple.com/documentation/coregraphics/cgdisplayhidecursor(_:))
+**Companion** mode keeps the system cursor and places the character beside it. The optional **Replace in Pokelet Settings** mode aligns the character’s fingertip with the click point inside the exposed part of Pokelet’s active Settings window. Everywhere else it uses Companion mode. Quartz generally requires the calling app to be foregrounded for cursor hiding. [Apple’s cursor API](https://developer.apple.com/documentation/coregraphics/cgdisplayhidecursor(_:))
 
 | Shortcut | What it does |
 | --- | --- |
@@ -31,7 +47,7 @@ For an approved distribution, verify `Pokelet.zip` against the accompanying SHA-
 
 ## Presentation Mode and privacy
 
-Presentation Mode is **disabled during ordinary launches pending live safety testing**. In the acceptance build, it is intended to pause mouse clicks while allowing normal keyboard input. Control–Option–T, Escape and the menu bar indicator end suppression. A 15-minute limit and a tap health check provide automatic recovery.
+Presentation Mode is **disabled during ordinary launches** while the remaining safety checks are open. Desktop acceptance verified that it pauses browser clicks while keyboard input continues. Control–Option–T, Escape and the fixed-width pause symbol in the menu bar each restored clicks. A 15-minute limit and a tap health check provide automatic recovery. [Acceptance evidence](VERIFICATION.md#desktop-acceptance)
 
 The everyday pointer uses passive mouse monitoring. Presentation Mode requires Accessibility and can request Input Monitoring when macOS withholds Escape from the tap. Launch at login is optional. Pokelet stores preferences and imported sounds locally, with no account, telemetry or background network activity. [Privacy details](PRIVACY.md)
 
@@ -50,9 +66,9 @@ These commands compile and test without opening the app. The final command creat
 
 ## Screen sharing and performance
 
-Choose **Entire Screen** or **Full Display** in your capture app so it can include Pokelet’s separate overlay window. An individual window capture generally excludes it. Enable system audio in the capture app if you want viewers to hear click sounds. Capture behaviour, full-screen apps, Spaces and multiple displays are part of live acceptance.
+Choose **Entire Screen** or **Full Display** in your capture app so it can include Pokelet’s separate overlay window. An individual window capture generally excludes it. Enable system audio in the capture app if you want viewers to hear click sounds. Desktop acceptance verified full-display recording and a full-screen browser on one built-in Retina display. Capture behaviour on other setups is still open.
 
-On an Apple M2, the 1.0.0 baseline measured 0.0–0.1% CPU with the pointer stationary and approximately 42 MiB RSS in one snapshot. Mixed UI and drag stress reached 12.1% CPU. The current candidate has no comparable runtime measurements yet. [Verification and measurement method](VERIFICATION.md)
+On an Apple M2 with Settings closed, the current candidate measured 0.0% CPU while stationary, 5.0% median for pointer-only movement and 5.6% peak during scripted click bursts. Its process RSS snapshots ranged from 60 to 65 MiB across the five workloads. [Verification and measurement method](VERIFICATION.md)
 
 ## Contribute
 

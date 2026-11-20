@@ -10,7 +10,7 @@
 ## Desktop approval and acceptance
 
 - Obtain separate approval to run the [interactive acceptance sequence](INTERACTIVE_ACCEPTANCE.md).
-- Confirm restore and fail-open cases with real input. Keep Presentation Mode disabled on ordinary launches until the evidence supports enabling it.
+- Confirm restore and fail-open cases with real input. Check the outstanding cases in [desktop acceptance](../VERIFICATION.md#desktop-acceptance). Keep Presentation Mode disabled on ordinary launches until its recovery checks are complete.
 - Review light and dark Settings, VoiceOver, input, capture and performance. Add representative screenshots and a short demo using safe data.
 - Choose the public version after acceptance. Confirm the signing and Apple notarisation plan. This candidate uses ad hoc signing.
 
