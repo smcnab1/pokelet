@@ -10,7 +10,11 @@ case "$MODE" in
   *) printf 'Usage: %s [--build|--package|--settings|--verify|--debug|--logs|--telemetry]\n' "$0" >&2; exit 2 ;;
 esac
 
-if [[ "$MODE" != --build && "$MODE" != --package ]]; then
+if [[ "$MODE" == --package ]]; then
+  exec "$ROOT/script/package_release.sh"
+fi
+
+if [[ "$MODE" != --build ]]; then
   # Only quit the copy this script manages.
   POKELET_PIDS="$(pgrep -f "^$APP/Contents/MacOS/Pokelet([[:space:]]|$)" || true)"
   if [[ -n "$POKELET_PIDS" ]]; then
@@ -23,24 +27,11 @@ if [[ "$MODE" != --build && "$MODE" != --package ]]; then
 fi
 
 xcodebuild -quiet -project "$ROOT/Pokelet.xcodeproj" -scheme Pokelet -configuration Release \
-  -destination "platform=macOS,arch=$(uname -m)" -derivedDataPath "$ROOT/build" build
+  -destination "platform=macOS,arch=$(uname -m)" -derivedDataPath "$ROOT/build" SWIFT_TREAT_WARNINGS_AS_ERRORS=YES build
 codesign --verify --deep --strict "$APP"
 
 case "$MODE" in
   --build) printf '%s\n' "$APP" ;;
-  --package)
-    mkdir -p "$ROOT/dist"
-    # Stage in the destination filesystem before replacing generated outputs.
-    stage="$(mktemp -d "$ROOT/dist/.package.XXXXXX")"
-    trap 'rm -rf "$stage"' EXIT
-    ditto "$APP" "$stage/Pokelet.app"
-    codesign --verify --deep --strict "$stage/Pokelet.app"
-    ditto -c -k --sequesterRsrc --keepParent "$stage/Pokelet.app" "$stage/Pokelet.zip"
-    if [[ -d "$ROOT/dist/Pokelet.app" ]]; then mv "$ROOT/dist/Pokelet.app" "$stage/previous.app"; fi
-    mv "$stage/Pokelet.app" "$ROOT/dist/Pokelet.app"
-    mv -f "$stage/Pokelet.zip" "$ROOT/dist/Pokelet.zip"
-    printf '%s\n' "$ROOT/dist/Pokelet.app" "$ROOT/dist/Pokelet.zip"
-    ;;
   --settings) open -n "$APP" --args --settings ;;
   --verify)
     open -n "$APP"
