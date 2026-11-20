@@ -1,5 +1,11 @@
 # Pokelet verification
 
+## Public beta v1.1.0-beta.1
+
+The [GitHub prerelease](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) uses source commit `8baf2c994811429ca366e8d0352cf6e104150813`. The app is version 1.1.0, build 2, with ad hoc signatures and a macOS 14.0 deployment target on both `arm64` and `x86_64`. The release includes a SHA-256 checksum. The mounted DMG passed the Applications shortcut, executable, signature, icon, licence and audio checks. [Exact-commit CI](https://github.com/smcnab1/pokelet/actions/runs/44760173269)
+
+The beta disables click suppression in Release builds. Interactive results below came from an earlier local candidate. Live installation of the public DMG, runtime checks on Intel and older macOS, and the remaining Presentation Mode recovery checks still need desktop acceptance.
+
 ## Public source launch
 
 On 20 November 2026, the 1.1.0 build 2 source candidate passed all 24 automated tests, a Debug build and static analysis, and universal Release packaging on Apple M2. The extracted ZIP verified against its SHA-256 checksum. Both slices target macOS 14.0. The packaging check rejects Xcode’s injected debug entitlement in either slice.
@@ -10,7 +16,7 @@ The launch review used headless checks and retained the [previous desktop eviden
 
 ## Local 1.1 candidate
 
-Built and checked on 20 November 2026 on Apple M2, macOS 27.3 (26C5035r), Xcode 27.2 (27B52). The bundle identifies itself as 1.1.0, build 2. The public release version will be decided after desktop acceptance.
+Built and checked on 20 November 2026 on Apple M2, macOS 27.3 (26C5035r), Xcode 27.2 (27B52). The pre-beta bundle identifies itself as 1.1.0, build 2.
 
 | Check | Result |
 | --- | --- |

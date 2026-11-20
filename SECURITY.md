@@ -4,4 +4,4 @@ Report cursor restoration, unexpected input suppression, unsafe file handling or
 
 Include the app version, macOS version, impact, expected behaviour and minimal steps to reproduce. Use harmless test files and leave out private data. Keep details private while a fix is being assessed.
 
-Public binaries are pending. The [release checklist](docs/RELEASE_CHECKLIST.md) tracks how the first release will be qualified.
+The [GitHub beta release](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) includes the DMG checksum. The app is signed ad hoc and unnotarised. See the [release checklist](docs/RELEASE_CHECKLIST.md) for how builds are verified.

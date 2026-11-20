@@ -19,6 +19,7 @@
     <a class="brand" href="#top">Pokelet</a>
     <nav aria-label="Main">
       <a href="#features">Features</a>
+      <a href="#install">Install</a>
       <a href="#questions">FAQ</a>
       <a href="https://github.com/smcnab1/pokelet">GitHub</a>
     </nav>
@@ -28,11 +29,10 @@
       <h1 id="heading">A cartoon companion for your Mac cursor.</h1>
       <p>Point with a finger, a cat paw, a foam finger or a comic arrow. Each click makes your character poke. Click faster for a bigger reaction.</p>
       <div class="actions">
-        <a class="button" href="https://github.com/smcnab1/pokelet">View on GitHub</a>
-        <a href="https://github.com/smcnab1/pokelet#build-from-source">Build from source</a>
-        <a href="https://github.com/smcnab1/pokelet/releases">GitHub Releases</a>
+        <a class="button" href="https://github.com/smcnab1/pokelet/releases/download/v1.1.0-beta.1/Pokelet-1.1.0-unnotarised.dmg">Download free beta DMG</a>
+        <a href="https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1">Release notes and checksum</a>
       </div>
-      <small>Source available now. The first DMG is pending Apple signing and notarisation.</small>
+      <small>macOS 14 or later · Apple silicon and Intel · Ad hoc signed and unnotarised</small>
     </section>
 
     <figure>
@@ -54,11 +54,22 @@
       </div>
     </section>
 
+    <section id="install">
+      <h2>Install the beta</h2>
+      <ol>
+        <li>Open the DMG, drag <strong>Pokelet</strong> into <strong>Applications</strong>, and eject the disk image.</li>
+        <li>Open Pokelet from <strong>Applications</strong>. Apple has not notarised this build, so macOS may block the first launch.</li>
+        <li>Click the hand icon in the menu bar and choose <strong>Enable Pointer</strong>.</li>
+      </ol>
+      <p>If macOS cannot verify the developer, proceed only if you trust the source and the checksum matches. In <strong>System Settings → Privacy &amp; Security</strong>, choose <strong>Open Anyway</strong> if offered and confirm. Stop if macOS reports damage or malware. <a href="https://support.apple.com/en-gb/102445">Apple’s guidance on opening apps</a></p>
+      <p><a href="https://github.com/smcnab1/pokelet#build-from-source">Build from source</a> · <a href="https://github.com/smcnab1/pokelet#uninstall">Uninstall Pokelet</a></p>
+    </section>
+
     <section id="questions">
       <h2>Common questions</h2>
       <details><summary>Which Macs can run it?</summary><p>The universal build targets macOS 14 and later on Apple silicon and Intel.</p></details>
       <details><summary>Will it show up in a screen recording?</summary><p>Select the entire display so your recording app can include the overlay. Single-window capture generally excludes it. Desktop testing verified the overlay in a recording of one built-in Retina display.</p></details>
-      <details><summary>Does it need permissions?</summary><p>Normal pointer use relies on passive mouse events and needs no Accessibility grant. The experimental presentation pointer uses Accessibility to pause clicks and is disabled during ordinary launches.</p></details>
+      <details><summary>Does it need permissions?</summary><p>The public beta needs neither Accessibility nor Input Monitoring. Click suppression is disabled. Your screen recorder handles its own macOS permissions.</p></details>
       <details><summary>Is it an alternative to Pokey?</summary><p>Pokelet is a free, independent alternative to Pokey, with its own cartoon characters and an MIT licence.</p></details>
     </section>
   </main>
