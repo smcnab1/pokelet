@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en-GB">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pokelet input acceptance</title>
+<style>
+  :root { color-scheme: light dark; font-family: system-ui; }
+  main { max-width: 65ch; margin: 3rem auto; padding-inline: 1rem; }
+  #target { display: block; min-height: 9rem; width: 100%; font: inherit; }
+  dl { display: grid; grid-template-columns: 1fr auto; gap: .25rem 1rem; }
+  dd { font-variant-numeric: tabular-nums; }
+</style>
+<main>
+  <h1>Pokelet input acceptance</h1>
+  <button id="target">Click, double-click or right-click here</button>
+  <dl id="results"></dl>
+  <p>Press the arrow keys to change the slide count. Select this text to check dragging and the native I-beam.</p>
+  <button id="reset">Reset counters</button>
+</main>
+<script>
+  const counters = new Map();
+  const results = document.querySelector("#results");
+  for (const title of ["Click", "Double-click", "Right-click", "Escape", "Slide"]) {
+    const label = document.createElement("dt");
+    const value = document.createElement("dd");
+    label.textContent = title;
+    value.textContent = "0";
+    counters.set(title, value);
+    results.append(label, value);
+  }
+  function count(title, step = 1) {
+    const value = counters.get(title);
+    value.textContent = Number(value.textContent) + step;
+  }
+  const target = document.querySelector("#target");
+  target.addEventListener("click", () => count("Click"));
+  target.addEventListener("dblclick", () => count("Double-click"));
+  target.addEventListener("contextmenu", event => { event.preventDefault(); count("Right-click"); });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") count("Escape");
+    if (event.key === "ArrowRight") count("Slide");
+    if (event.key === "ArrowLeft") count("Slide", -1);
+  });
+  document.querySelector("#reset").addEventListener("click", () => {
+    for (const value of counters.values()) value.textContent = "0";
+  });
+</script>
+</html>

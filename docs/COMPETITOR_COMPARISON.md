@@ -1,0 +1,16 @@
+# Animated cursor and pointer tools for macOS
+
+Reviewed on 20 November 2026. This comparison uses each product’s own documentation, release listings and licence. Third-party performance, capture and installation claims were reviewed from source material. Pokelet is independent and has no affiliation with Pokey.
+
+| Tool | Job it does best | Distribution and licence | Fit for animated presentations |
+| --- | --- | --- | --- |
+| [Pokey](https://pokeyapp.com/) | Animated character pointers with click cadence, sounds and Presentation Mode. | Vendor lists a US$4.99 one-time purchase, Developer ID signing and notarisation. macOS 26+. | The closest feature comparison. Vendor documents whole-display sharing, multi-display support and a simple signed install. |
+| [Quiet Pointer](https://github.com/quietapps/QuietPointer) | A large animated hand with expressive clicks and a global toggle. | MIT. [ZIP and Homebrew tap](https://github.com/quietapps/QuietPointer#install). Its docs describe workarounds for Gatekeeper on builds without Developer ID signing. | Focused free option. Its documented black setting changes shadow and bursts while the glove stays white. |
+| [MaCursor](https://github.com/writronic/MaCursor) | Full cursor themes, an editor, a gallery and optional helper for persistent themes. | GPL-3.0. [Universal signed and notarised DMG](https://github.com/writronic/MaCursor/releases/latest) and Homebrew. macOS 13+. | Better fit for replacing the entire set of system cursors and building themes. It also offers trails and click highlights. |
+| [Mousecape](https://mousecape.app/) | System cursor packs with editable hotspots, scale variants and frame-strip animation. | [Upstream source licence](https://github.com/alexzielenski/Mousecape/blob/master/LICENSE) restricts use to personal, non-commercial purposes. [GitHub ZIP](https://github.com/alexzielenski/Mousecape/releases) and a helper for reapplying capes. | Offers broad theme control. Upstream describes private API use. The animation model is frame-based for cursor types. |
+| [CursorFokus](https://github.com/namuan/CursorFokus) | Configurable cursor rings and left/right ripples. | MIT. Source build and bundle scripts. GitHub listed no releases during the review. | Better fit for a minimal highlight around the native cursor. The README says click ripples require Accessibility. |
+| [Pokelet](../README.md) | Native cartoon companion with four original characters, true-black and custom fills and click-reactive motion. | MIT. Universal ad hoc local candidate. Public signing and publication are pending. macOS 14+. | Companion mode preserves the arrow or I-beam. Onscreen capture and click suppression for this build await live testing. |
+
+Pokelet’s priorities are legible character art, click-only visibility and a short setup. Pokey and MaCursor document smoother installation through signed, notarised releases. MaCursor and Mousecape offer deeper system cursor customisation. CursorFokus is a simpler choice when a ring conveys enough information.
+
+The highest-value checks for Pokelet are safe cursor restoration, predictable full-display capture and a straightforward signed installation. See the [release checklist](RELEASE_CHECKLIST.md) for the evidence still needed.

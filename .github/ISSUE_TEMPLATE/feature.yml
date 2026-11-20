@@ -1,0 +1,14 @@
+name: Feature request
+description: Suggest a focused improvement for Pokelet
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: What are you trying to do?
+      description: Describe the presentation, recording or pointer workflow.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How could Pokelet help?

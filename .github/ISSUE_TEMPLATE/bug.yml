@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a reproducible Pokelet problem
+title: "[Bug] "
+body:
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: Steps and observed behaviour
+      description: Include what you expected, what happened and how to reproduce it using non-sensitive data.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Pokelet version, macOS version and Mac architecture
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Relevant settings and display setup
+      description: Include Companion or Replacement mode, displays, Spaces and capture app when applicable. Keep personal information out of attachments.
