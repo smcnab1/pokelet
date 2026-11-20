@@ -4,7 +4,9 @@ A free, open-source animated cursor for macOS. Pick a cartoon pointing hand, a c
 
 **macOS 14 or later · Universal build for Apple silicon and Intel**
 
-[Project website](https://smcnab1.github.io/pokelet/) · [GitHub Releases](https://github.com/smcnab1/pokelet/releases) · [Report an issue](https://github.com/smcnab1/pokelet/issues/new/choose)
+[Download the beta DMG](https://github.com/smcnab1/pokelet/releases/download/v1.1.0-beta.1/Pokelet-1.1.0-unnotarised.dmg) · [Release notes and checksum](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) · [Project website](https://smcnab1.github.io/pokelet/) · [Report an issue](https://github.com/smcnab1/pokelet/issues/new/choose)
+
+**Beta download.** The app is ad hoc signed and has not been notarised by Apple. macOS may block it on first launch.
 
 ![Pokelet’s four cursor characters in their original colours and in black](docs/site/assets/pokelet-pointer-character-colours.png)
 
@@ -17,9 +19,11 @@ A free, open-source animated cursor for macOS. Pick a cartoon pointing hand, a c
 
 ## Get Pokelet
 
-**Pokelet is currently available as source code.** The first downloadable DMG is pending Apple Developer ID signing and notarisation. You can [build it locally with Xcode](#build-from-source) today.
+1. Download and open the DMG. Drag **Pokelet** into **Applications**, then eject the disk image.
+2. Open Pokelet from **Applications**. If macOS blocks it because Apple cannot verify the developer, proceed only if you trust the source and the [published checksum](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) matches. In **System Settings → Privacy & Security**, choose **Open Anyway** if macOS offers it, then confirm. If macOS reports damage or malware, stop. [Apple’s guidance](https://support.apple.com/en-gb/102445)
+3. Click the hand icon in the menu bar and choose **Enable Pointer**, or press **Control–Option–P**.
 
-When a verified release is available, download the DMG from [GitHub Releases](https://github.com/smcnab1/pokelet/releases), open it and drag **Pokelet** into **Applications**. Eject the disk image, then open Pokelet from Applications. The hand icon appears in the menu bar. Choose **Enable Pointer** or press **Control–Option–P**.
+You can also [build locally with Xcode](#build-from-source) from the [beta source tag](https://github.com/smcnab1/pokelet/tree/v1.1.0-beta.1).
 
 ## Make it yours
 
@@ -37,19 +41,17 @@ When a verified release is available, download the DMG from [GitHub Releases](ht
 
 </details>
 
-## Shortcuts and Presentation Mode
+## Shortcut and Presentation Mode
 
 | Shortcut | Action |
 | --- | --- |
 | **Control–Option–P** | Toggle the pointer. You can change this in **Settings → General**. |
-| **Control–Option–T** | Start or end Presentation Mode in an acceptance session. |
-| **Escape** | End an active presentation. Escape also reaches the active app. |
 
-Presentation Mode is experimental and disabled during ordinary launches. In a [controlled acceptance session](docs/INTERACTIVE_ACCEPTANCE.md), it acts as a presentation pointer and pauses mouse clicks while slide keys and scrolling continue. Use Escape, Control–Option–T or the menu bar pause symbol to restore clicks. Sessions have a 15-minute limit. [Desktop results and remaining checks](VERIFICATION.md#desktop-acceptance)
+The public beta has click suppression disabled. Presentation Mode is available in local Debug builds for [controlled acceptance](docs/INTERACTIVE_ACCEPTANCE.md). In those sessions, use **Escape**, **Control–Option–T** or the menu bar pause symbol to restore clicks. [Desktop results and remaining checks](VERIFICATION.md#desktop-acceptance)
 
 ## Permissions and privacy
 
-Everyday pointer use listens for mouse activity passively and needs no Accessibility grant. The experimental Presentation Mode uses Accessibility to pause clicks and offers an Input Monitoring request only if macOS withholds the events needed for its Escape exit. Preferences and imported sounds stay on your Mac. Pokelet has no account, analytics, telemetry or background updater. [Privacy policy](PRIVACY.md)
+Everyday pointer use listens for mouse activity passively. The public beta requires neither Accessibility nor Input Monitoring. Preferences and imported sounds stay on your Mac. Pokelet has no account, analytics, telemetry or background updater. [Privacy policy](PRIVACY.md)
 
 ## Known limitations
 
