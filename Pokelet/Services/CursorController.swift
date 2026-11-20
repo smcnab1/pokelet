@@ -1,5 +1,5 @@
 // Mouse monitoring, per-screen overlays and display-link tracking are adapted
-// from Quiet Pointer's CursorManager. MIT, see LICENSE.
+// from Quiet Pointer's CursorManager. MIT, see QuietPointer-MIT.txt.
 import AppKit
 import QuartzCore
 import os
@@ -7,6 +7,7 @@ import os
 final class CursorController {
     var onClick: (() -> Void)?
     var onTrackingFailure: (() -> Void)?
+    weak var replacementWindow: NSWindow?
 
     private(set) var isRunning = false
     private var prefs = Preferences()
@@ -15,7 +16,11 @@ final class CursorController {
     private var monitors: [Any] = []
     private var displayLink: CADisplayLink?
     private var cadence = ClickCadence()
-    private var ownsNativeHide = false
+    private var visibility = CursorVisibility()
+    private var restoreRetry: DispatchWorkItem?
+    private var restoreAttempts = 0
+    private var replacementIsSuspended = false
+    private var menuTrackingDepth = 0
     private var lastMouse: CGPoint?
     private var lastMotion: CFTimeInterval = 0
     private var revealUntil: CFTimeInterval = 0
@@ -52,6 +57,7 @@ final class CursorController {
 
     func apply(_ updated: Preferences, presentation: Bool) {
         let appearanceChanged = prefs.style != updated.style || prefs.palette != updated.palette ||
+            prefs.customColour != updated.customColour ||
             prefs.size != updated.size || prefs.shadow != updated.shadow || prefs.outline != updated.outline
         let arrivalChanged = prefs.clickOnly != updated.clickOnly || self.presentation != presentation
         let motionChanged = prefs.reducedMotion != updated.reducedMotion ||
@@ -62,11 +68,9 @@ final class CursorController {
         self.presentation = presentation
         guard isRunning, appearanceChanged || motionChanged || arrivalChanged || hideChanged else { return }
         if appearanceChanged, !configureArtwork() { return }
-        if motionChanged || arrivalChanged { overlays.forEach { $0.pointerLayer.reset() } }
+        if motionChanged || arrivalChanged { cancelAnimations() }
         if arrivalChanged { revealUntil = 0 }
         updatePosition(NSEvent.mouseLocation, now: CACurrentMediaTime())
-        updateNativeHide()
-        displayLink?.isPaused = false
     }
 
     func rebuildScreens() {
@@ -81,35 +85,75 @@ final class CursorController {
         overlays.forEach { $0.orderFrontRegardless() }
         lastMotion = CACurrentMediaTime()
         updatePosition(NSEvent.mouseLocation, now: lastMotion)
-        updateNativeHide()
     }
 
     func spaceChanged() {
         guard isRunning else { return }
+        releaseNativeHide()
         overlays.forEach { $0.orderFrontRegardless() }
         updatePosition(NSEvent.mouseLocation, now: CACurrentMediaTime())
-        updateNativeHide()
-        displayLink?.isPaused = false
     }
 
-    func updateNativeHide() {
-        // The public API only guarantees cursor changes in the foreground.
-        guard isRunning, !clickOnly, !prefs.keepNative, NSApp.isActive,
-              let activeOverlay, activeOverlay.isVisible else {
-            releaseNativeHide()
-            return
-        }
-        guard !ownsNativeHide else { return }
-        ownsNativeHide = CGDisplayHideCursor(CGMainDisplayID()) == .success
+    func activationChanged(isActive: Bool) {
+        replacementIsSuspended = !isActive
+        if visibility.needsRestore { releaseNativeHide() }
+        refreshPlacement()
     }
 
-    func releaseNativeHide() {
-        guard ownsNativeHide else { return }
-        if CGDisplayShowCursor(CGMainDisplayID()) == .success {
-            ownsNativeHide = false
+    func menuTrackingChanged(started: Bool) {
+        menuTrackingDepth = max(0, menuTrackingDepth + (started ? 1 : -1))
+        refreshPlacement()
+    }
+
+    func refreshPlacement() {
+        guard isRunning else { releaseNativeHide(); return }
+        updatePosition(NSEvent.mouseLocation, now: CACurrentMediaTime())
+    }
+
+    func cancelAnimations() {
+        overlays.forEach { $0.pointerLayer.reset() }
+    }
+
+    private func updateNativeHide(eligible: Bool) {
+        // Quartz ignores the display parameter, but the hide count is balanced.
+        // A failed hide is attempted again only after leaving the eligible region.
+        if !visibility.needsRestore { restoreAttempts = 0 }
+        visibility.update(eligible: eligible, hide: {
+            CGDisplayHideCursor(CGMainDisplayID()) == .success
+        }, show: {
+            CGDisplayShowCursor(CGMainDisplayID()) == .success
+        })
+        if visibility.needsRestore {
+            scheduleRestore()
         } else {
-            logger.error("Cursor release failed; will retry on the next lifecycle change.")
+            restoreRetry?.cancel()
+            restoreRetry = nil
         }
+    }
+
+    private func releaseNativeHide() { updateNativeHide(eligible: false) }
+
+    private func scheduleRestore() {
+        guard restoreRetry == nil, restoreAttempts < 3 else { return }
+        restoreAttempts += 1
+        logger.error("Quartz could not restore the cursor. Retrying the owned show.")
+        let retry = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.restoreRetry = nil
+            self.releaseNativeHide()
+            if !self.visibility.needsRestore { self.refreshPlacement() }
+        }
+        restoreRetry = retry
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: retry)
+    }
+
+    private func canReplace(at mouse: CGPoint, on overlay: CursorOverlayWindow) -> Bool {
+        guard !prefs.keepNative, !clickOnly, !replacementIsSuspended, menuTrackingDepth == 0, NSApp.isActive,
+              overlay.isVisible, let window = replacementWindow, window.isVisible, window.isKeyWindow, window.isOnActiveSpace,
+              window.attachedSheet == nil else { return false }
+        // Limit replacement to the contents of our own key window. Menus,
+        // other apps, and system UI keep their native cursor.
+        return window.convertToScreen(window.contentLayoutRect).contains(mouse)
     }
 
     func tap(secondary: Bool) {
@@ -118,16 +162,14 @@ final class CursorController {
         lastMotion = now
         if clickOnly { revealUntil = now + 0.43 }
         updatePosition(NSEvent.mouseLocation, now: now)
-        displayLink?.isPaused = false
+        if clickOnly { displayLink?.isPaused = false }
 
         let count = cadence.record(at: now)
         let reduce = reduceMotion
-        let energy = prefs.intensity.energy(clicks: count, reactive: prefs.reactive)
-        let celebration = prefs.celebration && count >= 5 && count.isMultiple(of: 2) && !reduce
-        let effects = prefs.effects && (prefs.intensity != .barelyThere || reduce)
         if prefs.animate, let activeOverlay {
-            activeOverlay.pointerLayer.poke(energy: energy, secondary: secondary, motion: !reduce,
-                                           effects: effects, celebration: celebration, reduced: reduce)
+            let response = ClickResponse(prefs: prefs, count: count, reduced: reduce)
+            activeOverlay.pointerLayer.poke(energy: response.energy, secondary: secondary, motion: !reduce,
+                                           effects: response.effects, celebration: response.celebration, reduced: reduce)
         }
         onClick?()
     }
@@ -144,7 +186,8 @@ final class CursorController {
             self?.handleMouse(event)
         }) else { return false }
         guard let local = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { [weak self] event in
-            self?.handleMouse(event)
+            // Settings controls and previews keep their interactions local.
+            self?.handleMouse(event, animateClick: false)
             return event
         }) else {
             NSEvent.removeMonitor(global)
@@ -154,13 +197,14 @@ final class CursorController {
         return true
     }
 
-    private func handleMouse(_ event: NSEvent) {
+    private func handleMouse(_ event: NSEvent, animateClick: Bool = true) {
         guard isRunning else { return }
         switch event.type {
         case .leftMouseDown, .rightMouseDown, .otherMouseDown:
-            tap(secondary: event.type != .leftMouseDown)
+            if animateClick { tap(secondary: event.type != .leftMouseDown) }
+            else { refreshPlacement() }
         default:
-            if clickOnly, revealUntil == 0 { return }
+            if clickOnly, revealUntil == 0, !visibility.ownsHide { return }
             if let displayLink, !displayLink.isPaused { return }
             lastMotion = CACurrentMediaTime()
             updatePosition(NSEvent.mouseLocation, now: lastMotion)
@@ -178,7 +222,7 @@ final class CursorController {
         }
         if clickOnly, now >= revealUntil {
             revealUntil = 0
-            activeOverlay?.pointerLayer.place(.zero, visible: false)
+            if !visibility.ownsHide { activeOverlay?.pointerLayer.place(.zero, visible: false) }
             displayLink?.isPaused = true
         } else if !clickOnly, now - lastMotion > 0.085 {
             if prefs.directionBounce, now - lastFastMotion < 0.15, now - lastTurn > 0.22, !reduceMotion {
@@ -192,26 +236,42 @@ final class CursorController {
     private func updatePosition(_ mouse: CGPoint, now: CFTimeInterval) {
         guard let overlay = overlays.first(where: { $0.frame.contains(mouse) }) else {
             activeOverlay?.pointerLayer.place(.zero, visible: false)
-            releaseNativeHide()
+            if activeOverlay != nil { releaseNativeHide() }
+            activeOverlay = nil
+            displayLink?.isPaused = true
             lastMouse = nil
             return
         }
         if overlay !== activeOverlay {
             activeOverlay?.pointerLayer.place(.zero, visible: false)
             activeOverlay = overlay
+            let wasTracking = displayLink?.isPaused == false
             displayLink?.invalidate()
             let link = overlay.display.displayLink(target: self, selector: #selector(tick(_:)))
+            link.isPaused = !wasTracking
             link.add(to: .main, forMode: .common)
             displayLink = link
             lastDirection = .zero
+            lastFastMotion = 0
         }
         let visible = !clickOnly || now < revealUntil
-        let point = CGPoint(x: mouse.x - overlay.frame.minX, y: mouse.y - overlay.frame.minY)
-        overlay.pointerLayer.place(point, visible: visible)
+        // Place the character before hiding the native cursor on a new display.
+        let eligible = visible && canReplace(at: mouse, on: overlay)
+        if eligible, !visibility.ownsHide {
+            overlay.pointerLayer.place(local(mouse, in: overlay.frame), visible: true)
+        }
+        if !visibility.needsRestore { updateNativeHide(eligible: eligible) }
+        let location = visibility.ownsHide ? mouse :
+            CursorGeometry.companion(at: mouse, in: overlay.frame, size: prefs.size)
+        overlay.pointerLayer.place(local(location, in: overlay.frame), visible: visible || visibility.ownsHide)
         if let lastMouse, visible, prefs.directionBounce, !reduceMotion {
             noteTurn(from: lastMouse, to: mouse, now: now, layer: overlay.pointerLayer)
         }
         lastMouse = mouse
+    }
+
+    private func local(_ point: CGPoint, in frame: CGRect) -> CGPoint {
+        CGPoint(x: point.x - frame.minX, y: point.y - frame.minY)
     }
 
     private func noteTurn(from previous: CGPoint, to point: CGPoint, now: CFTimeInterval, layer: PointerLayer) {
@@ -233,8 +293,7 @@ final class CursorController {
         for overlay in overlays {
             let scale = overlay.display.backingScaleFactor
             if images[scale] == nil {
-                images[scale] = PointerArt.image(style: prefs.style, palette: prefs.palette, size: prefs.size,
-                                                scale: scale, outline: prefs.outline, shadow: prefs.shadow)
+                images[scale] = PointerArt.image(prefs: prefs, scale: scale)
             }
             guard let image = images[scale] else {
                 trackingFailed()

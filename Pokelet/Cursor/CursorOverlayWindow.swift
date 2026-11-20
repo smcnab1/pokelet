@@ -1,4 +1,4 @@
-// Adapted from Quiet Pointer's CursorOverlayWindow. MIT, see LICENSE.
+// Adapted from Quiet Pointer's CursorOverlayWindow. MIT, see QuietPointer-MIT.txt.
 import AppKit
 
 final class CursorOverlayWindow: NSWindow {

@@ -1,4 +1,4 @@
-// Adapted from Quiet Pointer's HotKeyManager. MIT, see LICENSE.
+// Adapted from Quiet Pointer's HotKeyManager. MIT, see QuietPointer-MIT.txt.
 import Carbon.HIToolbox
 import Foundation
 
@@ -7,6 +7,7 @@ final class HotKeys {
     private static let signature: OSType = 0x504B4C54 // PKLT
     private var registered: [Action: (Shortcut, EventHotKeyRef)] = [:]
     private var handler: EventHandlerRef?
+    private var pressed: Set<Action> = []
     var onFire: ((Action) -> Void)?
 
     func contains(_ action: Action) -> Bool { registered[action] != nil }
@@ -26,8 +27,11 @@ final class HotKeys {
     }
 
     func unregister(_ action: Action) {
+        pressed.remove(action)
         if let (_, ref) = registered.removeValue(forKey: action) { UnregisterEventHotKey(ref) }
     }
+
+    func clearPressedKeys() { pressed.removeAll() }
 
     func stop() {
         Action.allCases.forEach(unregister)
@@ -37,7 +41,9 @@ final class HotKeys {
 
     private func installHandler() -> Bool {
         if handler != nil { return true }
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        let spec = [kEventHotKeyPressed, kEventHotKeyReleased].map {
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32($0))
+        }
         let callback: EventHandlerUPP = { _, event, context in
             guard let event, let context else { return OSStatus(eventNotHandledErr) }
             var id = EventHotKeyID()
@@ -47,11 +53,18 @@ final class HotKeys {
             guard status == noErr, id.signature == HotKeys.signature,
                   let action = Action(rawValue: id.id) else { return OSStatus(eventNotHandledErr) }
             let keys = Unmanaged<HotKeys>.fromOpaque(context).takeUnretainedValue()
-            // Keep menu tracking and lifecycle changes out of the Carbon callback.
-            DispatchQueue.main.async { [weak keys] in keys?.onFire?(action) }
+            if GetEventKind(event) == UInt32(kEventHotKeyReleased) {
+                keys.pressed.remove(action)
+            } else if keys.pressed.insert(action).inserted {
+                // Keep menu tracking and lifecycle changes out of the Carbon callback.
+                DispatchQueue.main.async { [weak keys] in
+                    guard let keys, keys.contains(action) else { return }
+                    keys.onFire?(action)
+                }
+            }
             return noErr
         }
-        return InstallEventHandler(GetApplicationEventTarget(), callback, 1, &spec,
+        return InstallEventHandler(GetApplicationEventTarget(), callback, spec.count, spec,
                                    Unmanaged.passUnretained(self).toOpaque(), &handler) == noErr
     }
 }

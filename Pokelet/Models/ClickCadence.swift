@@ -1,4 +1,4 @@
-// Adapted from Quiet Pointer's ClickMonitor. MIT, see LICENSE.
+// Adapted from Quiet Pointer's ClickMonitor. MIT, see QuietPointer-MIT.txt.
 import Foundation
 
 struct ClickCadence {
@@ -16,5 +16,17 @@ struct ClickCadence {
         var count = 0
         for earlier in times where time - earlier <= Self.window { count += 1 }
         return count
+    }
+}
+
+struct ClickResponse {
+    let energy: Double
+    let effects: Bool
+    let celebration: Bool
+
+    init(prefs: Preferences, count: Int, reduced: Bool) {
+        energy = prefs.intensity.energy(clicks: count, reactive: prefs.reactive)
+        effects = prefs.effects && (prefs.intensity != .barelyThere || reduced)
+        celebration = prefs.celebration && count >= 5 && count.isMultiple(of: 2) && !reduced
     }
 }

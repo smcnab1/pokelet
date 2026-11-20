@@ -15,7 +15,7 @@ enum PointerStyle: String, Codable, CaseIterable, Identifiable {
 }
 
 enum Palette: String, Codable, CaseIterable, Identifiable {
-    case original, peach, mint, lilac, ice
+    case original, white, black, custom, peach, mint, lilac, ice
     var id: Self { self }
     var title: String { rawValue.capitalized }
 }
@@ -76,14 +76,16 @@ struct Shortcut: Codable, Equatable {
 }
 
 struct Preferences: Codable, Equatable {
+    static let defaultCustomColour: UInt32 = 0xE58B51
     static let sizeRange: ClosedRange<Double> = 44...132
     var style = PointerStyle.finger
     var palette = Palette.original
+    var customColour: UInt32?
     var size: Double = 76
     var outline = true
     var shadow = true
     var clickOnly = false
-    var keepNative = false
+    var keepNative = true
     var intensity = Intensity.playful
     var animate = true
     var effects = true
@@ -111,6 +113,7 @@ struct PreferenceStore {
             return Preferences()
         }
         prefs.size = min(max(prefs.size, Preferences.sizeRange.lowerBound), Preferences.sizeRange.upperBound)
+        if let colour = prefs.customColour, colour > 0xFFFFFF { prefs.customColour = nil }
         prefs.volume = min(max(prefs.volume, 0), 1)
         if !prefs.pointerShortcut.isAssignable || prefs.pointerShortcut == .presentationDefault {
             prefs.pointerShortcut = .pointerDefault

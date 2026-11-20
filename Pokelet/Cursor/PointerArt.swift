@@ -2,19 +2,34 @@ import AppKit
 
 /// Original artwork in a 104-point, top-down coordinate space.
 enum PointerArt {
-    static let canvas: CGFloat = 104
-    static let hotspot = CGPoint(x: 32, y: 15)
+    static let canvas = CursorGeometry.canvas
     static let ink = RGB(0x27213A)
 
     struct RGB {
+        let hex: UInt32
         let r: CGFloat
         let g: CGFloat
         let b: CGFloat
 
         init(_ hex: UInt32) {
+            self.hex = hex
             r = CGFloat((hex >> 16) & 255) / 255
             g = CGFloat((hex >> 8) & 255) / 255
             b = CGFloat(hex & 255) / 255
+        }
+
+        var luminance: CGFloat {
+            func linear(_ value: CGFloat) -> CGFloat {
+                value <= 0.04045 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
+            }
+            return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b)
+        }
+
+        func shaded(by factor: CGFloat) -> RGB {
+            let red = UInt32(r * factor * 255)
+            let green = UInt32(g * factor * 255)
+            let blue = UInt32(b * factor * 255)
+            return RGB(red << 16 | green << 8 | blue)
         }
 
         func color(_ alpha: CGFloat = 1) -> CGColor {
@@ -22,20 +37,53 @@ enum PointerArt {
         }
     }
 
-    static func colors(for style: PointerStyle, palette: Palette) -> (RGB, RGB) {
-        switch palette {
+    struct Inks {
+        let primary: RGB
+        let secondary: RGB
+        let outline: RGB
+        let halo: RGB
+        let highlight: RGB
+        let shadow: RGB
+        let accent: RGB
+        let marks: RGB
+        let effect: RGB
+    }
+
+    static func inks(for prefs: Preferences) -> Inks {
+        let (primary, secondary) = fills(for: prefs)
+        let darkFill = (primary.luminance + secondary.luminance) / 2 < 0.18
+        let lightInk = RGB(0xFFF8EE)
+        let accent = drawings[prefs.style]?.accentColor ?? lightInk
+        let lightFill = prefs.palette == .white || prefs.palette == .custom
+        let marks = darkFill ? lightInk : lightFill || prefs.style == .finger || prefs.style == .catPaw ? ink : accent
+        let effect = prefs.palette == .black ? lightInk : prefs.palette == .white ? ink : secondary
+        return Inks(primary: primary, secondary: secondary, outline: darkFill ? lightInk : ink,
+                    halo: darkFill ? ink : lightInk, highlight: lightInk, shadow: ink,
+                    accent: accent, marks: marks, effect: effect)
+    }
+
+    private static func fills(for prefs: Preferences) -> (RGB, RGB) {
+        switch prefs.palette {
+        case .black: (RGB(0x000000), RGB(0x000000))
+        case .white: (RGB(0xFFFFFF), RGB(0xF3F2F1))
+        case .custom: customFills(prefs.customColour ?? Preferences.defaultCustomColour)
         case .peach: (RGB(0xFFE3BA), RGB(0xF38D68))
         case .mint: (RGB(0xD9F9C0), RGB(0x6BD0AD))
         case .lilac: (RGB(0xF7DFFF), RGB(0xA78CE8))
         case .ice: (RGB(0xE4FFFF), RGB(0x7AC1F0))
         case .original:
-            switch style {
+            switch prefs.style {
             case .finger: (RGB(0xFFEEB3), RGB(0xF4A36F))
             case .catPaw: (RGB(0xF8EFFF), RGB(0xBAA6EC))
             case .foamFinger: (RGB(0xFFB396), RGB(0xF26871))
             case .comicArrow: (RGB(0xD5FFF0), RGB(0x6DD8C2))
             }
         }
+    }
+
+    private static func customFills(_ hex: UInt32) -> (RGB, RGB) {
+        let colour = RGB(hex)
+        return (colour, colour.shaded(by: 0.75))
     }
 
     private struct Art {
@@ -115,28 +163,27 @@ enum PointerArt {
         }, accent: nil, accentColor: RGB(0xF4FFF9))
     ]
 
-    static func image(style: PointerStyle, palette: Palette, size: CGFloat, scale: CGFloat,
-                      outline: Bool, shadow: Bool) -> CGImage? {
-        let pixels = Int(ceil(size * scale))
+    static func image(prefs: Preferences, scale: CGFloat) -> CGImage? {
+        let pixels = Int(ceil(prefs.size * scale))
         guard let context = CGContext(data: nil, width: pixels, height: pixels, bitsPerComponent: 8,
                                       bytesPerRow: 0, space: CGColorSpace(name: CGColorSpace.sRGB)!,
                                       bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
         let factor = CGFloat(pixels) / canvas
         context.translateBy(x: 0, y: CGFloat(pixels))
         context.scaleBy(x: factor, y: -factor)
-        draw(in: context, style: style, palette: palette, outline: outline, shadow: shadow)
+        draw(in: context, prefs: prefs)
         return context.makeImage()
     }
 
-    static func draw(in context: CGContext, style: PointerStyle, palette: Palette,
-                     outline: Bool, shadow: Bool) {
+    static func draw(in context: CGContext, prefs: Preferences) {
+        let style = prefs.style
         guard let art = drawings[style] else { return }
-        let (light, dark) = colors(for: style, palette: palette)
+        let inks = inks(for: prefs)
 
-        if shadow {
+        if prefs.shadow {
             context.saveGState()
-            context.setShadow(offset: CGSize(width: 0, height: -2), blur: 4, color: ink.color(0.48))
-            context.setFillColor(dark.color())
+            context.setShadow(offset: CGSize(width: 0, height: -2), blur: 4, color: inks.shadow.color(0.48))
+            context.setFillColor(inks.secondary.color())
             context.addPath(art.silhouette)
             context.fillPath()
             context.restoreGState()
@@ -145,7 +192,7 @@ enum PointerArt {
         context.addPath(art.silhouette)
         context.clip()
         if let gradient = CGGradient(colorsSpace: CGColorSpace(name: CGColorSpace.sRGB),
-                                     colors: [light.color(), dark.color()] as CFArray, locations: [0, 1]) {
+                                     colors: [inks.primary.color(), inks.secondary.color()] as CFArray, locations: [0, 1]) {
             context.drawLinearGradient(gradient, start: CGPoint(x: 16, y: 20), end: CGPoint(x: 91, y: 99),
                                        options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
         }
@@ -153,24 +200,29 @@ enum PointerArt {
 
         context.setLineJoin(.round)
         context.setLineCap(.round)
-        if outline {
+        if prefs.outline {
             context.addPath(art.silhouette)
-            context.setStrokeColor(ink.color())
+            context.setStrokeColor(inks.halo.color(0.72))
+            context.setLineWidth(5.5)
+            context.strokePath()
+            context.addPath(art.silhouette)
+            context.setStrokeColor(inks.outline.color())
             context.setLineWidth(3.4)
             context.strokePath()
         }
         if let accent = art.accent {
             context.addPath(accent)
-            context.setFillColor(art.accentColor.color(style == .finger ? 0.72 : 0.95))
+            context.setFillColor(inks.accent.color(style == .finger ? 0.72 : 0.95))
             context.fillPath()
         }
         context.addPath(art.marks)
-        context.setStrokeColor(style == .foamFinger || style == .comicArrow ? art.accentColor.color(0.92) : ink.color(0.55))
+        context.setStrokeColor(inks.marks.color(0.9))
         context.setLineWidth(style == .foamFinger ? 2.9 : 2.05)
         context.strokePath()
 
         // A tiny keyed highlight identifies the contact point on the painted tip.
-        context.setFillColor(CGColor(gray: 1, alpha: 0.96))
+        let hotspot = CursorGeometry.hotspot
+        context.setFillColor(inks.highlight.color(0.96))
         context.fillEllipse(in: CGRect(x: hotspot.x - 1.35, y: hotspot.y - 1.35, width: 2.7, height: 2.7))
     }
 

@@ -46,7 +46,7 @@ enum MakeIcon {
         }
         ctx.translateBy(x: 90, y: 203)
         ctx.scaleBy(x: 7.55, y: 7.55)
-        PointerArt.draw(in: ctx, style: .finger, palette: .original, outline: true, shadow: true)
+        PointerArt.draw(in: ctx, prefs: Preferences())
         let url = URL(fileURLWithPath: CommandLine.arguments[1])
         let output = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil)!
         CGImageDestinationAddImage(output, ctx.makeImage()!, nil)

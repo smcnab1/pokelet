@@ -25,6 +25,15 @@ final class CoreTests: XCTestCase {
                        Intensity.unhinged.energy(clicks: 800, reactive: true))
     }
 
+    func testEachIntensityIncreasesAndReduceMotionPreventsCelebration() {
+        let energies = Intensity.allCases.map { $0.energy(clicks: 2, reactive: true) }
+        XCTAssertEqual(Set(energies).count, 5)
+        XCTAssertEqual(energies, energies.sorted())
+        let prefs = Preferences()
+        XCTAssertTrue(ClickResponse(prefs: prefs, count: 6, reduced: false).celebration)
+        XCTAssertFalse(ClickResponse(prefs: prefs, count: 6, reduced: true).celebration)
+    }
+
     func testSettingsRoundTripAndReset() throws {
         let suite = "PokeletTests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
@@ -34,6 +43,8 @@ final class CoreTests: XCTestCase {
         XCTAssertFalse(prefs.soundEnabled)
         XCTAssertFalse(prefs.lastEnabled)
         prefs.style = .catPaw
+        prefs.palette = .custom
+        prefs.customColour = 0xAA04BB
         prefs.size = 88
         prefs.sound = .wood
         prefs.reducedMotion = true
@@ -44,6 +55,23 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(PreferenceStore(defaults: defaults).load(), prefs)
         store.reset()
         XCTAssertEqual(store.load(), Preferences())
+    }
+
+    func testVersionOnePreferencesWithoutCustomColourArePreserved() throws {
+        let suite = "PokeletTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = PreferenceStore(defaults: defaults)
+        var original = Preferences()
+        original.palette = .mint
+        original.keepNative = false
+        original.restoreEnabled = true
+        original.size = 99
+        let encoded = try JSONEncoder().encode(original)
+        var legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        legacy.removeValue(forKey: "customColour")
+        defaults.set(try JSONSerialization.data(withJSONObject: legacy), forKey: PreferenceStore.key)
+        XCTAssertEqual(store.load(), original)
     }
 
     func testMalformedSettingsAndRangeRecovery() throws {

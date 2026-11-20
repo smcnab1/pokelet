@@ -1,3 +1,5 @@
+import Foundation
+
 struct InteractionMode {
     private(set) var pointer = false
     private(set) var presentation = false
@@ -22,13 +24,15 @@ struct PresentationButtons {
     enum Phase { case down, drag, up }
     // Only gestures whose down event we blocked should lose their drag and up.
     private var suppressed: UInt64 = 0
+    var hasSuppressedButtons: Bool { suppressed != 0 }
 
-
-    mutating func blocks(button: Int, phase: Phase) -> Bool {
+    mutating func blocks(button: Int, phase: Phase, allowNew: Bool = true) -> Bool {
         guard (0..<64).contains(button) else { return false }
         let bit = UInt64(1) << button
         switch phase {
         case .down:
+            // A fresh down supersedes any missing up for this button.
+            guard allowNew else { suppressed &= ~bit; return false }
             suppressed |= bit
             return true
         case .drag:

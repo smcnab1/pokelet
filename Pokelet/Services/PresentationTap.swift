@@ -1,10 +1,10 @@
-import AppKit
 import ApplicationServices
 import Carbon.HIToolbox
 import CoreGraphics
+import Foundation
 
 final class PresentationTap {
-    enum StartResult { case ready, accessibilityRequired, inputMonitoringRequired, unavailable }
+    enum StartResult { case ready, accessibilityRequired, inputMonitoringRequired, mouseButtonsHeld, unavailable }
 
     private static let mouseTypes: [CGEventType] = [
         .leftMouseDown, .leftMouseUp, .leftMouseDragged,
@@ -15,19 +15,26 @@ final class PresentationTap {
 
     var onClick: ((Bool) -> Void)?
     var onStop: ((String?) -> Void)?
+    var isMenuBarExit: ((CGPoint) -> Bool)?
     private var port: CFMachPort?
     private var source: CFRunLoopSource?
     private var healthCheck: Timer?
-    private var blocking = false
     private var generation = 0
-    private var buttons = PresentationButtons()
+    private var finishPending = false
+    private var monitorsKeyboardPermission = false
+    private var session = PresentationSession()
 
-    var isActive: Bool { blocking }
+    static var accessibilityGranted: Bool { AXIsProcessTrusted() }
+    static var inputMonitoringGranted: Bool { CGPreflightListenEventAccess() }
+    private var now: TimeInterval { ProcessInfo.processInfo.systemUptime }
 
-    func start() -> StartResult {
-        stop()
-        guard AXIsProcessTrusted() else { return .accessibilityRequired }
+    func start(shortcutReady: Bool) -> StartResult {
+        guard shortcutReady, !session.isDraining, !session.isActive else { return .unavailable }
+        invalidate()
+        guard Self.accessibilityGranted else { return .accessibilityRequired }
         guard !IsSecureEventInputEnabled() else { return .unavailable }
+        guard !(0..<32).contains(where: isButtonDown) else { return .mouseButtonsHeld }
+        monitorsKeyboardPermission = Self.inputMonitoringGranted
 
         let callback: CGEventTapCallBack = { _, type, event, context in
             guard let context else { return Unmanaged.passUnretained(event) }
@@ -38,32 +45,41 @@ final class PresentationTap {
                                           options: .defaultTap, eventsOfInterest: Self.mask,
                                           callback: callback, userInfo: Unmanaged.passUnretained(self).toOpaque()),
               let inputSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0) else {
-            return CGPreflightListenEventAccess() ? .unavailable : .inputMonitoringRequired
+            return Self.inputMonitoringGranted ? .unavailable : .inputMonitoringRequired
         }
 
         port = tap
         source = inputSource
         CFRunLoopAddSource(CFRunLoopGetMain(), inputSource, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
-        // macOS can quietly remove unauthorised bits at creation. Verify that
-        // mouse suppression and the Escape event are both present.
-        guard CFMachPortIsValid(tap), CGEvent.tapIsEnabled(tap: tap), hasCompleteMask() else {
-            stop()
-            return CGPreflightListenEventAccess() ? .unavailable : .inputMonitoringRequired
+        // macOS may silently remove unauthorised events from the requested mask.
+        let tapReady = isHealthy && hasCompleteMask()
+        guard session.arm(tapReady: tapReady, shortcutReady: shortcutReady, now: now) else {
+            invalidate()
+            return Self.inputMonitoringGranted ? .unavailable : .inputMonitoringRequired
         }
 
-        buttons = PresentationButtons()
-        blocking = true
-        let timer = Timer(timeInterval: 0.40, repeats: true) { [weak self] _ in self?.checkHealth() }
+        let timer = Timer(timeInterval: 0.20, repeats: true) { [weak self] _ in self?.checkHealth() }
         timer.tolerance = 0.05
         RunLoop.main.add(timer, forMode: .common)
         healthCheck = timer
         return .ready
     }
 
+    /// End suppression of new clicks immediately. Keep only matched releases briefly.
     func stop() {
-        blocking = false
+        finishPending = false
         generation += 1
+        session.end(now: now)
+        if !session.isDraining { invalidate() }
+    }
+
+    /// Used when the tap is unhealthy, the session suspends, or the app quits.
+    func invalidate() {
+        finishPending = false
+        monitorsKeyboardPermission = false
+        generation += 1
+        session.reset()
         healthCheck?.invalidate()
         healthCheck = nil
         if let port { CGEvent.tapEnable(tap: port, enable: false) }
@@ -80,6 +96,18 @@ final class PresentationTap {
 
     func requestInputMonitoring() { _ = CGRequestListenEventAccess() }
 
+    private var isHealthy: Bool {
+        guard let port else { return false }
+        return CFMachPortIsValid(port) && CGEvent.tapIsEnabled(tap: port) &&
+            Self.accessibilityGranted && !IsSecureEventInputEnabled() &&
+            (!monitorsKeyboardPermission || Self.inputMonitoringGranted)
+    }
+
+    private func isButtonDown(_ index: UInt32) -> Bool {
+        guard let button = CGMouseButton(rawValue: index) else { return false }
+        return CGEventSource.buttonState(.combinedSessionState, button: button)
+    }
+
     private func hasCompleteMask() -> Bool {
         var count: UInt32 = 0
         guard CGGetEventTapList(0, nil, &count) == .success, count > 0 else { return false }
@@ -87,34 +115,48 @@ final class PresentationTap {
         var info = Array(repeating: CGEventTapInformation(), count: Int(capacity))
         guard CGGetEventTapList(capacity, &info, &count) == .success, count <= capacity else { return false }
         return info.prefix(Int(count)).contains {
-            $0.tappingProcess == getpid() && $0.enabled &&
+            $0.tappingProcess == getpid() && $0.enabled && $0.options == .defaultTap &&
                 $0.tapPoint == .cgSessionEventTap && $0.eventsOfInterest & Self.mask == Self.mask
         }
     }
 
     private func checkHealth() {
-        guard blocking, let port else { return }
-        if !CFMachPortIsValid(port) || !CGEvent.tapIsEnabled(tap: port) ||
-            !AXIsProcessTrusted() || IsSecureEventInputEnabled() {
-            finish("Presentation Mode ended because macOS changed input access.")
+        guard !finishPending else { return }
+        switch session.recovery(tapHealthy: isHealthy, now: now) {
+        case .tapUnavailable:
+            let wasActive = session.isActive
+            invalidate()
+            if wasActive { onStop?("Presentation Mode ended because macOS changed input access.") }
+        case .leaseExpired:
+            stop()
+            onStop?("Presentation Mode ended after 15 minutes.")
+        case .drainExpired:
+            invalidate()
+        case nil:
+            if !session.isActive, !session.isDraining { invalidate() }
         }
     }
 
     private func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         let original = Unmanaged.passUnretained(event)
-        guard blocking else { return original }
         switch type {
         case .tapDisabledByTimeout, .tapDisabledByUserInput:
-            finish("Presentation Mode ended because macOS stopped the event tap.")
+            finishFromTap("Presentation Mode ended because macOS stopped the event tap.", tapLost: true)
             return original
         case .keyDown:
             let code = event.getIntegerValueField(.keyboardEventKeycode)
-            if code == kVK_Escape { finish(nil) }
+            if session.isActive, code == kVK_Escape { finishFromTap(nil) }
             return original
         default:
             break
         }
 
+        // Enforce the time bound even if main run loop timer delivery is delayed.
+        switch session.recovery(tapHealthy: true, now: now) {
+        case .leaseExpired: finishFromTap("Presentation Mode ended after 15 minutes.")
+        case .drainExpired: session.reset()
+        default: break
+        }
         let phase: PresentationButtons.Phase
         switch type {
         case .leftMouseDown, .rightMouseDown, .otherMouseDown: phase = .down
@@ -124,24 +166,33 @@ final class PresentationTap {
         }
 
         let button = Int(event.getIntegerValueField(.mouseEventButtonNumber))
-        guard buttons.blocks(button: button, phase: phase) else { return original }
-        if phase == .down {
+        guard session.suppresses(button: button, phase: phase) else { return original }
+        if type == .leftMouseDown, isMenuBarExit?(event.unflippedLocation) == true {
+            // The indicator itself is a stop control. Consume this gesture too.
+            finishFromTap(nil)
+        } else if phase == .down {
             let current = generation
             DispatchQueue.main.async { [weak self] in
-                guard let self, self.blocking, self.generation == current else { return }
+                guard let self, self.session.isActive, self.generation == current else { return }
                 self.onClick?(type != .leftMouseDown)
             }
         }
         return nil
     }
 
-    private func finish(_ reason: String?) {
-        blocking = false
+    private func finishFromTap(_ reason: String?, tapLost: Bool = false) {
+        let wasActive = session.isActive
+        if tapLost { session.reset() }
+        else { session.end(now: now) }
+        guard !finishPending else { return }
+        finishPending = true
+        generation += 1
         let current = generation
         DispatchQueue.main.async { [weak self] in
             guard let self, self.generation == current else { return }
-            self.stop()
-            self.onStop?(reason)
+            self.finishPending = false
+            if !self.session.isDraining { self.invalidate() }
+            if wasActive { self.onStop?(reason) }
         }
     }
 }

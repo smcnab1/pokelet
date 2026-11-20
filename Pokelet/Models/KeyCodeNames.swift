@@ -1,3 +1,4 @@
+// Adapted from Quiet Pointer's KeyCodeNames. MIT, see QuietPointer-MIT.txt.
 import Foundation
 import Carbon.HIToolbox
 

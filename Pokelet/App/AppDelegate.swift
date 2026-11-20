@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var status: NSStatusItem?
     private var tokens: [AnyCancellable] = []
     private var settings: NSWindow?
+    private var systemSleeping = false
     private var screenSleeping = false
     private var sessionInactive = false
 
@@ -20,16 +21,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         status = item
         menu.delegate = self
         item.menu = menu
+        model.isMenuBarExit = { [weak item] point in
+            guard let button = item?.button, let window = button.window, window.isVisible else { return false }
+            return window.convertToScreen(button.convert(button.bounds, to: nil)).contains(point)
+        }
         model.$mode.sink { [weak self] mode in self?.refreshStatus(mode) }.store(in: &tokens)
         model.start()
         menuNeedsUpdate(menu)
 
         let local = NotificationCenter.default
         observe(NSApplication.didChangeScreenParametersNotification, center: local) { $0.model.screensChanged() }
+        observe(NSWindow.didBecomeKeyNotification, center: local) { $0.model.keyWindowChanged() }
+        observe(NSWindow.didResignKeyNotification, center: local) { $0.model.keyWindowChanged() }
+        observe(NSMenu.didBeginTrackingNotification, center: local) { $0.model.menuTrackingChanged(started: true) }
+        observe(NSMenu.didEndTrackingNotification, center: local) { $0.model.menuTrackingChanged(started: false) }
+        for name in [NSWindow.didMoveNotification, NSWindow.didResizeNotification] {
+            local.publisher(for: name).sink { [weak self] note in
+                guard let self, let window = note.object as? NSWindow, window === self.settings else { return }
+                self.model.keyWindowChanged()
+            }.store(in: &tokens)
+        }
         let workspace = NSWorkspace.shared.notificationCenter
+        observe(NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, center: workspace) {
+            $0.model.motionPreferenceChanged()
+        }
         observe(NSWorkspace.activeSpaceDidChangeNotification, center: workspace) { $0.model.spaceChanged() }
-        observe(NSWorkspace.willSleepNotification, center: workspace) { $0.setScreenSleeping(true) }
-        observe(NSWorkspace.didWakeNotification, center: workspace) { $0.setScreenSleeping(false) }
+        observe(NSWorkspace.willSleepNotification, center: workspace) { $0.systemSleeping = true; $0.updateSuspension() }
+        observe(NSWorkspace.didWakeNotification, center: workspace) { $0.systemSleeping = false; $0.updateSuspension() }
         observe(NSWorkspace.screensDidSleepNotification, center: workspace) { $0.setScreenSleeping(true) }
         observe(NSWorkspace.screensDidWakeNotification, center: workspace) { $0.setScreenSleeping(false) }
         observe(NSWorkspace.sessionDidResignActiveNotification, center: workspace) { $0.setSessionInactive(true) }
@@ -59,10 +77,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         addSubmenu("Animation Intensity", choices: Intensity.allCases.map(\.title),
                    selected: model.prefs.intensity.rawValue, action: #selector(changeIntensity(_:)))
         add("Click Sounds", action: #selector(toggleSound), checked: model.prefs.soundEnabled)
-        add("Presentation Mode", action: #selector(togglePresentation), checked: model.mode.presentation,
-            shortcut: model.prefs.presentationShortcut.title)
+        if model.mode.presentation {
+            add("End Presentation Mode", action: #selector(togglePresentation), shortcut: Shortcut.presentationDefault.title)
+        } else if model.presentationAvailable {
+            add("Start Presentation Mode", action: #selector(togglePresentation), shortcut: Shortcut.presentationDefault.title)
+        } else {
+            add("Presentation Settings…", action: #selector(openPresentationSettings))
+        }
         if let issue = model.presentationMessage ?? model.pointerMessage {
-            let notice = NSMenuItem(title: "Open Settings for Details…", action: #selector(openSettings), keyEquivalent: "")
+            let action = model.presentationMessage == nil ? #selector(openSettings) : #selector(openPresentationSettings)
+            let notice = NSMenuItem(title: "Open Settings for Details…", action: action, keyEquivalent: "")
             notice.target = self
             notice.toolTip = issue
             menu.addItem(notice)
@@ -112,18 +136,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func changeIntensity(_ sender: NSMenuItem) { model.update(\.intensity, Intensity.allCases[sender.tag]) }
     @objc private func quit() { NSApp.terminate(nil) }
 
+    @objc private func openPresentationSettings() {
+        model.settingsPage = .presentation
+        openSettings()
+    }
+
     @objc private func openSettings() {
         if settings == nil {
-            let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 698, height: 525),
+            let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 770, height: 595),
                                   styleMask: [.titled, .closable, .miniaturizable, .resizable],
                                   backing: .buffered, defer: false)
             window.title = "Pokelet Settings"
-            window.minSize = CGSize(width: 650, height: 475)
+            window.contentMinSize = CGSize(width: 670, height: 470)
             window.isReleasedWhenClosed = false
             window.contentViewController = NSHostingController(rootView: SettingsView(model: model))
-            window.setFrameAutosaveName("PokeletSettings")
-            if !window.setFrameUsingName("PokeletSettings") { window.center() }
+            let frameName = model.isAcceptanceProfile ? "PokeletSettingsAcceptance" : "PokeletSettings"
+            window.setFrameAutosaveName(frameName)
+            if !window.setFrameUsingName(frameName) { window.center() }
             settings = window
+            model.setReplacementWindow(window)
         }
         NSApp.activate()
         settings?.makeKeyAndOrderFront(nil)
@@ -149,7 +180,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func updateSuspension() {
-        if screenSleeping || sessionInactive { model.pause() }
+        if systemSleeping || screenSleeping || sessionInactive { model.pause() }
         else { model.resume() }
     }
 }

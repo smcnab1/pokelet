@@ -19,23 +19,23 @@ final class PointerLayer {
             layer.lineCap = .round
             layer.opacity = 0
         }
-        effectOutline.strokeColor = PointerArt.ink.color(0.82)
         effectOutline.lineWidth = 5
         effect.lineWidth = 2.45
     }
 
     func configure(image: CGImage, prefs: Preferences) {
+        reset()
         style = prefs.style
         let scale = CGFloat(image.width) / prefs.size
         withoutLayerActions {
             character.contents = image
             character.contentsScale = scale
             character.bounds = CGRect(x: 0, y: 0, width: prefs.size, height: prefs.size)
-            character.anchorPoint = CGPoint(x: PointerArt.hotspot.x / PointerArt.canvas,
-                                            y: 1 - PointerArt.hotspot.y / PointerArt.canvas)
+            character.anchorPoint = CursorGeometry.layerAnchor
             character.position = .zero
-            let (_, dark) = PointerArt.colors(for: prefs.style, palette: prefs.palette)
-            effect.strokeColor = dark.color()
+            let inks = PointerArt.inks(for: prefs)
+            effect.strokeColor = inks.effect.color()
+            effectOutline.strokeColor = (inks.effect.luminance < 0.18 ? inks.highlight : inks.shadow).color(0.85)
         }
     }
 
