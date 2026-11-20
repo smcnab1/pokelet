@@ -35,7 +35,11 @@ final class AppModel: ObservableObject {
         let arguments = ProcessInfo.processInfo.arguments
         let acceptance = arguments.contains("--acceptance-profile")
         isAcceptanceProfile = acceptance
+        #if DEBUG
         presentationAvailable = acceptance && arguments.contains("--presentation-acceptance")
+        #else
+        presentationAvailable = false
+        #endif
         let defaults = acceptance
             ? UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.Acceptance")! : .standard
         let store = PreferenceStore(defaults: defaults)
