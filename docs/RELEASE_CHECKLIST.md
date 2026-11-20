@@ -4,7 +4,13 @@
 
 - Run the macOS workflow on the exact release commit. It runs tests, builds and analyses Debug, then verifies a universal Release ZIP and the DMG layout.
 - Confirm the `arm64` and `x86_64` slices target macOS 14.0. Confirm the extracted app signature, bundled licences and sounds, archive integrity and the SHA-256 checksum.
-- Record results in [VERIFICATION.md](../VERIFICATION.md). Keep Presentation Mode disabled in ordinary launches while the [live input recovery checks](INTERACTIVE_ACCEPTANCE.md) remain open. Run those tests on a desktop only with the owner’s approval.
+- Record results in [VERIFICATION.md](../VERIFICATION.md). Keep Presentation Mode disabled in Release builds while the [live input recovery checks](INTERACTIVE_ACCEPTANCE.md) remain open. Run those tests on a desktop only with the owner’s approval.
+
+## Build the public beta DMG
+
+From the clean release commit, run `./script/package_dmg.sh --beta`. The script verifies both architectures, the ad hoc app signature, the DMG layout, the bundled resources and the SHA-256 checksum. It writes the unnotarised DMG and checksum to `dist/beta/`. Mounting for verification is read-only and does not open Finder or launch Pokelet.
+
+Publish both files in a GitHub prerelease tagged at the build commit. State the ad hoc signing and lack of notarisation before installation instructions. Point users to [Apple’s Open Anyway guidance](https://support.apple.com/en-gb/102445) for the per-app option where available. Once published, download the public DMG and compare its checksum. Record live installation coverage only if observed on an approved desktop.
 
 ## Build the trusted DMG
 
@@ -20,7 +26,7 @@ The script builds the universal app, signs the app with hardened runtime and a s
 
 For a local layout test with the candidate build, run `./script/package_dmg.sh --check-layout dist/candidate/Pokelet.app`. The image is temporary. CI uses this mode without signing credentials and retains only explicitly requested, short-lived ad hoc ZIP artefacts.
 
-## Publish
+## Publish a notarised release
 
 1. On a separate test Mac or VM, download the staged DMG through a browser and install by dragging to Applications. Check launch, the default permission experience, pointer restoration, and a repeat launch from Applications.
 2. When Apple acceptance, Gatekeeper and the applicable safety checks are verified, publish the matching version tag and GitHub Release with the DMG and checksum. Use [the changelog](../CHANGELOG.md) to write short release notes. Include the macOS minimum and the current Presentation Mode status.

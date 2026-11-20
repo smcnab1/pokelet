@@ -8,9 +8,13 @@ case "$MODE" in
     [[ $# -eq 2 ]] || exit 2
     APP="$(cd "$2" && pwd -P)"
     ;;
-  --notarise)
+  --beta|--notarise)
     [[ $# -le 2 ]] || exit 2
-    OUT="${2:-$ROOT/dist/notarised}"
+    if [[ "$MODE" == --beta ]]; then
+      OUT="${2:-$ROOT/dist/beta}"
+    else
+      OUT="${2:-$ROOT/dist/notarised}"
+    fi
     if [[ -e "$OUT" || -L "$OUT" ]]; then
       printf 'Choose a new output directory. Existing output was preserved.\n' >&2
       exit 2
@@ -19,27 +23,30 @@ case "$MODE" in
       printf 'Commit all source changes before packaging a release.\n' >&2
       exit 2
     fi
-    IDENTITY="${POKELET_DEVELOPER_ID:-}"
-    PROFILE="${POKELET_NOTARY_PROFILE:-}"
-    if [[ ! "$IDENTITY" =~ ^[[:xdigit:]]{40}$ || -z "$PROFILE" ]]; then
-      printf 'Set POKELET_DEVELOPER_ID to the local certificate fingerprint and POKELET_NOTARY_PROFILE to a Keychain profile.\n' >&2
-      exit 2
-    fi
-    if ! /usr/bin/security find-identity -v -p codesigning | /usr/bin/awk -v id="$IDENTITY" '
-      toupper($2) == toupper(id) && $0 ~ /"Developer ID Application: / { found = 1 }
-      END { exit !found }
-    '; then
-      printf 'A valid Developer ID Application identity with its private key is required.\n' >&2
-      exit 2
-    fi
-    xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null
     mkdir -p "$(dirname "$OUT")"
     ;;
   *)
-    printf 'Usage: %s --check-layout path/to/Pokelet.app | --notarise [output-directory]\n' "$0" >&2
+    printf 'Usage: %s --check-layout path/to/Pokelet.app | --beta [output-directory] | --notarise [output-directory]\n' "$0" >&2
     exit 2
     ;;
 esac
+
+if [[ "$MODE" == --notarise ]]; then
+  IDENTITY="${POKELET_DEVELOPER_ID:-}"
+  PROFILE="${POKELET_NOTARY_PROFILE:-}"
+  if [[ ! "$IDENTITY" =~ ^[[:xdigit:]]{40}$ || -z "$PROFILE" ]]; then
+    printf 'Set POKELET_DEVELOPER_ID to the local certificate fingerprint and POKELET_NOTARY_PROFILE to a Keychain profile.\n' >&2
+    exit 2
+  fi
+  if ! /usr/bin/security find-identity -v -p codesigning | /usr/bin/awk -v id="$IDENTITY" '
+    toupper($2) == toupper(id) && $0 ~ /"Developer ID Application: / { found = 1 }
+    END { exit !found }
+  '; then
+    printf 'A valid Developer ID Application identity with its private key is required.\n' >&2
+    exit 2
+  fi
+  xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null
+fi
 
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/pokelet-dmg.XXXXXX")"
 MOUNT="$STAGE/mounted"
@@ -53,18 +60,32 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [[ "$MODE" == --notarise ]]; then
+if [[ "$MODE" != --check-layout ]]; then
   "$ROOT/script/package_release.sh" "$STAGE/candidate"
   APP="$STAGE/candidate/Pokelet.app"
+fi
+
+if [[ "$MODE" == --notarise ]]; then
   /usr/bin/codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
   /usr/bin/codesign --verify --deep --strict "$APP"
+fi
+
+if [[ "$MODE" == --beta ]]; then
+  for arch in arm64 x86_64; do
+    /usr/bin/codesign --display --arch "$arch" --verbose=4 "$APP" 2>&1 | /usr/bin/awk '
+      $0 == "Signature=adhoc" { adhoc = 1 }
+      END { exit !adhoc }
+    '
+  done
 fi
 
 mkdir "$STAGE/layout" "$MOUNT"
 /usr/bin/ditto "$APP" "$STAGE/layout/Pokelet.app"
 ln -s /Applications "$STAGE/layout/Applications"
 VERSION="$(/usr/bin/plutil -extract CFBundleShortVersionString raw "$APP/Contents/Info.plist")"
-DMG="$STAGE/Pokelet-$VERSION.dmg"
+SUFFIX=""
+if [[ "$MODE" == --beta ]]; then SUFFIX="-unnotarised"; fi
+DMG="$STAGE/Pokelet-$VERSION$SUFFIX.dmg"
 /usr/bin/hdiutil create -quiet -volname Pokelet -fs HFS+ -format UDZO -srcfolder "$STAGE/layout" "$DMG"
 
 if [[ "$MODE" == --notarise ]]; then
