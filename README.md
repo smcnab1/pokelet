@@ -20,7 +20,7 @@ A free, open-source animated cursor for macOS. Pick a cartoon pointing hand, a c
 ## Get Pokelet
 
 1. Download and open the DMG. Drag **Pokelet** into **Applications**, then eject the disk image.
-2. Open Pokelet from **Applications**. If macOS blocks it because Apple cannot verify the developer, proceed only if you trust the source and the [published checksum](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) matches. In **System Settings → Privacy & Security**, choose **Open Anyway** if macOS offers it, then confirm. If macOS reports damage or malware, stop. [Apple’s guidance](https://support.apple.com/en-gb/102445)
+2. Open Pokelet from **Applications**. If macOS blocks it because Apple cannot verify the developer, proceed only if you trust the source and the [published checksum](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) matches. In **System Settings → Privacy & Security**, choose **Open Anyway** if macOS offers it, then confirm. If macOS reports damage or malware, stop. [Apple’s guidance](https://support.apple.com/102445)
 3. Click the hand icon in the menu bar and choose **Enable Pointer**, or press **Control–Option–P**.
 
 You can also [build locally with Xcode](#build-from-source) from the [beta source tag](https://github.com/smcnab1/pokelet/tree/v1.1.0-beta.1).

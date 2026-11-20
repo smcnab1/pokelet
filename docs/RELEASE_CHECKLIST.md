@@ -10,7 +10,7 @@
 
 From the clean release commit, run `./script/package_dmg.sh --beta`. The script verifies both architectures, the ad hoc app signature, the DMG layout, the bundled resources and the SHA-256 checksum. It writes the unnotarised DMG and checksum to `dist/beta/`. Mounting for verification is read-only and does not open Finder or launch Pokelet.
 
-Publish both files in a GitHub prerelease tagged at the build commit. State the ad hoc signing and lack of notarisation before installation instructions. Point users to [Apple’s Open Anyway guidance](https://support.apple.com/en-gb/102445) for the per-app option where available. Once published, download the public DMG and compare its checksum. Record live installation coverage only if observed on an approved desktop.
+Publish both files in a GitHub prerelease tagged at the build commit. State the ad hoc signing and lack of notarisation before installation instructions. Point users to [Apple’s Open Anyway guidance](https://support.apple.com/102445) for the per-app option where available. Once published, download the public DMG and compare its checksum. Record live installation coverage only if observed on an approved desktop.
 
 ## Build the trusted DMG
 
