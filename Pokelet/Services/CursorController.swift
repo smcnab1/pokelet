@@ -151,9 +151,10 @@ final class CursorController {
         guard !prefs.keepNative, !clickOnly, !replacementIsSuspended, menuTrackingDepth == 0, NSApp.isActive,
               overlay.isVisible, let window = replacementWindow, window.isVisible, window.isKeyWindow, window.isOnActiveSpace,
               window.attachedSheet == nil else { return false }
-        // Limit replacement to the contents of our own key window. Menus,
-        // other apps, and system UI keep their native cursor.
-        return window.convertToScreen(window.contentLayoutRect).contains(mouse)
+        // An active Settings window can still sit behind another window.
+        // AppKit's hit test skips our click-through overlay.
+        guard window.convertToScreen(window.contentLayoutRect).contains(mouse) else { return false }
+        return NSWindow.windowNumber(at: mouse, belowWindowWithWindowNumber: 0) == window.windowNumber
     }
 
     func tap(secondary: Bool) {

@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         status = item
         menu.delegate = self
         item.menu = menu
@@ -122,9 +122,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func refreshStatus(_ mode: InteractionMode) {
         guard let button = status?.button else { return }
         button.image = StatusIcon.image(active: mode.showsPointer, presentation: mode.presentation)
-        button.title = mode.presentation ? "  Clicks Paused" : ""
-        button.imagePosition = .imageLeading
-        button.toolTip = mode.presentation ? "Pokelet · Clicks paused · Escape or ⌃⌥T resumes"
+        // Keep the recovery control in the same menu bar slot when clicks pause.
+        button.imagePosition = .imageOnly
+        button.toolTip = mode.presentation ? "Pokelet · Clicks paused · Click here, Escape or ⌃⌥T to resume"
             : mode.pointer ? "Pokelet · Pointer enabled" : "Pokelet · Pointer off"
         button.setAccessibilityLabel(button.toolTip)
     }
