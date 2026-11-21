@@ -38,7 +38,7 @@ node --test Tests/Browser/releases.test.mjs
 NODE_PATH="$qa_dir/node_modules" node Tests/Browser/landing.mjs
 ```
 
-Set `POKELET_SITE_URL` for a different local server, or `POKELET_CHROME_CHANNEL=chrome` to use installed Google Chrome. The suite covers cursor variants across the page, alignment, mouse and keyboard reactions, restoration, touch, dragging, text editing, responsive navigation and automated accessibility. Release fixtures cover asset validation, pagination, cache expiry and fallback.
+Set `POKELET_SITE_URL` for a different local server, or `POKELET_CHROME_CHANNEL=chrome` to use installed Google Chrome. The suite covers cursor variants across the page, alignment, mouse and keyboard reactions, restoration, touch, dragging, text editing, responsive navigation and automated accessibility. It also checks mobile navigation and download links when JavaScript is disabled or the site script fails to load. Release fixtures cover beta and stable downloads, asset validation, pagination, cache expiry, API failures and recovery.
 
 ## How downloads are selected
 

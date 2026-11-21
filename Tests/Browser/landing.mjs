@@ -236,17 +236,35 @@ async function touchscreen(browser) {
 }
 
 async function downloads(browser) {
-  const page = await browser.newPage();
+  const page = await browser.newPage({ acceptDownloads: true });
   const notes = page.getByRole("link", { name: "Latest Release Notes", exact: true });
   try {
     await page.clock.install();
     let requests = 0;
     let state = "beta";
+    const downloadSelected = async (release) => {
+      const asset = release.assets[0];
+      await page.route(asset.browser_download_url, (route) => route.fulfill({
+        body: "Fixture DMG",
+        headers: { "Content-Disposition": `attachment; filename="${asset.name}"` },
+      }));
+      const [download] = await Promise.all([
+        page.waitForEvent("download"),
+        page.locator(".hero a[data-download]").click(),
+      ]);
+      assert.equal(download.url(), asset.browser_download_url);
+      assert.equal(download.suggestedFilename(), asset.name);
+    };
     await page.route(`${api}?*`, (route) => {
       requests += 1;
       const headers = { "Access-Control-Allow-Origin": "*", "Access-Control-Expose-Headers": "Link" };
       const nextPage = new URL(route.request().url()).searchParams.get("page") === "2";
       if (state === "failure") return route.fulfill({ status: 503, body: "Service unavailable", headers });
+      if (state === "rate-limit") return route.fulfill({ status: 403, body: "API rate limit exceeded", headers });
+      if (state === "offline") return route.abort("internetdisconnected");
+      if (state === "malformed") return route.fulfill({ body: "{", contentType: "application/json", headers });
+      if (state === "no-dmg") return route.fulfill({ json: [beta, { ...newerBeta, assets: [] }], headers });
+      if (state === "timeout") return; // Leave the request pending until the site's deadline.
       if (state === "stable" && !nextPage) headers.Link = '<https://api.github.com/repositories/123/releases?page=2>; rel="next"';
       const json = state === "beta" ? [beta] : state === "new" ? [beta, newerBeta] : nextPage ? [stable] : [newerBeta];
       return route.fulfill({ json, headers });
@@ -262,16 +280,28 @@ async function downloads(browser) {
     await waitForDownload(page, newerBeta.assets[0].browser_download_url);
     assert.equal(await notes.getAttribute("href"), newerBeta.html_url);
     assert.equal(requests, 2);
+    await downloadSelected(newerBeta);
     state = "stable";
     await page.clock.fastForward(300_100);
     await waitForDownload(page, stable.assets[0].browser_download_url);
     assert.equal(await notes.getAttribute("href"), stable.html_url);
     assert.equal(requests, 4);
-    state = "failure";
-    await page.clock.fastForward(300_100);
-    await waitForDownload(page, listing);
-    assert.equal(await notes.getAttribute("href"), listing);
-    assert.equal(await page.locator(".hero .download-label").textContent(), "Get Pokelet");
+    await downloadSelected(stable);
+
+    for (const failure of ["failure", "rate-limit", "offline", "malformed", "no-dmg", "timeout"]) {
+      state = failure;
+      const request = page.waitForRequest((request) => request.url().startsWith(`${api}?`));
+      await page.clock.fastForward(300_100);
+      await request;
+      if (failure === "timeout") await page.clock.fastForward(5_100);
+      await waitForDownload(page, listing);
+      assert.equal(await notes.getAttribute("href"), listing);
+      assert.equal(await page.locator(".hero .download-label").textContent(), "Get Pokelet");
+
+      state = "beta";
+      await page.clock.fastForward(60_100);
+      await waitForDownload(page, beta.assets[0].browser_download_url);
+    }
   } finally {
     await page.close();
   }
