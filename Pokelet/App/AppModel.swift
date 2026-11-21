@@ -66,7 +66,7 @@ final class AppModel: ObservableObject {
         }
         cursor.onClick = { [weak self] in self?.playClickSound() }
         cursor.onTrackingFailure = { [weak self] in self?.trackingFailed() }
-        tap.onClick = { [weak self] secondary in self?.cursor.tap(secondary: secondary) }
+        tap.onClick = { [weak self] point, secondary in self?.cursor.tap(at: point, secondary: secondary) }
         tap.onStop = { [weak self] reason in self?.endPresentation(reason) }
         registerShortcuts()
         refreshLoginStatus()

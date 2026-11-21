@@ -4,24 +4,18 @@ import QuartzCore
 final class PointerLayer {
     let root = CALayer()
     private let character = CALayer()
-    private let effect = CAShapeLayer()
-    private let effectOutline = CAShapeLayer()
+    private let impacts = CALayer()
+    private let artwork = CALayer()
+    private var effectInk = CGColor(gray: 1, alpha: 1)
+    private var effectEdge = CGColor(gray: 0, alpha: 1)
     private var style = PointerStyle.finger
     private var retiringCharacter: CALayer?
 
     init() {
-        root.addSublayer(effectOutline)
-        root.addSublayer(effect)
-        root.addSublayer(character)
-        root.isHidden = true
-        for layer in [effectOutline, effect] {
-            layer.fillColor = nil
-            layer.lineJoin = .round
-            layer.lineCap = .round
-            layer.opacity = 0
-        }
-        effectOutline.lineWidth = 5
-        effect.lineWidth = 2.45
+        root.addSublayer(impacts)
+        root.addSublayer(artwork)
+        artwork.addSublayer(character)
+        artwork.isHidden = true
     }
 
     func configure(image: CGImage, prefs: Preferences, crossfade: Bool = false) {
@@ -36,8 +30,8 @@ final class PointerLayer {
             character.anchorPoint = CursorGeometry.layerAnchor
             character.position = .zero
             let inks = PointerArt.inks(for: prefs)
-            effect.strokeColor = inks.effect.color()
-            effectOutline.strokeColor = (inks.effect.luminance < 0.18 ? inks.highlight : inks.shadow).color(0.85)
+            effectInk = inks.effect.color()
+            effectEdge = (inks.effect.luminance < 0.18 ? inks.highlight : inks.shadow).color(0.85)
         }
         if let previous { transition(from: previous) }
     }
@@ -55,7 +49,7 @@ final class PointerLayer {
     }
 
     private func transition(from previous: CALayer) {
-        withoutLayerActions { root.insertSublayer(previous, below: character) }
+        withoutLayerActions { artwork.insertSublayer(previous, below: character) }
         retiringCharacter = previous
         CATransaction.begin()
         CATransaction.setCompletionBlock { [weak self, weak previous] in
@@ -76,8 +70,8 @@ final class PointerLayer {
 
     func place(_ location: CGPoint, visible: Bool) {
         withoutLayerActions {
-            root.position = location
-            root.isHidden = !visible
+            artwork.position = location
+            artwork.isHidden = !visible
         }
     }
 
@@ -85,12 +79,13 @@ final class PointerLayer {
         retiringCharacter?.removeFromSuperlayer()
         retiringCharacter = nil
         character.removeAllAnimations()
-        effect.removeAllAnimations()
-        effectOutline.removeAllAnimations()
+        impacts.sublayers?.forEach { $0.removeFromSuperlayer() }
         withoutLayerActions { character.opacity = 1 }
     }
 
-    func poke(energy: Double, secondary: Bool, motion: Bool, effects: Bool, celebration: Bool,
+    var artworkPosition: CGPoint { artwork.position }
+
+    func poke(at point: CGPoint, energy: Double, secondary: Bool, motion: Bool, effects: Bool, celebration: Bool,
               reduced: Bool) {
         if motion {
             let next = CAKeyframeAnimation(keyPath: "transform")
@@ -107,7 +102,7 @@ final class PointerLayer {
             character.add(next, forKey: "motion")
         }
         if effects {
-            impact(secondary: secondary, celebration: celebration, reduced: reduced, energy: energy)
+            impact(at: point, secondary: secondary, celebration: celebration, reduced: reduced, energy: energy)
         } else if reduced {
             let blink = CAKeyframeAnimation(keyPath: "opacity")
             blink.values = [1.0, 0.76, 1.0]
@@ -128,7 +123,7 @@ final class PointerLayer {
         CATransform3DScale(CATransform3DMakeRotation(angle, 0, 0, 1), x, y, 1)
     }
 
-    private func impact(secondary: Bool, celebration: Bool, reduced: Bool, energy: Double) {
+    private func impact(at point: CGPoint, secondary: Bool, celebration: Bool, reduced: Bool, energy: Double) {
         let path: CGPath
         if reduced { path = Self.ring }
         else if style == .catPaw, !secondary, !celebration { path = Self.pawPrint }
@@ -148,12 +143,31 @@ final class PointerLayer {
         expand.duration = animation.duration
         animation.animations = [fade, expand]
 
-        withoutLayerActions {
-            for layer in [effectOutline, effect] {
-                layer.path = path
-                layer.add(animation, forKey: "impact")
-            }
+        let mark = CALayer()
+        mark.position = point
+        mark.opacity = 0
+        for (width, colour) in [(5.0, effectEdge), (2.45, effectInk)] {
+            let stroke = CAShapeLayer()
+            stroke.path = path
+            stroke.fillColor = nil
+            stroke.lineJoin = .round
+            stroke.lineCap = .round
+            stroke.lineWidth = width
+            stroke.strokeColor = colour
+            mark.addSublayer(stroke)
         }
+
+        // The mark belongs to the viewport, so pointer movement cannot drag an
+        // existing impact away from the mouse-down point.
+        if let marks = impacts.sublayers, marks.count >= 16 {
+            marks.first?.removeFromSuperlayer()
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        CATransaction.setCompletionBlock { [weak mark] in mark?.removeFromSuperlayer() }
+        impacts.addSublayer(mark)
+        mark.add(animation, forKey: "impact")
+        CATransaction.commit()
     }
 
     private static let ring = CGPath(ellipseIn: CGRect(x: -15, y: -15, width: 30, height: 30), transform: nil)

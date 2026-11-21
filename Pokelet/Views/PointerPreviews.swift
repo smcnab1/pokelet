@@ -313,7 +313,7 @@ private struct PreviewCanvas: NSViewRepresentable {
             guard prefs.animate else { return }
             let response = ClickResponse(prefs: prefs, count: cadence.record(at: CACurrentMediaTime()),
                                          reduced: reducedMotion)
-            pointer.poke(energy: response.energy, secondary: secondary, motion: !reducedMotion,
+            pointer.poke(at: trackedPoint ?? pointer.artworkPosition, energy: response.energy, secondary: secondary, motion: !reducedMotion,
                          effects: response.effects, celebration: response.celebration, reduced: reducedMotion)
         }
 

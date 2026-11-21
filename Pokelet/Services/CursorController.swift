@@ -153,7 +153,7 @@ final class CursorController {
         return NSWindow.windowNumber(at: mouse, belowWindowWithWindowNumber: 0) == window.windowNumber
     }
 
-    func tap(secondary: Bool) {
+    func tap(at point: CGPoint, secondary: Bool) {
         guard isRunning else { return }
         let now = CACurrentMediaTime()
         lastMotion = now
@@ -163,9 +163,9 @@ final class CursorController {
 
         let count = cadence.record(at: now)
         let reduce = reduceMotion
-        if prefs.animate, let activeOverlay {
+        if prefs.animate, let overlay = overlays.first(where: { $0.frame.contains(point) }) {
             let response = ClickResponse(prefs: prefs, count: count, reduced: reduce)
-            activeOverlay.pointerLayer.poke(energy: response.energy, secondary: secondary, motion: !reduce,
+            overlay.pointerLayer.poke(at: local(point, in: overlay.frame), energy: response.energy, secondary: secondary, motion: !reduce,
                                            effects: response.effects, celebration: response.celebration, reduced: reduce)
         }
         onClick?()
@@ -198,8 +198,13 @@ final class CursorController {
         guard isRunning else { return }
         switch event.type {
         case .leftMouseDown, .rightMouseDown, .otherMouseDown:
-            if animateClick { tap(secondary: event.type != .leftMouseDown) }
-            else { refreshPlacement() }
+            if animateClick {
+                let point = event.window?.convertPoint(toScreen: event.locationInWindow)
+                    ?? event.cgEvent?.unflippedLocation ?? event.locationInWindow
+                tap(at: point, secondary: event.type != .leftMouseDown)
+            } else {
+                refreshPlacement()
+            }
         default:
             if clickOnly, revealUntil == 0, !visibility.ownsHide { return }
             if let displayLink, !displayLink.isPaused { return }
