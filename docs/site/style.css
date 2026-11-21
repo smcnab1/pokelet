@@ -474,6 +474,8 @@ details p { max-width: 65ch; padding: 0 1.5rem 1rem .18rem; }
 }
 
 @media (max-width: 53rem) {
+  .site-header { position: static; }
+  .site-header:has(.menu-toggle:not([hidden])) { position: sticky; }
   .header-inner {
     grid-template-columns: 1fr auto auto auto;
     grid-template-areas: "brand toggle cursor download" "nav nav nav nav";
@@ -483,14 +485,16 @@ details p { max-width: 65ch; padding: 0 1.5rem 1rem .18rem; }
   }
   .menu-toggle { display: inline-flex; }
   .primary-nav {
-    display: none;
-    position: absolute;
-    inset: 100% 0 auto;
     gap: 0 1.02rem;
     padding: .55rem 1rem;
     border: 1px solid var(--line);
     border-radius: 0 0 .8rem .8rem;
     background: var(--surface);
+  }
+  .menu-toggle:not([hidden]) + .primary-nav {
+    display: none;
+    position: absolute;
+    inset: 100% 0 auto;
   }
   .menu-toggle[aria-expanded="true"] + .primary-nav { display: grid; grid-template-columns: 1fr 1fr; }
   .nav-github { margin-inline-start: 0; }

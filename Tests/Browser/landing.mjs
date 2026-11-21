@@ -293,21 +293,41 @@ async function accessibility(browser) {
   }
 }
 
+async function staticFallback(browser, javaScriptEnabled) {
+  const page = await browser.newPage({ javaScriptEnabled, viewport: { width: 320, height: 640 } });
+  try {
+    if (javaScriptEnabled) await page.route("**/site.js", (route) => route.abort());
+    await page.goto(url);
+    const destinations = await page.locator("a[data-download], a[data-release-notes]")
+      .evaluateAll((links) => links.map((link) => link.href));
+    assert.deepEqual(destinations, Array(5).fill(listing));
+    assert.equal(await picker(page).isVisible(), false);
+    assert.equal(await page.getByRole("button", { name: "Menu" }).isVisible(), false);
+    const installation = page.getByRole("link", { name: "Installation", exact: true });
+    assert(await installation.isVisible(), "Installation must remain visible without site.js");
+    await page.getByRole("link", { name: "FAQ", exact: true }).click();
+    assert.equal(new URL(page.url()).hash, "#questions");
+    const heading = await page.locator("#faq-title").boundingBox();
+    const header = await page.locator(".site-header").boundingBox();
+    assert(heading.y >= header.y + header.height, "The fallback header must not cover the FAQ heading");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+  } finally {
+    await page.close();
+  }
+}
+
 for (const [name, engine] of [["Chromium", chromium], ["Firefox", firefox], ["WebKit", webkit]]) {
   const channel = engine === chromium ? process.env.POKELET_CHROME_CHANNEL : undefined;
   const browser = await engine.launch({ channel });
   try {
+    await staticFallback(browser, false);
+    await staticFallback(browser, true);
     await desktop(browser);
     await responsive(browser);
     if (engine !== firefox) await touchscreen(browser);
     if (engine === chromium) {
       await downloads(browser);
       await accessibility(browser);
-      const noScript = await browser.newPage({ javaScriptEnabled: false });
-      await noScript.goto(url);
-      await waitForDownload(noScript, listing);
-      assert.equal(await picker(noScript).isVisible(), false);
-      await noScript.close();
     }
     console.log(`${name} ${browser.version()} passed`);
   } finally {
