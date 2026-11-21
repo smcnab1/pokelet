@@ -25,6 +25,7 @@ jobs:
       - name: Record the toolchain
         id: toolchain
         run: |
+          git log -1 --format='Checked-out source %H (parents %P)'
           xcodebuild -version
           swift --version
           echo "xcode=$(xcodebuild -version | shasum -a 256 | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
@@ -57,6 +58,20 @@ jobs:
             -destination 'generic/platform=macOS' -derivedDataPath build/release \
             'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO analyze
+      - name: Verify the generated app metadata
+        run: |
+          verify_metadata() {
+            local configuration="$1" plist="$2/Contents/Info.plist" settings version build
+            settings=$(xcodebuild -project Pokelet.xcodeproj -scheme Pokelet -configuration "$configuration" \
+              -destination 'generic/platform=macOS' -showBuildSettings -json)
+            version=$(plutil -extract 0.buildSettings.MARKETING_VERSION raw - <<< "$settings")
+            build=$(plutil -extract 0.buildSettings.CURRENT_PROJECT_VERSION raw - <<< "$settings")
+            test "$(plutil -extract CFBundleShortVersionString raw "$plist")" = "$version"
+            test "$(plutil -extract CFBundleVersion raw "$plist")" = "$build"
+            printf 'Verified %s app metadata %s (%s)\n' "$configuration" "$version" "$build"
+          }
+          verify_metadata Debug build/debug/Build/Products/Debug/Pokelet.app
+          verify_metadata Release dist/candidate/Pokelet.app
       - name: Retain the ad hoc candidate for manual testing
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
