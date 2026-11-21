@@ -42,11 +42,12 @@ struct AnimationSettings: View {
     private var motionControls: some View {
         StudioSection("Motion and visibility") {
             StudioSwitch("Click-only mode", isOn: model.preference(\.clickOnly))
+                .disabled(model.prefs.presenterEffects.normal)
             StudioSwitch("Reduced Motion", isOn: model.preference(\.reducedMotion))
             StudioNote(systemReduceMotion ? "macOS Reduce Motion is on." :
                 "Reduced Motion uses brief fades for click feedback.")
             StudioSwitch("Wobble on sharp turns and stops", isOn: model.preference(\.directionBounce))
-                .disabled(reduced)
+                .disabled(reduced || model.prefs.presenterEffects.normal)
         }
     }
 
@@ -71,6 +72,7 @@ struct AnimationSettings: View {
                             .studioFont(.caption, weight: selected ? .semibold : .medium)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
+                            .frame(minHeight: largerText ? 32 : 28, alignment: .top)
                     }
                     .padding(.horizontal, 4)
                     .padding(.vertical, 8)

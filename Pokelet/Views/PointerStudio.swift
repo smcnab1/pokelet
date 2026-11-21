@@ -13,6 +13,7 @@ struct PointerStudio: View {
                 VStack(alignment: .leading, spacing: wide ? 14 : 9) {
                     CharacterPreview(prefs: model.prefs, stageHeight: stageHeight)
                     CharacterPicker(selection: model.preference(\.style))
+                        .disabled(model.prefs.presenterEffects.normal)
                 }
                 .frame(maxWidth: .infinity)
                 inspector
@@ -29,24 +30,33 @@ struct PointerStudio: View {
 
     private var inspector: some View {
         VStack(alignment: .leading, spacing: 18) {
+            StudioSection("Presenter effects") {
+                StudioSwitch("Enable Presenter Arm", isOn: model.preference(\.presenterEffects.normal))
+                StudioNote("A pointing glove extends from the bottom edge. Try it with the pointer off.")
+            }
+            Divider()
             StudioSection("Appearance") {
-                PalettePicker(model: model)
+                if !model.prefs.presenterEffects.normal { PalettePicker(model: model) }
                 StudioSlider(title: "Size", accessibilityTitle: "Pointer size",
                              displayValue: "\(Int(model.prefs.size)) pt",
                              spokenValue: "\(Int(model.prefs.size)) points",
                              range: Preferences.sizeRange, value: size)
                     .accessibilityIdentifier("studio.pointer.size")
-                StudioSwitch("Contrasting outline", isOn: model.preference(\.outline))
+                if !model.prefs.presenterEffects.normal {
+                    StudioSwitch("Contrasting outline", isOn: model.preference(\.outline))
+                }
                 StudioSwitch("Soft shadow", isOn: model.preference(\.shadow))
             }
             Divider()
             StudioSection("Behaviour") {
                 VStack(alignment: .leading, spacing: 6) {
-                    Picker("Display mode", selection: model.preference(\.keepNative)) {
-                        Text("Companion").tag(true)
-                        Text("Replace in Studio").tag(false)
+                    if !model.prefs.presenterEffects.normal {
+                        Picker("Display mode", selection: model.preference(\.keepNative)) {
+                            Text("Companion").tag(true)
+                            Text("Replace in Studio").tag(false)
+                        }
+                        .disabled(model.prefs.clickOnly)
                     }
-                    .disabled(model.prefs.clickOnly)
                     StudioNote(displayDescription)
                 }
                 StudioSwitch("Animate on click", isOn: model.preference(\.animate))
@@ -62,6 +72,7 @@ struct PointerStudio: View {
     }
 
     private var displayDescription: String {
+        if model.prefs.presenterEffects.normal { return "Presenter Arm keeps the Mac pointer visible." }
         if model.prefs.clickOnly { return "Click-only mode keeps the Mac pointer visible." }
         return model.prefs.keepNative ? "The character sits beside the Mac pointer." :
             "Replaces the pointer inside this window. In other apps it stays beside the Mac pointer."

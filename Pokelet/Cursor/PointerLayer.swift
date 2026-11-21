@@ -9,6 +9,8 @@ final class PointerLayer {
     private var effectInk = CGColor(gray: 1, alpha: 1)
     private var effectEdge = CGColor(gray: 0, alpha: 1)
     private var style = PointerStyle.finger
+    private var presenterArm = false
+    private var sleeve: PresenterSleeveLayer?
     private var retiringCharacter: CALayer?
 
     init() {
@@ -18,20 +20,35 @@ final class PointerLayer {
         artwork.isHidden = true
     }
 
-    func configure(image: CGImage, prefs: Preferences, crossfade: Bool = false) {
-        let previous = crossfade ? snapshotCharacter() : nil
+    func configure(image: CGImage, prefs: Preferences, presenterArm: Bool = false, crossfade: Bool = false) {
+        let previous = crossfade && !presenterArm && !self.presenterArm ? snapshotCharacter() : nil
         reset()
+        self.presenterArm = presenterArm
         style = prefs.style
         let scale = CGFloat(image.width) / prefs.size
         withoutLayerActions {
+            if presenterArm {
+                if sleeve == nil {
+                    let next = PresenterSleeveLayer()
+                    next.isHidden = true
+                    root.insertSublayer(next, below: impacts)
+                    sleeve = next
+                }
+                sleeve?.setScale(scale)
+            } else {
+                sleeve?.removeFromSuperlayer()
+                sleeve = nil
+                character.setAffineTransform(.identity)
+            }
             character.contents = image
             character.contentsScale = scale
             character.bounds = CGRect(x: 0, y: 0, width: prefs.size, height: prefs.size)
             character.anchorPoint = CursorGeometry.layerAnchor
             character.position = .zero
             let inks = PointerArt.inks(for: prefs)
-            effectInk = inks.effect.color()
-            effectEdge = (inks.effect.luminance < 0.18 ? inks.highlight : inks.shadow).color(0.85)
+            effectInk = presenterArm ? CGColor(gray: 1, alpha: 1) : inks.effect.color()
+            effectEdge = presenterArm ? PointerArt.ink.color() :
+                (inks.effect.luminance < 0.18 ? inks.highlight : inks.shadow).color(0.85)
         }
         if let previous { transition(from: previous) }
     }
@@ -68,10 +85,16 @@ final class PointerLayer {
         CATransaction.commit()
     }
 
-    func place(_ location: CGPoint, visible: Bool) {
+    func place(_ location: CGPoint, visible: Bool, viewport: CGRect = .zero) {
         withoutLayerActions {
             artwork.position = location
             artwork.isHidden = !visible
+            if visible, let sleeve {
+                let angle = sleeve.place(tip: location, viewport: viewport, size: character.bounds.width)
+                character.setAffineTransform(CGAffineTransform(rotationAngle: angle))
+            } else {
+                sleeve?.isHidden = true
+            }
         }
     }
 
@@ -87,7 +110,7 @@ final class PointerLayer {
 
     func poke(at point: CGPoint, energy: Double, secondary: Bool, motion: Bool, effects: Bool, celebration: Bool,
               reduced: Bool) {
-        if motion {
+        if motion && !presenterArm {
             let next = CAKeyframeAnimation(keyPath: "transform")
             next.duration = secondary ? 0.29 : 0.24
             next.keyTimes = [0, 0.17, 0.43, 0.70, 1]
@@ -103,16 +126,17 @@ final class PointerLayer {
         }
         if effects {
             impact(at: point, secondary: secondary, celebration: celebration, reduced: reduced, energy: energy)
-        } else if reduced {
+        }
+        if (presenterArm && motion) || (reduced && !effects) {
             let blink = CAKeyframeAnimation(keyPath: "opacity")
-            blink.values = [1.0, 0.76, 1.0]
+            blink.values = [1.0, presenterArm ? (secondary ? 0.85 : 0.92) : 0.76, 1.0]
             blink.duration = 0.15
             character.add(blink, forKey: "pulse")
         }
     }
 
     func wobble(turn: Double) {
-        guard character.animation(forKey: "motion") == nil else { return }
+        guard !presenterArm, character.animation(forKey: "motion") == nil else { return }
         let bounce = CAKeyframeAnimation(keyPath: "transform.rotation.z")
         bounce.values = [0, turn * 0.11, -turn * 0.035, 0]
         bounce.duration = 0.21
@@ -126,7 +150,7 @@ final class PointerLayer {
     private func impact(at point: CGPoint, secondary: Bool, celebration: Bool, reduced: Bool, energy: Double) {
         let path: CGPath
         if reduced { path = Self.ring }
-        else if style == .catPaw, !secondary, !celebration { path = Self.pawPrint }
+        else if !presenterArm, style == .catPaw, !secondary, !celebration { path = Self.pawPrint }
         else if secondary { path = Self.ring }
         else { path = celebration ? Self.celebration : Self.rays }
 
@@ -179,7 +203,9 @@ final class PointerLayer {
                     CGRect(x: -20, y: 3, width: 13, height: 10)] {
             path.addEllipse(in: dot)
         }
-        return path.copy()!
+        let bounds = path.boundingBoxOfPath
+        var centre = CGAffineTransform(translationX: -bounds.midX, y: -bounds.midY)
+        return path.copy(using: &centre)!
     }()
 
     private static let rays = burst(count: 5, sparks: false)

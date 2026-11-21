@@ -34,8 +34,9 @@ struct CharacterPreview: View {
     private var dark: Bool { testDark ?? (colourScheme == .dark) }
     private var ink: Color { dark ? Color(red: 0.96, green: 0.91, blue: 0.99) :
         Color(red: 0.24, green: 0.15, blue: 0.33) }
+    private var clickOnly: Bool { prefs.clickOnly && !prefs.presenterEffects.normal }
     private var hint: String {
-        if prefs.clickOnly { return "Click to reveal" }
+        if clickOnly { return "Click to reveal" }
         return prefs.animate ? "Move and click to try" : "Move to try"
     }
 
@@ -43,7 +44,7 @@ struct CharacterPreview: View {
         let shape = RoundedRectangle(cornerRadius: 19)
         VStack(spacing: 0) {
             HStack {
-                Label("Pointer preview", systemImage: "viewfinder")
+                StudioLabel("Pointer preview", symbol: "viewfinder")
                     .studioFont(.caption, weight: .semibold)
                 Spacer()
                 Button { testDark = !dark } label: {
@@ -58,17 +59,17 @@ struct CharacterPreview: View {
                           secondaryPress: secondaryPress)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             HStack(spacing: 10) {
-                Text(prefs.style.title)
+                Text(prefs.presenterEffects.normal ? "Presenter Arm" : prefs.style.title)
                     .studioFont(.body, weight: .semibold)
                 Spacer(minLength: 4)
                 if showsSecondaryClick {
                     Button { secondaryPress += 1 } label: {
-                        Label("Try secondary click", systemImage: "cursorarrow.click.2")
+                        StudioLabel("Try secondary click", symbol: "cursorarrow.click.2")
                             .studioFont(.caption, weight: .semibold)
                             .padding(6)
                     }
                     .buttonStyle(StudioButtonStyle(radius: 7))
-                    .disabled(!prefs.animate && !prefs.clickOnly)
+                    .disabled(!prefs.animate && !clickOnly)
                 } else {
                     Text(hint)
                         .studioFont(.caption)
@@ -139,6 +140,8 @@ private struct PreviewCanvas: NSViewRepresentable {
     final class StageButton: NSButton {
         private let pointer = PointerLayer()
         private var prefs = Preferences()
+        private var usesPresenterArm: Bool { prefs.presenterEffects.normal }
+        private var clickOnly: Bool { prefs.clickOnly && !usesPresenterArm }
         private var renderedArtwork: Preferences?
         private var renderedScale: CGFloat = 0
         private var reducedMotion = false
@@ -166,6 +169,10 @@ private struct PreviewCanvas: NSViewRepresentable {
 
         @available(*, unavailable)
         required init?(coder: NSCoder) { fatalError() }
+
+        // Keep the stage, artwork anchors and mouse locations in the same
+        // bottom-up coordinate space as the display overlays.
+        override var isFlipped: Bool { false }
 
         override func updateTrackingAreas() {
             super.updateTrackingAreas()
@@ -220,7 +227,7 @@ private struct PreviewCanvas: NSViewRepresentable {
         override func otherMouseDown(with event: NSEvent) { click(event, secondary: true) }
 
         func update(prefs: Preferences, reducedMotion: Bool, secondaryPress: Int) {
-            let styleChanged = self.prefs.style != prefs.style
+            let styleChanged = self.prefs.style != prefs.style || usesPresenterArm != prefs.presenterEffects.normal
             let visibilityChanged = self.prefs.clickOnly != prefs.clickOnly
             let motionChanged = self.reducedMotion != reducedMotion || self.prefs.animate != prefs.animate ||
                 self.prefs.effects != prefs.effects || self.prefs.celebration != prefs.celebration ||
@@ -234,9 +241,9 @@ private struct PreviewCanvas: NSViewRepresentable {
                 cancelStopTimer()
                 motion = CursorMotion()
             }
-            isEnabled = prefs.animate || prefs.clickOnly
-            setAccessibilityLabel(prefs.animate ? "Try primary click" : prefs.clickOnly ? "Reveal character" : "Pointer preview")
-            setAccessibilityHelp("Preview for \(prefs.style.title).")
+            isEnabled = prefs.animate || clickOnly
+            setAccessibilityLabel(prefs.animate ? "Try primary click" : clickOnly ? "Reveal character" : "Pointer preview")
+            setAccessibilityHelp(usesPresenterArm ? "Preview for Presenter Arm." : "Preview for \(prefs.style.title).")
             render(crossfade: styleChanged && !reducedMotion)
             if let lastSecondaryPress, lastSecondaryPress != secondaryPress { react(secondary: true) }
             lastSecondaryPress = secondaryPress
@@ -272,7 +279,7 @@ private struct PreviewCanvas: NSViewRepresentable {
             trackedPoint = point
             if previous == nil { render() } else { placeArtwork() }
 
-            guard prefs.directionBounce, !reducedMotion, !prefs.clickOnly || reveal != nil else { return }
+            guard !usesPresenterArm, prefs.directionBounce, !reducedMotion, !clickOnly || reveal != nil else { return }
             let now = CACurrentMediaTime()
             if let previous, let turn = motion.turn(from: previous, to: point, now: now) {
                 pointer.wobble(turn: turn)
@@ -299,8 +306,8 @@ private struct PreviewCanvas: NSViewRepresentable {
 
         private func react(secondary: Bool) {
             guard window?.isVisible == true, window?.isMiniaturized == false, !isHiddenOrHasHiddenAncestor,
-                  !visibleRect.isEmpty, prefs.animate || prefs.clickOnly else { return }
-            if prefs.clickOnly {
+                  !visibleRect.isEmpty, prefs.animate || clickOnly else { return }
+            if clickOnly {
                 cancelReveal()
                 let hide = DispatchWorkItem { [weak self] in
                     self?.reveal = nil
@@ -321,18 +328,23 @@ private struct PreviewCanvas: NSViewRepresentable {
             guard bounds.width > 0, bounds.height > 0 else { return }
             var artwork = Preferences()
             artwork.style = prefs.style
+            artwork.presenterEffects.normal = usesPresenterArm
             artwork.palette = prefs.palette
             artwork.customColour = prefs.customColour
             artwork.outline = prefs.outline
             artwork.shadow = prefs.shadow
-            artwork.size = trackedPoint == nil
-                ? min(prefs.size * 2.6, bounds.height * 1.13, bounds.width * 0.73) : prefs.size
+            artwork.size = prefs.size
+            if trackedPoint == nil {
+                artwork.size = usesPresenterArm
+                    ? min(prefs.size * 1.65, bounds.height * 0.85, bounds.width * 0.50)
+                    : min(prefs.size * 2.6, bounds.height * 1.13, bounds.width * 0.73)
+            }
             let scale = window?.backingScaleFactor ?? 2
             if renderedArtwork != artwork || renderedScale != scale,
-               let image = PointerArt.image(prefs: artwork, scale: scale) {
+               let image = PointerArt.image(prefs: artwork, scale: scale, presenterArm: usesPresenterArm) {
                 renderedArtwork = artwork
                 renderedScale = scale
-                pointer.configure(image: image, prefs: artwork, crossfade: crossfade)
+                pointer.configure(image: image, prefs: artwork, presenterArm: usesPresenterArm, crossfade: crossfade)
             }
             placeArtwork()
         }
@@ -340,11 +352,14 @@ private struct PreviewCanvas: NSViewRepresentable {
         private func placeArtwork() {
             guard let size = renderedArtwork?.size else { return }
             if let point = trackedPoint {
-                let companion = prefs.keepNative || prefs.clickOnly
+                let companion = !usesPresenterArm && (prefs.keepNative || clickOnly)
                 let position = companion ? CursorGeometry.companion(at: point, in: bounds, size: size) : point
-                pointer.place(position, visible: !prefs.clickOnly || reveal != nil)
+                pointer.place(position, visible: !clickOnly || reveal != nil, viewport: bounds)
             } else {
-                pointer.place(CGPoint(x: bounds.midX - size * 0.25, y: bounds.midY + size * 0.34), visible: true)
+                let sample = usesPresenterArm
+                    ? CGPoint(x: bounds.midX - size * 0.18, y: bounds.height * 0.75)
+                    : CGPoint(x: bounds.midX - size * 0.25, y: bounds.midY + size * 0.34)
+                pointer.place(sample, visible: true, viewport: bounds)
             }
         }
     }

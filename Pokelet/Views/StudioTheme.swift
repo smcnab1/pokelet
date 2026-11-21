@@ -105,8 +105,8 @@ struct StudioNote: View {
     }
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 7) {
-            if let symbol { Image(systemName: symbol).accessibilityHidden(true) }
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            if let symbol { StudioLeadingIcon(symbol: symbol) }
             Text(message).fixedSize(horizontal: false, vertical: true)
         }
         .studioFont(.callout)
@@ -222,8 +222,49 @@ extension View {
     }
 }
 
+@MainActor
 extension AppModel {
     func preference<T>(_ path: WritableKeyPath<Preferences, T>) -> Binding<T> {
         Binding(get: { self.prefs[keyPath: path] }, set: { self.update(path, $0) })
+    }
+}
+
+struct StudioLeadingIcon: View {
+    let symbol: String
+    @Environment(\.studioLargerText) private var largerText
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: largerText ? 15 : 13, weight: .medium))
+            .frame(width: 22)
+            .accessibilityHidden(true)
+    }
+}
+
+struct StudioLabel: View {
+    let title: String
+    let symbol: String
+    var detail: String?
+
+    init(_ title: String, symbol: String, detail: String? = nil) {
+        self.title = title
+        self.symbol = symbol
+        self.detail = detail
+    }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            StudioLeadingIcon(symbol: symbol)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let detail {
+                    Text(detail)
+                        .studioFont(.callout, weight: .regular)
+                        .foregroundStyle(StudioTheme.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
     }
 }

@@ -163,7 +163,7 @@ enum PointerArt {
         }, accent: nil, accentColor: RGB(0xF4FFF9))
     ]
 
-    static func image(prefs: Preferences, scale: CGFloat) -> CGImage? {
+    static func image(prefs: Preferences, scale: CGFloat, presenterArm: Bool = false) -> CGImage? {
         let pixels = Int(ceil(prefs.size * scale))
         guard let context = CGContext(data: nil, width: pixels, height: pixels, bitsPerComponent: 8,
                                       bytesPerRow: 0, space: CGColorSpace(name: CGColorSpace.sRGB)!,
@@ -171,7 +171,8 @@ enum PointerArt {
         let factor = CGFloat(pixels) / canvas
         context.translateBy(x: 0, y: CGFloat(pixels))
         context.scaleBy(x: factor, y: -factor)
-        draw(in: context, prefs: prefs)
+        if presenterArm { drawPresenterGlove(in: context, shadow: prefs.shadow) }
+        else { draw(in: context, prefs: prefs) }
         return context.makeImage()
     }
 
@@ -226,13 +227,13 @@ enum PointerArt {
         context.fillEllipse(in: CGRect(x: hotspot.x - 1.35, y: hotspot.y - 1.35, width: 2.7, height: 2.7))
     }
 
-    private static func makePath(_ draw: (Pen) -> Void) -> CGPath {
+    static func makePath(_ draw: (Pen) -> Void) -> CGPath {
         let path = CGMutablePath()
         draw(Pen(path: path))
         return path.copy()!
     }
 
-    private struct Pen {
+    struct Pen {
         let path: CGMutablePath
         func m(_ x: CGFloat, _ y: CGFloat) { path.move(to: CGPoint(x: x, y: y)) }
         func l(_ x: CGFloat, _ y: CGFloat) { path.addLine(to: CGPoint(x: x, y: y)) }

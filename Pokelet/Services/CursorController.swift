@@ -52,7 +52,8 @@ final class CursorController {
     }
 
     func apply(_ updated: Preferences, presentation: Bool) {
-        let appearanceChanged = prefs.style != updated.style || prefs.palette != updated.palette ||
+        let armChanged = usesPresenterArm != updated.usesPresenterArm(presentation: presentation)
+        let appearanceChanged = armChanged || prefs.style != updated.style || prefs.palette != updated.palette ||
             prefs.customColour != updated.customColour ||
             prefs.size != updated.size || prefs.shadow != updated.shadow || prefs.outline != updated.outline
         let arrivalChanged = prefs.clickOnly != updated.clickOnly || self.presentation != presentation
@@ -63,6 +64,7 @@ final class CursorController {
         prefs = updated
         self.presentation = presentation
         guard isRunning, appearanceChanged || motionChanged || arrivalChanged || hideChanged else { return }
+        if armChanged { releaseNativeHide() }
         if appearanceChanged, !configureArtwork() { return }
         if motionChanged || arrivalChanged { cancelAnimations() }
         if arrivalChanged { revealUntil = 0 }
@@ -144,7 +146,7 @@ final class CursorController {
     }
 
     private func canReplace(at mouse: CGPoint, on overlay: CursorOverlayWindow) -> Bool {
-        guard !prefs.keepNative, !clickOnly, !replacementIsSuspended, menuTrackingDepth == 0, NSApp.isActive,
+        guard !usesPresenterArm, !prefs.keepNative, !clickOnly, !replacementIsSuspended, menuTrackingDepth == 0, NSApp.isActive,
               overlay.isVisible, let window = replacementWindow, window.isVisible, window.isKeyWindow, window.isOnActiveSpace,
               window.attachedSheet == nil else { return false }
         // An active Settings window can still sit behind another window.
@@ -171,7 +173,8 @@ final class CursorController {
         onClick?()
     }
 
-    private var clickOnly: Bool { prefs.clickOnly && !presentation }
+    private var usesPresenterArm: Bool { prefs.usesPresenterArm(presentation: presentation) }
+    private var clickOnly: Bool { prefs.clickOnly && !presentation && !usesPresenterArm }
     private var reduceMotion: Bool { prefs.reducedMotion || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
 
     private func installMonitors() -> Bool {
@@ -183,8 +186,9 @@ final class CursorController {
             self?.handleMouse(event)
         }) else { return false }
         guard let local = NSEvent.addLocalMonitorForEvents(matching: mask, handler: { [weak self] event in
-            // Settings controls and previews keep their interactions local.
-            self?.handleMouse(event, animateClick: false)
+            // Studio previews handle their own reactions. Presenter Arm still
+            // follows clicks in Studio when the system-wide pointer is on.
+            self?.handleMouse(event, animateClick: self?.usesPresenterArm == true)
             return event
         }) else {
             NSEvent.removeMonitor(global)
@@ -227,7 +231,7 @@ final class CursorController {
             if !visibility.ownsHide { activeOverlay?.pointerLayer.place(.zero, visible: false) }
             displayLink?.isPaused = true
         } else if !clickOnly, now - lastMotion > CursorMotion.stopDelay {
-            if prefs.directionBounce, !reduceMotion, let turn = motion.stopped(at: now) {
+            if !usesPresenterArm, prefs.directionBounce, !reduceMotion, let turn = motion.stopped(at: now) {
                 activeOverlay?.pointerLayer.wobble(turn: turn)
             }
             displayLink?.isPaused = true
@@ -261,10 +265,11 @@ final class CursorController {
             overlay.pointerLayer.place(local(mouse, in: overlay.frame), visible: true)
         }
         if !visibility.needsRestore { updateNativeHide(eligible: eligible) }
-        let location = visibility.ownsHide ? mouse :
+        let location = usesPresenterArm || visibility.ownsHide ? mouse :
             CursorGeometry.companion(at: mouse, in: overlay.frame, size: prefs.size)
-        overlay.pointerLayer.place(local(location, in: overlay.frame), visible: visible || visibility.ownsHide)
-        if let lastMouse, visible, prefs.directionBounce, !reduceMotion,
+        overlay.pointerLayer.place(local(location, in: overlay.frame), visible: visible || visibility.ownsHide,
+                                   viewport: CGRect(origin: .zero, size: overlay.frame.size))
+        if let lastMouse, visible, !usesPresenterArm, prefs.directionBounce, !reduceMotion,
            let turn = motion.turn(from: lastMouse, to: mouse, now: now) {
             overlay.pointerLayer.wobble(turn: turn)
         }
@@ -280,13 +285,13 @@ final class CursorController {
         for overlay in overlays {
             let scale = overlay.display.backingScaleFactor
             if images[scale] == nil {
-                images[scale] = PointerArt.image(prefs: prefs, scale: scale)
+                images[scale] = PointerArt.image(prefs: prefs, scale: scale, presenterArm: usesPresenterArm)
             }
             guard let image = images[scale] else {
                 trackingFailed()
                 return false
             }
-            overlay.pointerLayer.configure(image: image, prefs: prefs)
+            overlay.pointerLayer.configure(image: image, prefs: prefs, presenterArm: usesPresenterArm)
         }
         return true
     }

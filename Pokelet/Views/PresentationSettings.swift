@@ -33,10 +33,17 @@ struct PresentationSettings: View {
                         StudioNote(issue, symbol: "exclamationmark.circle", warning: true)
                     }
                 } else {
-                    Label("Unavailable in this build", systemImage: "lock.shield")
+                    StudioLabel("Unavailable in this build", symbol: "lock.shield")
                         .fontWeight(.medium)
                     StudioNote("You can still use your character, click animations and sounds.")
                 }
+            }
+            Divider()
+            StudioSection("Presentation pointer") {
+                StudioSwitch("Use Presenter Arm during presentations",
+                             isOn: model.preference(\.presenterEffects.presentation))
+                    .disabled(!model.presentationAvailable)
+                StudioNote("This setting applies only during an active presentation.")
             }
             if model.presentationAvailable {
                 Divider()
@@ -58,7 +65,7 @@ struct PresentationSettings: View {
 
     private var recovery: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Restore clicks", systemImage: "shield.lefthalf.filled")
+            StudioLabel("Restore clicks", symbol: "shield.lefthalf.filled")
                 .studioFont(.headline)
                 .foregroundStyle(StudioTheme.accent)
                 .accessibilityAddTraits(.isHeader)
