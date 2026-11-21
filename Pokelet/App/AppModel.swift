@@ -37,11 +37,11 @@ final class AppModel: ObservableObject {
     private var audioNeedsRecovery = false
 
     init() {
+        #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
         let acceptance = arguments.contains("--acceptance-profile")
         var defaults = acceptance ? UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.Acceptance")! : .standard
         var supportDirectory = acceptance ? "Pokelet Acceptance" : "Pokelet"
-        #if DEBUG
         isStudioAcceptance = arguments.contains("--studio-acceptance") ||
             Bundle.main.bundleIdentifier == "uk.co.sammcnab.Pokelet.StudioAcceptance"
         presentationAvailable = !isStudioAcceptance && acceptance && arguments.contains("--presentation-acceptance")
@@ -49,11 +49,14 @@ final class AppModel: ObservableObject {
             defaults = UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.StudioAcceptance.Preferences")!
             supportDirectory = "Pokelet Studio Acceptance"
         }
+        isAcceptanceProfile = isStudioAcceptance || acceptance
         #else
+        let defaults = UserDefaults.standard
+        let supportDirectory = "Pokelet"
         isStudioAcceptance = false
         presentationAvailable = false
+        isAcceptanceProfile = false
         #endif
-        isAcceptanceProfile = isStudioAcceptance || acceptance
         let store = PreferenceStore(defaults: defaults)
         self.store = store
         prefs = store.load()

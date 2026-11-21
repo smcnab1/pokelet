@@ -6,6 +6,15 @@ enum StudioLayoutSmoke {
     @MainActor
     static func main() {
         _ = NSApplication.shared
+        precondition(Set(ProcessInfo.processInfo.arguments).isSuperset(of: [
+            "--acceptance-profile", "--presentation-acceptance", "--studio-acceptance"
+        ]))
+        let releaseModel = AppModel()
+        precondition(!releaseModel.presentationAvailable && !releaseModel.isAcceptanceProfile && !releaseModel.isStudioAcceptance,
+                     "A Release build must ignore Debug acceptance flags")
+        releaseModel.startPresentation()
+        precondition(!releaseModel.mode.presentation && !releaseModel.mode.pointer)
+        print("Release ignored the Debug profiles and kept Presentation Mode disabled.")
         for scheme in [ColorScheme.light, .dark] {
             for larger in [false, true] {
                 let blackBox = StudioLabel("Project", symbol: "chevron.left.forwardslash.chevron.right")

@@ -43,7 +43,7 @@ fi
 printf 'Verified universal binary: arm64 and x86_64.\n'
 for arch in arm64 x86_64; do
   xcrun strings -a -arch "$arch" "$BINARY" | awk '
-    /--(presentation|studio)-acceptance/ { found = 1 }
+    /--(presentation-acceptance|studio-acceptance|acceptance-profile)/ { found = 1 }
     END { exit found }
   ' || { printf 'Release binary includes a Debug acceptance launch flag on %s.\n' "$arch" >&2; exit 1; }
   xcrun vtool -arch "$arch" -show-build "$BINARY" | awk '

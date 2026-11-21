@@ -10,4 +10,4 @@ for path in "$ROOT"/Pokelet/{App,Cursor,Models,Services,Views}/*.swift; do
 done
 xcrun swiftc -warnings-as-errors -parse-as-library "${sources[@]}" \
   "$ROOT/Tests/Native/StudioLayoutSmoke.swift" -o "$TEMP/StudioLayoutSmoke"
-"$TEMP/StudioLayoutSmoke"
+"$TEMP/StudioLayoutSmoke" --acceptance-profile --presentation-acceptance --studio-acceptance
