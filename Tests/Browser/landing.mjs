@@ -127,6 +127,10 @@ async function desktop(browser) {
     assert.equal(await reset.getAttribute("aria-pressed"), "true");
     await reset.click();
     await waitForCursor(page, "catPaw-original");
+    await reset.click();
+    await page.getByRole("radio", { name: "Cat Paw" }).click();
+    await waitForCursor(page, "catPaw-original");
+    assert.equal(await reset.getAttribute("aria-pressed"), "false");
     await page.keyboard.press("Escape");
     assert.equal(await colour.isVisible(), false);
     assert.equal(await picker(page).evaluate((summary) => document.activeElement === summary), true);

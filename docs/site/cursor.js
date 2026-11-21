@@ -101,7 +101,7 @@ export function initialiseCursor() {
     spriteReady = false;
     reset.setAttribute("aria-pressed", String(normal));
     picker.toggleAttribute("data-native", normal);
-    choices.forEach((choice) => { choice.checked = choice.value === character; });
+    choices.forEach((choice) => { choice.checked = !normal && choice.value === character; });
     pieces.forEach((piece) => {
       const selected = !normal && piece.dataset.character === character;
       piece.setAttribute("aria-pressed", String(selected));
