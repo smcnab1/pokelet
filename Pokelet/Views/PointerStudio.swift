@@ -3,71 +3,58 @@ import SwiftUI
 struct PointerStudio: View {
     @ObservedObject var model: AppModel
     let wide: Bool
+    let windowHeight: CGFloat
+    @Environment(\.studioLargerText) private var largerText
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 19) {
-            StudioHeading("Your pointer", detail: "Pick a character, then make it your own.")
-            let layout = wide ? AnyLayout(HStackLayout(alignment: .top, spacing: 22)) :
-                AnyLayout(VStackLayout(alignment: .leading, spacing: 22))
-            layout {
-                previewAndCharacters
+        VStack(alignment: .leading, spacing: wide ? 15 : 11) {
+            StudioHeading("Your pointer")
+            StudioColumns(wide: wide) {
+                VStack(alignment: .leading, spacing: wide ? 14 : 9) {
+                    CharacterPreview(prefs: model.prefs, stageHeight: stageHeight)
+                    CharacterPicker(selection: model.preference(\.style))
+                }
+                .frame(maxWidth: .infinity)
                 inspector
-                    .frame(minWidth: wide ? 254 : nil, idealWidth: wide ? 290 : nil,
-                           maxWidth: wide ? 332 : .infinity, alignment: .leading)
+                    .frame(width: wide ? 278 : nil)
             }
         }
     }
 
-    private var previewAndCharacters: some View {
-        let layout = wide ? AnyLayout(VStackLayout(alignment: .leading, spacing: 18)) :
-            AnyLayout(HStackLayout(alignment: .top, spacing: 12))
-        return layout {
-            CharacterPreview(prefs: model.prefs, expanded: wide)
-                .frame(maxWidth: .infinity)
-            CharacterPicker(selection: model.preference(\.style), compact: !wide)
-                .frame(width: wide ? nil : 176)
-        }
+    private var stageHeight: CGFloat {
+        if wide { return max(260, windowHeight - 236) }
+        let offset: CGFloat = largerText ? 295 : 283
+        return max(145, min(294, windowHeight - offset))
     }
 
     private var inspector: some View {
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: 18) {
             StudioSection("Appearance") {
                 PalettePicker(model: model)
-                VStack(spacing: 5) {
-                    HStack {
-                        Text("Size")
-                        Spacer()
-                        Text("\(Int(model.prefs.size)) pt")
-                            .monospacedDigit()
-                            .foregroundStyle(StudioTheme.secondary)
-                    }
-                    .accessibilityHidden(true)
-                    Slider(value: size, in: Preferences.sizeRange) { Text("Pointer size") }
-                        .labelsHidden()
-                        .accessibilityValue("\(Int(model.prefs.size)) points")
-                        .accessibilityIdentifier("studio.pointer.size")
-                }
-                Toggle("Contrasting outline", isOn: model.preference(\.outline))
-                Toggle("Soft shadow", isOn: model.preference(\.shadow))
+                StudioSlider(title: "Size", accessibilityTitle: "Pointer size",
+                             displayValue: "\(Int(model.prefs.size)) pt",
+                             spokenValue: "\(Int(model.prefs.size)) points",
+                             range: Preferences.sizeRange, value: size)
+                    .accessibilityIdentifier("studio.pointer.size")
+                StudioSwitch("Contrasting outline", isOn: model.preference(\.outline))
+                StudioSwitch("Soft shadow", isOn: model.preference(\.shadow))
             }
             Divider()
             StudioSection("Behaviour") {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Display mode").studioFont(.callout, weight: .medium).accessibilityHidden(true)
                     Picker("Display mode", selection: model.preference(\.keepNative)) {
                         Text("Companion").tag(true)
-                        Text("Replace in Pokelet Studio").tag(false)
+                        Text("Replace in Studio").tag(false)
                     }
-                    .labelsHidden()
                     .disabled(model.prefs.clickOnly)
                     StudioNote(displayDescription)
                 }
-                Toggle("Animate on click", isOn: model.preference(\.animate))
-                Toggle("Play click sounds", isOn: model.preference(\.soundEnabled))
+                StudioSwitch("Animate on click", isOn: model.preference(\.animate))
+                StudioSwitch("Play click sounds", isOn: model.preference(\.soundEnabled))
             }
         }
-        .padding(16)
-        .studioSurface()
+        .padding(15)
+        .background(StudioTheme.surface.opacity(0.57), in: RoundedRectangle(cornerRadius: 16))
     }
 
     private var size: Binding<Double> {
@@ -83,19 +70,18 @@ struct PointerStudio: View {
 
 private struct CharacterPicker: View {
     @Binding var selection: PointerStyle
-    let compact: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         StudioSection("Characters") {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 7), count: compact ? 2 : 4),
-                      spacing: 7) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 3), count: 4),
+                      spacing: 3) {
                 ForEach(PointerStyle.allCases) { style in
                     let selected = selection == style
                     Button { selection = style } label: {
                         VStack(spacing: 1) {
                             CharacterThumbnail(style: style)
-                                .frame(height: 55)
+                                .frame(height: 46)
                                 .scaleEffect(selected && !reduceMotion ? 1.09 : 1)
                             Text(style.title)
                                 .studioFont(.caption, weight: selected ? .semibold : .medium)
@@ -104,9 +90,9 @@ private struct CharacterPicker: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, 4)
-                        .padding(.vertical, 7)
+                        .padding(.vertical, 5)
                         .foregroundStyle(selected ? StudioTheme.accent : StudioTheme.secondary)
-                        .background(selected ? StudioTheme.selection : StudioTheme.surface,
+                        .background(selected ? StudioTheme.selection : .clear,
                                     in: RoundedRectangle(cornerRadius: 12))
                         .overlay(alignment: .topTrailing) {
                             if selected {
@@ -117,17 +103,14 @@ private struct CharacterPicker: View {
                                     .accessibilityHidden(true)
                             }
                         }
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 12)
-                                .strokeBorder(selected ? StudioTheme.accent : StudioTheme.line)
-                                .allowsHitTesting(false)
-                        }
                     }
                     .buttonStyle(StudioButtonStyle(radius: 12))
                     .accessibilityAddTraits(selected ? .isSelected : [])
                     .accessibilityIdentifier("studio.character.\(style.rawValue)")
                 }
             }
+            .padding(4)
+            .background(StudioTheme.surface.opacity(0.66), in: RoundedRectangle(cornerRadius: 15))
             .animation(reduceMotion ? nil : .spring(response: 0.26, dampingFraction: 0.82), value: selection)
         }
     }
@@ -144,17 +127,19 @@ private struct PalettePicker: View {
                 Text(model.prefs.palette.title).foregroundStyle(StudioTheme.secondary)
             }
             .accessibilityHidden(true)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(maximum: 33), spacing: 2),
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(maximum: 32), spacing: 1),
                                      count: Palette.allCases.count), spacing: 4) {
                 ForEach(Palette.allCases) { palette in
                     let selected = model.prefs.palette == palette
                     Button { model.update(\.palette, palette) } label: {
                         swatch(palette)
-                            .frame(width: 22, height: 22)
-                            .padding(3)
+                            .frame(width: 21, height: 21)
+                            .padding(4)
                             .overlay {
                                 if selected {
                                     Circle().strokeBorder(StudioTheme.accent, lineWidth: 1.5)
+                                } else {
+                                    Circle().strokeBorder(StudioTheme.line)
                                 }
                             }
                     }
@@ -183,9 +168,13 @@ private struct PalettePicker: View {
         } else {
             let inks = paletteInks(palette)
             Circle()
-                .fill(LinearGradient(colors: [colour(inks.primary), colour(inks.secondary)],
-                                     startPoint: .topLeading, endPoint: .bottomTrailing))
-                .overlay(Circle().strokeBorder(Color.primary.opacity(0.18)))
+                .fill(colour(inks.primary))
+                .overlay(alignment: .bottomTrailing) {
+                    Circle().fill(colour(inks.secondary))
+                        .frame(width: 9, height: 9)
+                        .padding(2)
+                }
+                .overlay(Circle().strokeBorder(Color.primary.opacity(0.15)))
         }
     }
 

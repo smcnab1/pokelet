@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- Open Settings to Pokelet Studio, a resizable workspace with live character previews, colour swatches and quick pointer controls.
-- Use the floating navigation dock or Command–1 through Command–6 to open Studio, Animations, Sounds, Presentation, General and About.
+- Open Settings to Pokelet Studio, a resizable workspace with a cursor-tracking preview, a compact character picker and quick pointer controls.
+- Use the floating navigation rail or Command–1 through Command–6 to open Studio, Animations, Sounds, Presentation, General and About.
 - Preview both click responses, choose sounds without playing them, and find Presentation Mode recovery shortcuts at the top of its page.
 - Turn on **Larger Studio text** in General to enlarge the interface labels and headings.
 

@@ -143,8 +143,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     @objc private func openSettings() {
         if settings == nil {
-            let visibleSize = NSScreen.main?.visibleFrame.size ?? CGSize(width: 1000, height: 650)
-            let initialSize = CGSize(width: min(1000, visibleSize.width), height: min(650, visibleSize.height))
+            let visibleSize = NSScreen.main?.visibleFrame.size ?? CGSize(width: 936, height: 598)
+            let initialSize = CGSize(width: min(936, visibleSize.width), height: min(598, visibleSize.height))
             let window = NSWindow(contentRect: CGRect(origin: .zero, size: initialSize),
                                   styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                                   backing: .buffered, defer: false)

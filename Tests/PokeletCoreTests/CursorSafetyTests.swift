@@ -51,6 +51,29 @@ final class CursorSafetyTests: XCTestCase {
         }
     }
 
+    func testWobbleUsesSharpReversalsAndRespectsCooldown() {
+        var motion = CursorMotion()
+        let left = CGPoint(x: 0, y: 0)
+        let right = CGPoint(x: 40, y: 0)
+        XCTAssertNil(motion.turn(from: left, to: right, now: 1))
+        XCTAssertEqual(motion.turn(from: right, to: left, now: 1.1), -1)
+        XCTAssertNil(motion.turn(from: left, to: right, now: 1.2))
+        XCTAssertNil(motion.stopped(at: 1.29))
+        XCTAssertEqual(motion.turn(from: right, to: left, now: 1.6), -1)
+    }
+
+    func testWobbleAtStopRequiresRecentFastMovement() {
+        var motion = CursorMotion()
+        let origin = CGPoint.zero
+        XCTAssertNil(motion.turn(from: origin, to: CGPoint(x: 4, y: 0), now: 1))
+        XCTAssertNil(motion.stopped(at: 1.09))
+        XCTAssertNil(motion.turn(from: origin, to: CGPoint(x: 20, y: 0), now: 2))
+        XCTAssertEqual(motion.stopped(at: 2.09), 0.32)
+        XCTAssertNil(motion.stopped(at: 2.12))
+        motion.resetDirection()
+        XCTAssertNil(motion.stopped(at: 2.36))
+    }
+
     func testHotspotSurvivesSizeAndCoordinateConversion() {
         for size in [44.0, 76.0, 132.0] {
             let point = CGPoint(x: -340, y: 876)

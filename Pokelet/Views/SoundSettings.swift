@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SoundSettings: View {
     @ObservedObject var model: AppModel
+    let wide: Bool
 
     private var choices: [ClickSound] {
         ClickSound.allCases.filter { $0 != .custom || model.prefs.customSoundName != nil || model.prefs.sound == .custom }
@@ -10,53 +11,40 @@ struct SoundSettings: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 19) {
             StudioHeading("Sounds", detail: "Choose what you hear when you click.")
-            VStack(spacing: 0) {
-                HStack {
-                    Label("Play click sounds", systemImage: model.prefs.soundEnabled ? "speaker.wave.2" : "speaker.slash")
-                        .studioFont(.headline)
-                        .accessibilityHidden(true)
-                    Spacer()
-                    Toggle("Play click sounds", isOn: model.preference(\.soundEnabled))
-                        .labelsHidden()
-                        .toggleStyle(.switch)
+            StudioColumns(wide: wide) {
+                StudioSection("Click sound") {
+                    VStack(spacing: 2) {
+                        ForEach(choices) { sound in
+                            soundChoice(sound)
+                        }
+                    }
+                    .padding(4)
+                    .background(StudioTheme.surface.opacity(0.65), in: RoundedRectangle(cornerRadius: 13))
                 }
-                .padding(14)
-                Divider()
-                VStack(spacing: 4) {
-                    ForEach(choices) { sound in
-                        soundChoice(sound)
+                VStack(alignment: .leading, spacing: 17) {
+                    StudioSection("Playback") {
+                        StudioSwitch("Play click sounds", isOn: model.preference(\.soundEnabled))
+                        let volume = Int((model.prefs.volume * 100).rounded())
+                        StudioSlider(title: "Volume", accessibilityTitle: "Click sound volume",
+                                     displayValue: "\(volume)%", spokenValue: "\(volume) percent",
+                                     range: 0...1, value: model.preference(\.volume))
+                            .accessibilityIdentifier("studio.sound.volume")
+                        Button { model.previewSound() } label: {
+                            Label("Preview sound", systemImage: "play.fill")
+                        }
+                        .disabled(model.prefs.sound == .silent || model.prefs.volume == 0)
+                        .help("Play the selected sound once")
+                    }
+                    Divider()
+                    StudioSection("Custom audio") {
+                        Text(model.prefs.customSoundName ?? "No file imported")
+                            .foregroundStyle(StudioTheme.secondary)
+                            .textSelection(.enabled)
+                        Button("Import Audio…") { model.chooseCustomSound() }
+                        StudioNote("Choose a file up to 3 seconds and 5 MB. Pokelet keeps a local copy.")
                     }
                 }
-                .padding(6)
-                Divider()
-                HStack(spacing: 12) {
-                    Text("Volume").accessibilityHidden(true)
-                    Slider(value: model.preference(\.volume), in: 0...1) { Text("Click sound volume") }
-                        .labelsHidden()
-                        .accessibilityIdentifier("studio.sound.volume")
-                        .accessibilityValue("\(Int(model.prefs.volume * 100)) percent")
-                    Text("\(Int(model.prefs.volume * 100))%")
-                        .monospacedDigit()
-                        .foregroundStyle(StudioTheme.secondary)
-                        .accessibilityHidden(true)
-                    Button { model.previewSound() } label: {
-                        Label("Preview sound", systemImage: "play.fill")
-                    }
-                    .disabled(model.prefs.sound == .silent || model.prefs.volume == 0)
-                    .help("Play the selected sound once")
-                }
-                .padding(14)
-            }
-            .studioSurface()
-
-            StudioSection("Custom audio") {
-                LabeledContent("Imported file") {
-                    Text(model.prefs.customSoundName ?? "No file imported")
-                        .foregroundStyle(StudioTheme.secondary)
-                        .textSelection(.enabled)
-                }
-                Button("Import Audio…") { model.chooseCustomSound() }
-                StudioNote("Choose a file up to 3 seconds and 5 MB. Pokelet keeps a local copy.", symbol: "waveform")
+                .frame(width: wide ? 302 : nil, alignment: .leading)
             }
             if let issue = model.audioMessage {
                 StudioNote(issue, symbol: "exclamationmark.circle", warning: true)
@@ -84,7 +72,7 @@ struct SoundSettings: View {
                 }
             }
             .padding(.horizontal, 9)
-            .padding(.vertical, 7)
+            .padding(.vertical, 9)
             .background(selected ? StudioTheme.selection : .clear, in: RoundedRectangle(cornerRadius: 9))
         }
         .buttonStyle(StudioButtonStyle(radius: 9))

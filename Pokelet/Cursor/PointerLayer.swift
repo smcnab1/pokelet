@@ -7,6 +7,7 @@ final class PointerLayer {
     private let effect = CAShapeLayer()
     private let effectOutline = CAShapeLayer()
     private var style = PointerStyle.finger
+    private var retiringCharacter: CALayer?
 
     init() {
         root.addSublayer(effectOutline)
@@ -23,7 +24,8 @@ final class PointerLayer {
         effect.lineWidth = 2.45
     }
 
-    func configure(image: CGImage, prefs: Preferences) {
+    func configure(image: CGImage, prefs: Preferences, crossfade: Bool = false) {
+        let previous = crossfade ? snapshotCharacter() : nil
         reset()
         style = prefs.style
         let scale = CGFloat(image.width) / prefs.size
@@ -37,6 +39,39 @@ final class PointerLayer {
             effect.strokeColor = inks.effect.color()
             effectOutline.strokeColor = (inks.effect.luminance < 0.18 ? inks.highlight : inks.shadow).color(0.85)
         }
+        if let previous { transition(from: previous) }
+    }
+
+    private func snapshotCharacter() -> CALayer? {
+        guard let contents = character.contents else { return nil }
+        let layer = CALayer()
+        layer.contents = contents
+        layer.contentsScale = character.contentsScale
+        layer.bounds = character.bounds
+        layer.anchorPoint = character.anchorPoint
+        layer.position = character.position
+        layer.opacity = 0
+        return layer
+    }
+
+    private func transition(from previous: CALayer) {
+        withoutLayerActions { root.insertSublayer(previous, below: character) }
+        retiringCharacter = previous
+        CATransaction.begin()
+        CATransaction.setCompletionBlock { [weak self, weak previous] in
+            guard let self, let previous, self.retiringCharacter === previous else { return }
+            previous.removeFromSuperlayer()
+            self.retiringCharacter = nil
+        }
+        for (layer, start, end) in [(previous, 1, 0), (character, 0, 1)] {
+            let fade = CABasicAnimation(keyPath: "opacity")
+            fade.fromValue = start
+            fade.toValue = end
+            fade.duration = 0.17
+            fade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            layer.add(fade, forKey: "characterChange")
+        }
+        CATransaction.commit()
     }
 
     func place(_ location: CGPoint, visible: Bool) {
@@ -47,6 +82,8 @@ final class PointerLayer {
     }
 
     func reset() {
+        retiringCharacter?.removeFromSuperlayer()
+        retiringCharacter = nil
         character.removeAllAnimations()
         effect.removeAllAnimations()
         effectOutline.removeAllAnimations()

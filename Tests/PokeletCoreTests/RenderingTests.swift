@@ -56,6 +56,25 @@ final class RenderingTests: XCTestCase {
         XCTAssertLessThan(light.outline.luminance, 0.1)
     }
 
+    func testCharacterCrossfadeIsOptInAndCancellable() throws {
+        var prefs = Preferences()
+        let layer = PointerLayer()
+        layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs)
+        let character = try XCTUnwrap(layer.root.sublayers?.last)
+        XCTAssertNil(character.animation(forKey: "characterChange"))
+
+        prefs.style = .catPaw
+        layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs, crossfade: true)
+        let outgoing = try XCTUnwrap(layer.root.sublayers?.dropLast().last)
+        let fadeOut = try XCTUnwrap(outgoing.animation(forKey: "characterChange") as? CABasicAnimation)
+        let fadeIn = try XCTUnwrap(character.animation(forKey: "characterChange") as? CABasicAnimation)
+        XCTAssertEqual(fadeOut.toValue as? Int, 0)
+        XCTAssertEqual(fadeIn.toValue as? Int, 1)
+        layer.reset()
+        XCTAssertNil(outgoing.superlayer)
+        XCTAssertNil(character.animation(forKey: "characterChange"))
+    }
+
     func testSwitchingCharactersAndResetCancelAnimations() throws {
         var prefs = Preferences()
         let layer = PointerLayer()

@@ -23,25 +23,28 @@ enum SettingsPage: String, CaseIterable {
 struct SettingsView: View {
     @ObservedObject var model: AppModel
     @State private var showQuickStart = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var largerText: Bool { model.prefs.largerStudioText == true }
 
     var body: some View {
         GeometryReader { geometry in
-            let rail = geometry.size.width >= 790
-            let layout = rail ? AnyLayout(HStackLayout(alignment: .top, spacing: 24)) :
-                AnyLayout(VStackLayout(alignment: .center, spacing: 14))
-            VStack(spacing: 12) {
+            let size = geometry.size
+            let rail = size.width >= 710
+            let layout = rail ? AnyLayout(HStackLayout(alignment: .top, spacing: 18)) :
+                AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            VStack(spacing: 10) {
                 header
-                    .padding(.leading, 88)
-                    .padding(.trailing, rail ? 24 : 20)
+                    .padding(.leading, 80)
+                    .padding(.trailing, 22)
                 layout {
                     StudioNavigation(selection: $model.settingsPage, vertical: rail)
-                        .padding(.leading, rail ? 24 : 0)
-                        .padding(.horizontal, rail ? 0 : 12)
-                    workspace(wide: geometry.size.width >= (largerText ? 925 : 865), rail: rail)
+                        .padding(.leading, rail ? 14 : 0)
+                        .padding(.horizontal, rail ? 0 : 16)
+                    workspace(wide: size.width >= (largerText ? 835 : 760),
+                              rail: rail, height: size.height)
                 }
-                .frame(maxHeight: .infinity, alignment: .top)
+                .frame(maxHeight: .infinity, alignment: .topLeading)
             }
         }
         .ignoresSafeArea(.container, edges: .top)
@@ -54,12 +57,9 @@ struct SettingsView: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .frame(width: 23, height: 23)
-                .accessibilityHidden(true)
             Text("Pokelet Studio")
-                .studioFont(.headline)
+                .studioFont(.callout, weight: .semibold)
+                .foregroundStyle(StudioTheme.secondary)
             Spacer(minLength: 8)
             Button {
                 showQuickStart = true
@@ -89,33 +89,33 @@ struct SettingsView: View {
                 .help("Toggle pointer (\(model.prefs.pointerShortcut.title))")
             }
         }
-        .frame(minHeight: 39)
+        .frame(minHeight: 37)
     }
 
-    private func workspace(wide: Bool, rail: Bool) -> some View {
+    private func workspace(wide: Bool, rail: Bool, height: CGFloat) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 if let issue = model.pointerMessage {
                     StudioNote(issue, symbol: "exclamationmark.circle", warning: true)
                 }
                 switch model.settingsPage {
-                case .pointer: PointerStudio(model: model, wide: wide)
+                case .pointer: PointerStudio(model: model, wide: wide, windowHeight: height)
                 case .animations: AnimationSettings(model: model, wide: wide)
-                case .sounds: SoundSettings(model: model)
-                case .presentation: PresentationSettings(model: model)
-                case .general: GeneralSettings(model: model)
-                case .about: AboutSettings()
+                case .sounds: SoundSettings(model: model, wide: wide)
+                case .presentation: PresentationSettings(model: model, wide: wide)
+                case .general: GeneralSettings(model: model, wide: wide)
+                case .about: AboutSettings(wide: wide)
                 }
             }
-            .frame(maxWidth: model.settingsPage == .pointer ? 1060 : 850, alignment: .leading)
-            .padding(.horizontal, rail ? 0 : 22)
-            .padding(.trailing, rail ? 28 : 0)
-            .padding(.top, 3)
+            .frame(maxWidth: model.settingsPage == .pointer ? 1160 : 860, alignment: .leading)
+            .padding(.horizontal, rail ? 0 : 16)
+            .padding(.trailing, rail ? 24 : 0)
+            .padding(.top, rail ? 3 : 1)
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .top)
         }
         .id(model.settingsPage)
-        .transition(.opacity)
+        .transition(reduceMotion ? .identity : .opacity)
     }
 
     private var quickStart: some View {
@@ -155,23 +155,28 @@ private struct StudioNavigation: View {
                 Button {
                     withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.16)) { selection = page }
                 } label: {
-                    VStack(spacing: 4) {
+                    VStack(spacing: 3) {
                         Image(systemName: page.symbol)
-                            .font(.body.weight(.medium))
+                            .font(.system(size: 15, weight: selection == page ? .semibold : .medium))
                             .accessibilityHidden(true)
-                        Text(page.rawValue)
-                            .studioFont(.caption, weight: selection == page ? .semibold : .medium)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.9)
+                        if !vertical {
+                            Text(page.rawValue)
+                                .studioFont(.caption, weight: selection == page ? .semibold : .medium)
+                                .lineLimit(1)
+                        }
                     }
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, vertical ? 8 : largerText ? 2 : 6)
-                    .frame(minWidth: vertical ? 88 : 0, maxWidth: vertical ? nil : .infinity, minHeight: 47)
+                    .frame(width: vertical ? 38 : nil)
+                    .frame(maxWidth: vertical ? nil : .infinity, minHeight: vertical ? 36 : largerText ? 45 : 40)
                     .foregroundStyle(selection == page ? StudioTheme.accent : StudioTheme.secondary)
                     .background {
                         if selection == page {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(StudioTheme.selection)
+                                .overlay(alignment: vertical ? .leading : .bottom) {
+                                    Capsule().fill(StudioTheme.accent)
+                                        .frame(width: vertical ? 2 : 15, height: vertical ? 13 : 2)
+                                        .padding(vertical ? .leading : .bottom, 2)
+                                }
                                 .matchedGeometryEffect(id: "navigation", in: selectionHighlight)
                         }
                     }
@@ -179,12 +184,12 @@ private struct StudioNavigation: View {
                 .buttonStyle(StudioButtonStyle(radius: 12))
                 .keyboardShortcut(KeyEquivalent(Character(String(index + 1))))
                 .help("\(page.rawValue) (⌘\(index + 1))")
+                .accessibilityLabel(page.rawValue)
                 .accessibilityAddTraits(selection == page ? .isSelected : [])
                 .accessibilityIdentifier("studio.navigation.\(page.rawValue)")
             }
         }
-        .padding(5)
-        .frame(maxWidth: vertical ? nil : 565)
+        .padding(4)
         .modifier(NavigationMaterial(solid: reduceTransparency))
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.19), value: selection)
         .accessibilityElement(children: .contain)
@@ -198,7 +203,7 @@ private struct NavigationMaterial: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
         #if compiler(>=6.2)
         if #available(macOS 26, *), !solid {
-            content.glassEffect(.regular, in: RoundedRectangle(cornerRadius: 17))
+            content.glassEffect(.clear, in: RoundedRectangle(cornerRadius: 15))
         } else {
             fallback(content)
         }
@@ -208,11 +213,11 @@ private struct NavigationMaterial: ViewModifier {
     }
 
     private func fallback(_ content: Content) -> some View {
-        let shape = RoundedRectangle(cornerRadius: 17)
+        let shape = RoundedRectangle(cornerRadius: 15)
         return content
             .background {
                 if solid { shape.fill(StudioTheme.surface) }
-                else { shape.fill(.regularMaterial) }
+                else { shape.fill(.thinMaterial) }
             }
             .overlay(shape.strokeBorder(StudioTheme.line).allowsHitTesting(false))
     }

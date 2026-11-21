@@ -10,26 +10,27 @@ struct AnimationSettings: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 19) {
             StudioHeading("Animations", detail: "Set the click response and try it with your current character.")
-            CharacterPreview(prefs: model.prefs, expanded: false, showsSecondaryClick: true)
-            let layout = wide ? AnyLayout(HStackLayout(alignment: .top, spacing: 22)) :
-                AnyLayout(VStackLayout(alignment: .leading, spacing: 18))
-            layout {
-                responseControls
-                motionControls
-                    .frame(width: wide ? 254 : nil, alignment: .leading)
+            StudioColumns(wide: wide) {
+                CharacterPreview(prefs: model.prefs, stageHeight: wide ? 325 : 226, showsSecondaryClick: true)
+                    .frame(maxWidth: .infinity)
+                VStack(alignment: .leading, spacing: 16) {
+                    responseControls
+                    Divider()
+                    motionControls
+                }
+                .frame(width: wide ? 330 : nil, alignment: .leading)
             }
         }
     }
 
     private var responseControls: some View {
         StudioSection("Click response") {
-            Toggle("Animate on click", isOn: model.preference(\.animate))
-                .toggleStyle(.switch)
+            StudioSwitch("Animate on click", isOn: model.preference(\.animate))
             VStack(alignment: .leading, spacing: 10) {
                 intensityPicker
-                Toggle("React to fast clicks", isOn: model.preference(\.reactive))
-                Toggle("Comic impact effects", isOn: model.preference(\.effects))
-                Toggle("Celebration sparkles", isOn: model.preference(\.celebration))
+                StudioSwitch("React to fast clicks", isOn: model.preference(\.reactive))
+                StudioSwitch("Comic impact effects", isOn: model.preference(\.effects))
+                StudioSwitch("Celebration sparkles", isOn: model.preference(\.celebration))
                     .disabled(!model.prefs.effects || reduced)
                 StudioNote(responseNote)
             }
@@ -39,15 +40,13 @@ struct AnimationSettings: View {
 
     private var motionControls: some View {
         StudioSection("Motion and visibility") {
-            Toggle("Click-only mode", isOn: model.preference(\.clickOnly))
-            Toggle("Reduced Motion", isOn: model.preference(\.reducedMotion))
+            StudioSwitch("Click-only mode", isOn: model.preference(\.clickOnly))
+            StudioSwitch("Reduced Motion", isOn: model.preference(\.reducedMotion))
             StudioNote(systemReduceMotion ? "macOS Reduce Motion is on." :
                 "Reduced Motion uses brief fades for click feedback.")
-            Toggle("Wobble on sharp turns and stops", isOn: model.preference(\.directionBounce))
+            StudioSwitch("Wobble on sharp turns and stops", isOn: model.preference(\.directionBounce))
                 .disabled(reduced)
         }
-        .padding(14)
-        .studioSurface()
     }
 
     private var intensityPicker: some View {
@@ -75,7 +74,7 @@ struct AnimationSettings: View {
                     .padding(.horizontal, 4)
                     .padding(.vertical, 8)
                     .frame(maxWidth: .infinity)
-                    .background(selected ? StudioTheme.selection : StudioTheme.surface,
+                    .background(selected ? StudioTheme.selection : .clear,
                                 in: RoundedRectangle(cornerRadius: 10))
                     .overlay(alignment: .topTrailing) {
                         if selected {
@@ -86,17 +85,14 @@ struct AnimationSettings: View {
                                 .accessibilityHidden(true)
                         }
                     }
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(selected ? StudioTheme.accent : StudioTheme.line)
-                            .allowsHitTesting(false)
-                    }
                 }
                 .buttonStyle(StudioButtonStyle(radius: 10))
                 .accessibilityAddTraits(selected ? .isSelected : [])
                 .accessibilityIdentifier("studio.intensity.\(intensity.rawValue)")
             }
         }
+        .padding(4)
+        .background(StudioTheme.surface.opacity(0.66), in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Click animation intensity")
     }

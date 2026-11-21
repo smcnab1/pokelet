@@ -2,11 +2,22 @@ import SwiftUI
 
 struct PresentationSettings: View {
     @ObservedObject var model: AppModel
+    let wide: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 19) {
             StudioHeading("Presentation", detail: "Pause mouse clicks while you present. Keep using the keyboard to advance slides.")
-            recovery
+            StudioColumns(wide: wide) {
+                recovery
+                availability
+                    .frame(width: wide ? 310 : nil, alignment: .leading)
+            }
+        }
+        .onAppear { model.refreshPermissionStatus() }
+    }
+
+    private var availability: some View {
+        VStack(alignment: .leading, spacing: 15) {
             StudioSection("Click suppression") {
                 if model.presentationAvailable {
                     Button(model.mode.presentation ? "End Presentation Mode" : "Start Presentation Mode") {
@@ -40,12 +51,11 @@ struct PresentationSettings: View {
                 }
             }
         }
-        .onAppear { model.refreshPermissionStatus() }
     }
 
     private var recovery: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Restore clicks", systemImage: "arrow.uturn.backward.circle")
+            Label("Restore clicks", systemImage: "shield.lefthalf.filled")
                 .studioFont(.headline)
                 .foregroundStyle(StudioTheme.accent)
                 .accessibilityAddTraits(.isHeader)
@@ -58,13 +68,14 @@ struct PresentationSettings: View {
             StudioNote("Clicks resume after 15 minutes or when your Mac session becomes inactive.", symbol: "clock")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .studioSurface()
+        .padding(19)
+        .background(StudioTheme.selection.opacity(0.63), in: RoundedRectangle(cornerRadius: 15))
     }
 
     private func keycap(_ title: String, spoken: String) -> some View {
         Text(title)
-            .font(.body.monospaced().weight(.medium))
+            .studioFont(.body, weight: .semibold)
+            .monospaced()
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(StudioTheme.selection, in: RoundedRectangle(cornerRadius: 6))

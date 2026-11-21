@@ -1,12 +1,12 @@
 import SwiftUI
 
 enum StudioTheme {
-    static let window = adaptive(light: 0xF8F5F2, dark: 0x1A1622)
-    static let surface = adaptive(light: 0xFFFCFA, dark: 0x241E2D)
+    static let window = adaptive(light: 0xF8F4F1, dark: 0x19141F)
+    static let surface = adaptive(light: 0xF0E9ED, dark: 0x241C2E)
     static let secondary = adaptive(light: 0x60566B, dark: 0xC6B9D1)
     static let accent = adaptive(light: 0x533299, dark: 0xCFB6FF)
-    static let selection = adaptive(light: 0xEDE4FA, dark: 0x423355)
-    static let line = adaptive(light: 0xDFD6E3, dark: 0x42364D)
+    static let selection = adaptive(light: 0xEDE2F6, dark: 0x3D2D50)
+    static let line = adaptive(light: 0xE1D6E2, dark: 0x3A3044)
     static let warning = adaptive(light: 0x805314, dark: 0xFFD089)
 
     private static func adaptive(light: UInt32, dark: UInt32) -> Color {
@@ -55,9 +55,9 @@ private struct StudioFont: ViewModifier {
 
 struct StudioHeading: View {
     let title: String
-    let detail: String
+    let detail: String?
 
-    init(_ title: String, detail: String) {
+    init(_ title: String, detail: String? = nil) {
         self.title = title
         self.detail = detail
     }
@@ -68,10 +68,7 @@ struct StudioHeading: View {
                 .studioFont(.largeTitle, weight: .semibold)
                 .tracking(-0.7)
                 .accessibilityAddTraits(.isHeader)
-            Text(detail)
-                .studioFont(.callout)
-                .foregroundStyle(StudioTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            if let detail { StudioNote(detail) }
         }
     }
 }
@@ -119,18 +116,16 @@ struct StudioNote: View {
 
 struct StudioButtonStyle: ButtonStyle {
     let radius: CGFloat
-    var dimWhenDisabled = true
 
     func makeBody(configuration: Configuration) -> some View {
         StudioButtonLabel(label: configuration.label, pressed: configuration.isPressed,
-                          radius: radius, dimWhenDisabled: dimWhenDisabled)
+                          radius: radius)
     }
 
     private struct StudioButtonLabel<Label: View>: View {
         let label: Label
         let pressed: Bool
         let radius: CGFloat
-        let dimWhenDisabled: Bool
         @Environment(\.isFocused) private var focused
         @Environment(\.isEnabled) private var enabled
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -139,31 +134,91 @@ struct StudioButtonStyle: ButtonStyle {
         var body: some View {
             let shape = RoundedRectangle(cornerRadius: radius)
             label
-                .background {
+                .overlay {
                     if enabled && (hovered || pressed) {
                         shape.fill(Color.primary.opacity(pressed ? 0.11 : 0.06))
+                            .allowsHitTesting(false)
                     }
                 }
                 .overlay {
                     if focused { shape.strokeBorder(StudioTheme.accent, lineWidth: 2).allowsHitTesting(false) }
                 }
                 .contentShape(shape)
-                .opacity(enabled || !dimWhenDisabled ? 1 : 0.48)
+                .opacity(enabled ? 1 : 0.48)
                 .onHover { hovered = $0 }
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: hovered)
         }
     }
 }
 
+struct StudioSwitch: View {
+    let title: String
+    @Binding var isOn: Bool
+
+    init(_ title: String, isOn: Binding<Bool>) {
+        self.title = title
+        _isOn = isOn
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityHidden(true)
+            Spacer(minLength: 0)
+            Toggle(title, isOn: $isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+        }
+        .frame(minHeight: 22)
+    }
+}
+
+struct StudioSlider: View {
+    let title: String
+    let accessibilityTitle: String
+    let displayValue: String
+    let spokenValue: String
+    let range: ClosedRange<Double>
+    @Binding var value: Double
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Text(title)
+                Spacer()
+                Text(displayValue)
+                    .studioFont(.caption, weight: .semibold)
+                    .monospacedDigit()
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(StudioTheme.selection, in: RoundedRectangle(cornerRadius: 5))
+                    .foregroundStyle(StudioTheme.accent)
+            }
+            .accessibilityHidden(true)
+            Slider(value: $value, in: range) { Text(accessibilityTitle) }
+                .labelsHidden()
+                .controlSize(.small)
+                .accessibilityValue(spokenValue)
+        }
+    }
+}
+
+struct StudioColumns<Content: View>: View {
+    let wide: Bool
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        let layout = wide ? AnyLayout(HStackLayout(alignment: .top, spacing: 30)) :
+            AnyLayout(VStackLayout(alignment: .leading, spacing: 22))
+        layout(content)
+    }
+}
+
 extension View {
     func studioFont(_ style: Font.TextStyle, weight: Font.Weight? = nil) -> some View {
         modifier(StudioFont(style: style, weight: weight))
-    }
-
-    func studioSurface(radius: CGFloat = 16) -> some View {
-        let shape = RoundedRectangle(cornerRadius: radius)
-        return background(StudioTheme.surface, in: shape)
-            .overlay(shape.strokeBorder(StudioTheme.line).allowsHitTesting(false))
     }
 }
 

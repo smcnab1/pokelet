@@ -21,3 +21,35 @@ enum CursorGeometry {
         return CGPoint(x: x, y: y)
     }
 }
+
+struct CursorMotion {
+    static let stopDelay: Double = 0.085
+    private var direction = CGVector.zero
+    private var lastTurn: Double = 0
+    private var lastFastMotion: Double = 0
+
+    mutating func resetDirection() {
+        direction = .zero
+        lastFastMotion = 0
+    }
+
+    mutating func turn(from previous: CGPoint, to point: CGPoint, now: Double) -> Double? {
+        let dx = point.x - previous.x
+        let dy = point.y - previous.y
+        let distance = hypot(dx, dy)
+        guard distance >= 15 else { return nil }
+        lastFastMotion = now
+        let next = CGVector(dx: dx / distance, dy: dy / distance)
+        let dot = next.dx * direction.dx + next.dy * direction.dy
+        direction = next
+        guard dot < -0.55, now - lastTurn > 0.38 else { return nil }
+        lastTurn = now
+        return next.dx < 0 ? -1 : 1
+    }
+
+    mutating func stopped(at now: Double) -> Double? {
+        guard now - lastFastMotion < 0.15, now - lastTurn > 0.22 else { return nil }
+        lastTurn = now
+        return direction.dx < 0 ? -0.32 : 0.32
+    }
+}

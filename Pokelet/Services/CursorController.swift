@@ -24,9 +24,7 @@ final class CursorController {
     private var lastMouse: CGPoint?
     private var lastMotion: CFTimeInterval = 0
     private var revealUntil: CFTimeInterval = 0
-    private var lastDirection = CGVector.zero
-    private var lastTurn: CFTimeInterval = 0
-    private var lastFastMotion: CFTimeInterval = 0
+    private var motion = CursorMotion()
     private var presentation = false
     private let logger = Logger(subsystem: "uk.co.sammcnab.Pokelet", category: "Cursor")
 
@@ -50,9 +48,7 @@ final class CursorController {
         closeOverlays()
         cadence = ClickCadence()
         revealUntil = 0
-        lastDirection = .zero
-        lastTurn = 0
-        lastFastMotion = 0
+        motion = CursorMotion()
     }
 
     func apply(_ updated: Preferences, presentation: Bool) {
@@ -161,7 +157,7 @@ final class CursorController {
         guard isRunning else { return }
         let now = CACurrentMediaTime()
         lastMotion = now
-        if clickOnly { revealUntil = now + 0.43 }
+        if clickOnly { revealUntil = now + ClickResponse.revealDuration }
         updatePosition(NSEvent.mouseLocation, now: now)
         if clickOnly { displayLink?.isPaused = false }
 
@@ -225,10 +221,9 @@ final class CursorController {
             revealUntil = 0
             if !visibility.ownsHide { activeOverlay?.pointerLayer.place(.zero, visible: false) }
             displayLink?.isPaused = true
-        } else if !clickOnly, now - lastMotion > 0.085 {
-            if prefs.directionBounce, now - lastFastMotion < 0.15, now - lastTurn > 0.22, !reduceMotion {
-                activeOverlay?.pointerLayer.wobble(turn: lastDirection.dx < 0 ? -0.32 : 0.32)
-                lastTurn = now
+        } else if !clickOnly, now - lastMotion > CursorMotion.stopDelay {
+            if prefs.directionBounce, !reduceMotion, let turn = motion.stopped(at: now) {
+                activeOverlay?.pointerLayer.wobble(turn: turn)
             }
             displayLink?.isPaused = true
         }
@@ -252,8 +247,7 @@ final class CursorController {
             link.isPaused = !wasTracking
             link.add(to: .main, forMode: .common)
             displayLink = link
-            lastDirection = .zero
-            lastFastMotion = 0
+            motion.resetDirection()
         }
         let visible = !clickOnly || now < revealUntil
         // Place the character before hiding the native cursor on a new display.
@@ -265,28 +259,15 @@ final class CursorController {
         let location = visibility.ownsHide ? mouse :
             CursorGeometry.companion(at: mouse, in: overlay.frame, size: prefs.size)
         overlay.pointerLayer.place(local(location, in: overlay.frame), visible: visible || visibility.ownsHide)
-        if let lastMouse, visible, prefs.directionBounce, !reduceMotion {
-            noteTurn(from: lastMouse, to: mouse, now: now, layer: overlay.pointerLayer)
+        if let lastMouse, visible, prefs.directionBounce, !reduceMotion,
+           let turn = motion.turn(from: lastMouse, to: mouse, now: now) {
+            overlay.pointerLayer.wobble(turn: turn)
         }
         lastMouse = mouse
     }
 
     private func local(_ point: CGPoint, in frame: CGRect) -> CGPoint {
         CGPoint(x: point.x - frame.minX, y: point.y - frame.minY)
-    }
-
-    private func noteTurn(from previous: CGPoint, to point: CGPoint, now: CFTimeInterval, layer: PointerLayer) {
-        let dx = point.x - previous.x, dy = point.y - previous.y
-        let speed = hypot(dx, dy)
-        guard speed >= 15 else { return }
-        lastFastMotion = now
-        let direction = CGVector(dx: dx / speed, dy: dy / speed)
-        let dot = direction.dx * lastDirection.dx + direction.dy * lastDirection.dy
-        if dot < -0.55, now - lastTurn > 0.38 {
-            layer.wobble(turn: direction.dx < 0 ? -1 : 1)
-            lastTurn = now
-        }
-        lastDirection = direction
     }
 
     private func configureArtwork() -> Bool {

@@ -23,83 +23,66 @@ struct CharacterThumbnail: View {
 
 struct CharacterPreview: View {
     let prefs: Preferences
-    let expanded: Bool
+    let stageHeight: CGFloat
     var showsSecondaryClick = false
+
     @Environment(\.colorScheme) private var colourScheme
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var testDark: Bool?
-    @State private var cadence = ClickCadence()
-    @State private var click: PreviewClick?
+    @State private var secondaryPress = 0
 
     private var dark: Bool { testDark ?? (colourScheme == .dark) }
-    private var reduced: Bool { systemReduceMotion || prefs.reducedMotion }
+    private var ink: Color { dark ? Color(red: 0.96, green: 0.91, blue: 0.99) :
+        Color(red: 0.24, green: 0.15, blue: 0.33) }
+    private var hint: String {
+        if prefs.clickOnly { return "Click to reveal" }
+        return prefs.animate ? "Move and click to try" : "Move to try"
+    }
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 20)
+        let shape = RoundedRectangle(cornerRadius: 19)
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Label(showsSecondaryClick ? "Click the preview to try it" : "Live preview", systemImage: "viewfinder")
-                    .studioFont(.callout, weight: .semibold)
+            HStack {
+                Label("Pointer preview", systemImage: "viewfinder")
+                    .studioFont(.caption, weight: .semibold)
                 Spacer()
                 Button { testDark = !dark } label: {
                     Image(systemName: dark ? "sun.max" : "moon")
-                        .studioFont(.callout)
-                        .frame(width: 30, height: 27)
+                        .frame(width: 29, height: 27)
                 }
                 .buttonStyle(StudioButtonStyle(radius: 8))
                 .accessibilityLabel(dark ? "Use light preview background" : "Use dark preview background")
                 .help(dark ? "Use light preview background" : "Use dark preview background")
             }
-            .padding(.leading, 15)
-            .padding(.trailing, 10)
-            .padding(.top, 8)
-
-            Button { play(secondary: false) } label: {
-                PreviewCanvas(prefs: prefs, click: click, reducedMotion: reduced)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-                    .frame(height: expanded ? 200 : 139)
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(StudioButtonStyle(radius: 12, dimWhenDisabled: false))
-            .accessibilityHidden(!prefs.animate)
-            .disabled(!prefs.animate)
-            .padding(.horizontal, 12)
-            .accessibilityLabel("Try primary click")
-            .accessibilityHint("Plays the selected click animation for \(prefs.style.title)")
-            .accessibilityIdentifier("studio.preview")
-
-            HStack(spacing: 8) {
-                Text(prefs.style.title).studioFont(.callout, weight: .semibold)
-                Spacer()
+            PreviewCanvas(prefs: prefs, reducedMotion: systemReduceMotion || prefs.reducedMotion,
+                          secondaryPress: secondaryPress)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            HStack(spacing: 10) {
+                Text(prefs.style.title)
+                    .studioFont(.body, weight: .semibold)
+                Spacer(minLength: 4)
                 if showsSecondaryClick {
-                    Button("Try secondary click") { play(secondary: true) }
-                        .buttonStyle(StudioButtonStyle(radius: 7))
-                        .disabled(!prefs.animate)
+                    Button { secondaryPress += 1 } label: {
+                        Label("Try secondary click", systemImage: "cursorarrow.click.2")
+                            .studioFont(.caption, weight: .semibold)
+                            .padding(6)
+                    }
+                    .buttonStyle(StudioButtonStyle(radius: 7))
+                    .disabled(!prefs.animate && !prefs.clickOnly)
                 } else {
-                    Text(prefs.animate ? "Click to try" : "Animation off")
+                    Text(hint)
+                        .studioFont(.caption)
+                        .foregroundStyle(ink.opacity(0.82))
                 }
             }
-            .studioFont(.callout)
-            .padding(.horizontal, 15)
-            .padding(.vertical, 11)
+            .padding(.bottom, 5)
         }
-        .foregroundStyle(dark ? Color(red: 0.95, green: 0.91, blue: 0.98) : Color(red: 0.24, green: 0.16, blue: 0.32))
-        .background {
-            PreviewSurface(dark: dark)
-                .clipShape(shape)
-        }
-        .overlay(shape.strokeBorder(StudioTheme.line).allowsHitTesting(false))
-        .onChange(of: prefs.style) { _, _ in cadence = ClickCadence() }
-        .onChange(of: prefs.animate) { _, _ in
-            cadence = ClickCadence()
-            click = nil
-        }
-    }
-
-    private func play(secondary: Bool) {
-        let now = CACurrentMediaTime()
-        click = PreviewClick(when: now, count: cadence.record(at: now), secondary: secondary)
+        .padding(.horizontal, 15)
+        .padding(.vertical, 8)
+        .frame(height: stageHeight)
+        .foregroundStyle(ink)
+        .background { PreviewSurface(dark: dark).clipShape(shape) }
+        .overlay(shape.strokeBorder(ink.opacity(dark ? 0.15 : 0.20)).allowsHitTesting(false))
     }
 }
 
@@ -107,14 +90,18 @@ private struct PreviewSurface: View {
     let dark: Bool
 
     var body: some View {
-        let base = dark ? Color(red: 0.15, green: 0.11, blue: 0.20) : Color(red: 0.94, green: 0.90, blue: 0.97)
-        let halo = dark ? Color(red: 0.31, green: 0.22, blue: 0.43) : Color(red: 0.83, green: 0.74, blue: 0.93)
-        let ink = dark ? Color(red: 0.73, green: 0.60, blue: 0.89) : Color(red: 0.42, green: 0.26, blue: 0.58)
+        let base = dark ? Color(red: 0.16, green: 0.11, blue: 0.21) :
+            Color(red: 0.93, green: 0.88, blue: 0.95)
+        let light = dark ? Color(red: 0.29, green: 0.20, blue: 0.38) :
+            Color(red: 0.99, green: 0.95, blue: 0.94)
+        let dot = dark ? Color(red: 0.78, green: 0.66, blue: 0.92) :
+            Color(red: 0.43, green: 0.28, blue: 0.55)
         ZStack {
             base
-            RadialGradient(colors: [halo, base], center: .center, startRadius: 9, endRadius: 248)
+            EllipticalGradient(colors: [light, base], center: UnitPoint(x: 0.47, y: 0.42),
+                               startRadiusFraction: 0.06, endRadiusFraction: 0.77)
             Canvas { context, size in
-                let step: CGFloat = 15
+                let step: CGFloat = 19
                 var dots = Path()
                 for x in stride(from: size.width.truncatingRemainder(dividingBy: step) / 2,
                                 to: size.width, by: step) {
@@ -123,41 +110,55 @@ private struct PreviewSurface: View {
                         dots.addEllipse(in: CGRect(x: x, y: y, width: 1.25, height: 1.25))
                     }
                 }
-                context.fill(dots, with: .color(ink.opacity(dark ? 0.24 : 0.20)))
+                context.fill(dots, with: .color(dot.opacity(dark ? 0.23 : 0.21)))
             }
         }
         .accessibilityHidden(true)
     }
 }
 
-private struct PreviewClick: Equatable {
-    let when: CFTimeInterval
-    let count: Int
-    let secondary: Bool
-}
-
 private struct PreviewCanvas: NSViewRepresentable {
     let prefs: Preferences
-    let click: PreviewClick?
     let reducedMotion: Bool
+    let secondaryPress: Int
 
-    func makeNSView(context: Context) -> LayerView { LayerView() }
-
-    func updateNSView(_ view: LayerView, context: Context) {
-        view.update(prefs: prefs, click: click, reducedMotion: reducedMotion)
+    func makeNSView(context: Context) -> StageButton {
+        let view = StageButton()
+        view.update(prefs: prefs, reducedMotion: reducedMotion, secondaryPress: secondaryPress)
+        return view
     }
 
-    final class LayerView: NSView {
+    func updateNSView(_ view: StageButton, context: Context) {
+        view.update(prefs: prefs, reducedMotion: reducedMotion, secondaryPress: secondaryPress)
+    }
+
+    static func dismantleNSView(_ view: StageButton, coordinator: ()) {
+        view.stopInteraction()
+    }
+
+    final class StageButton: NSButton {
         private let pointer = PointerLayer()
-        private var artwork = Preferences()
+        private var prefs = Preferences()
         private var renderedArtwork: Preferences?
-        private var lastClick: PreviewClick?
-        private var lastReducedMotion = false
-        private var scale: CGFloat = 0
-        private var animated = true
+        private var renderedScale: CGFloat = 0
+        private var reducedMotion = false
+        private var cadence = ClickCadence()
+        private var motion = CursorMotion()
+        private var trackedPoint: CGPoint?
+        private var tracking: NSTrackingArea?
+        private var reveal: DispatchWorkItem?
+        private var stopTimer: Timer?
+        private var lastSecondaryPress: Int?
+        private var windowObservers: [NSObjectProtocol] = []
 
         init() {
             super.init(frame: .zero)
+            title = ""
+            isBordered = false
+            setButtonType(.momentaryPushIn)
+            setAccessibilityIdentifier("studio.preview")
+            target = self
+            action = #selector(press)
             wantsLayer = true
             layer?.masksToBounds = true
             layer?.addSublayer(pointer.root)
@@ -165,6 +166,38 @@ private struct PreviewCanvas: NSViewRepresentable {
 
         @available(*, unavailable)
         required init?(coder: NSCoder) { fatalError() }
+
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            if let tracking { removeTrackingArea(tracking) }
+            let area = NSTrackingArea(rect: .zero, options: [.inVisibleRect, .activeInKeyWindow,
+                                                            .mouseEnteredAndExited, .mouseMoved, .enabledDuringMouseDrag],
+                                      owner: self)
+            addTrackingArea(area)
+            tracking = area
+        }
+
+        override func viewWillMove(toWindow newWindow: NSWindow?) {
+            super.viewWillMove(toWindow: newWindow)
+            let center = NotificationCenter.default
+            windowObservers.forEach(center.removeObserver)
+            windowObservers.removeAll()
+            stopInteraction()
+            guard let newWindow else { return }
+            for name in [NSWindow.didResignKeyNotification, NSWindow.didChangeOcclusionStateNotification] {
+                windowObservers.append(center.addObserver(forName: name, object: newWindow, queue: .main) { [weak self] note in
+                    let window = note.object as? NSWindow
+                    if name == NSWindow.didResignKeyNotification || window?.occlusionState.contains(.visible) == false {
+                        self?.stopInteraction()
+                    }
+                })
+            }
+        }
+
+        override func viewDidHide() {
+            super.viewDidHide()
+            stopInteraction()
+        }
 
         override func layout() {
             super.layout()
@@ -176,46 +209,143 @@ private struct PreviewCanvas: NSViewRepresentable {
             render()
         }
 
-        fileprivate func update(prefs: Preferences, click: PreviewClick?, reducedMotion: Bool) {
-            artwork.style = prefs.style
-            artwork.palette = prefs.palette
-            artwork.customColour = prefs.customColour
-            artwork.size = prefs.size
-            artwork.outline = prefs.outline
-            artwork.shadow = prefs.shadow
-            render()
-            if reducedMotion != lastReducedMotion || prefs.animate != animated { pointer.reset() }
-            lastReducedMotion = reducedMotion
-            animated = prefs.animate
-            guard prefs.animate, let click, click != lastClick else { return }
-            lastClick = click
-            let response = ClickResponse(prefs: prefs, count: click.count, reduced: reducedMotion)
-            pointer.poke(energy: response.energy, secondary: click.secondary, motion: !reducedMotion,
+        override func mouseEntered(with event: NSEvent) { track(event) }
+        override func mouseMoved(with event: NSEvent) { track(event) }
+        override func mouseDragged(with event: NSEvent) { track(event) }
+        override func rightMouseDragged(with event: NSEvent) { track(event) }
+        override func otherMouseDragged(with event: NSEvent) { track(event) }
+        override func mouseExited(with event: NSEvent) { stopInteraction() }
+        override func mouseDown(with event: NSEvent) { click(event, secondary: false) }
+        override func rightMouseDown(with event: NSEvent) { click(event, secondary: true) }
+        override func otherMouseDown(with event: NSEvent) { click(event, secondary: true) }
+
+        func update(prefs: Preferences, reducedMotion: Bool, secondaryPress: Int) {
+            let styleChanged = self.prefs.style != prefs.style
+            let visibilityChanged = self.prefs.clickOnly != prefs.clickOnly
+            let motionChanged = self.reducedMotion != reducedMotion || self.prefs.animate != prefs.animate ||
+                self.prefs.effects != prefs.effects || self.prefs.celebration != prefs.celebration ||
+                self.prefs.directionBounce != prefs.directionBounce
+            self.prefs = prefs
+            self.reducedMotion = reducedMotion
+            if visibilityChanged { cancelReveal() }
+            if styleChanged || visibilityChanged || motionChanged {
+                pointer.reset()
+                cadence = ClickCadence()
+                cancelStopTimer()
+                motion = CursorMotion()
+            }
+            isEnabled = prefs.animate || prefs.clickOnly
+            setAccessibilityLabel(prefs.animate ? "Try primary click" : prefs.clickOnly ? "Reveal character" : "Pointer preview")
+            setAccessibilityHelp("Preview for \(prefs.style.title).")
+            render(crossfade: styleChanged && !reducedMotion)
+            if let lastSecondaryPress, lastSecondaryPress != secondaryPress { react(secondary: true) }
+            lastSecondaryPress = secondaryPress
+        }
+
+        func stopInteraction() {
+            let wasTracking = trackedPoint != nil
+            trackedPoint = nil
+            cancelStopTimer()
+            cancelReveal()
+            cadence = ClickCadence()
+            motion = CursorMotion()
+            pointer.reset()
+            if wasTracking { render() }
+        }
+
+        private func cancelReveal() {
+            reveal?.cancel()
+            reveal = nil
+        }
+
+        @objc private func press() { react(secondary: false) }
+
+        private func click(_ event: NSEvent, secondary: Bool) {
+            track(event)
+            if trackedPoint != nil { react(secondary: secondary) }
+        }
+
+        private func track(_ event: NSEvent) {
+            let point = convert(event.locationInWindow, from: nil)
+            guard visibleRect.contains(point) else { stopInteraction(); return }
+            let previous = trackedPoint
+            trackedPoint = point
+            if previous == nil { render() } else { placeArtwork() }
+
+            guard prefs.directionBounce, !reducedMotion, !prefs.clickOnly || reveal != nil else { return }
+            let now = CACurrentMediaTime()
+            if let previous, let turn = motion.turn(from: previous, to: point, now: now) {
+                pointer.wobble(turn: turn)
+            }
+            if let stopTimer {
+                stopTimer.fireDate = Date(timeIntervalSinceNow: CursorMotion.stopDelay)
+            } else {
+                let timer = Timer(timeInterval: CursorMotion.stopDelay, repeats: false) { [weak self] _ in
+                    guard let self else { return }
+                    self.stopTimer = nil
+                    if let turn = self.motion.stopped(at: CACurrentMediaTime()) {
+                        self.pointer.wobble(turn: turn)
+                    }
+                }
+                stopTimer = timer
+                RunLoop.main.add(timer, forMode: .common)
+            }
+        }
+
+        private func cancelStopTimer() {
+            stopTimer?.invalidate()
+            stopTimer = nil
+        }
+
+        private func react(secondary: Bool) {
+            guard window?.isVisible == true, window?.isMiniaturized == false, !isHiddenOrHasHiddenAncestor,
+                  !visibleRect.isEmpty, prefs.animate || prefs.clickOnly else { return }
+            if prefs.clickOnly {
+                cancelReveal()
+                let hide = DispatchWorkItem { [weak self] in
+                    self?.reveal = nil
+                    self?.placeArtwork()
+                }
+                reveal = hide
+                placeArtwork()
+                DispatchQueue.main.asyncAfter(deadline: .now() + ClickResponse.revealDuration, execute: hide)
+            }
+            guard prefs.animate else { return }
+            let response = ClickResponse(prefs: prefs, count: cadence.record(at: CACurrentMediaTime()),
+                                         reduced: reducedMotion)
+            pointer.poke(energy: response.energy, secondary: secondary, motion: !reducedMotion,
                          effects: response.effects, celebration: response.celebration, reduced: reducedMotion)
         }
 
-        private func render() {
+        private func render(crossfade: Bool = false) {
             guard bounds.width > 0, bounds.height > 0 else { return }
-            var preview = artwork
-            preview.size = min(artwork.size * (bounds.height > 150 ? 2.2 : 1.42),
-                               bounds.height * 1.25, bounds.width * 0.8)
-            let nextScale = window?.backingScaleFactor ?? 2
-            guard renderedArtwork != preview || scale != nextScale else { return }
-            guard let image = PointerArt.image(prefs: preview, scale: nextScale) else { return }
-            renderedArtwork = preview
-            scale = nextScale
-            pointer.configure(image: image, prefs: preview)
+            var artwork = Preferences()
+            artwork.style = prefs.style
+            artwork.palette = prefs.palette
+            artwork.customColour = prefs.customColour
+            artwork.outline = prefs.outline
+            artwork.shadow = prefs.shadow
+            artwork.size = trackedPoint == nil
+                ? min(prefs.size * 2.6, bounds.height * 1.13, bounds.width * 0.73) : prefs.size
+            let scale = window?.backingScaleFactor ?? 2
+            if renderedArtwork != artwork || renderedScale != scale,
+               let image = PointerArt.image(prefs: artwork, scale: scale) {
+                renderedArtwork = artwork
+                renderedScale = scale
+                pointer.configure(image: image, prefs: artwork, crossfade: crossfade)
+            }
             placeArtwork()
         }
 
         private func placeArtwork() {
             guard let size = renderedArtwork?.size else { return }
-            pointer.place(CGPoint(x: bounds.midX - size * 0.27, y: bounds.midY + size * 0.36), visible: true)
-        }
-
-        override func setFrameSize(_ newSize: NSSize) {
-            super.setFrameSize(newSize)
-            placeArtwork()
+            if let point = trackedPoint {
+                let companion = prefs.keepNative || prefs.clickOnly
+                let position = companion ? CursorGeometry.companion(at: point, in: bounds, size: size) : point
+                pointer.place(position, visible: !prefs.clickOnly || reveal != nil)
+            } else {
+                pointer.place(CGPoint(x: bounds.midX - size * 0.25, y: bounds.midY + size * 0.34), visible: true)
+            }
         }
     }
 }
