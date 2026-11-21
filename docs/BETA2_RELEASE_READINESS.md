@@ -1,24 +1,24 @@
 # Beta 2 release readiness
 
-**21 November 2026 · NO-GO for public publication.** The branch is ready for local pull-request review. The proposed package passed the local build, integrity and data rehearsals. A Developer ID-signed, notarised DMG and first-launch acceptance on a disposable system are still required.
+**21 November 2026 · NO-GO for public publication.** The release metadata is approved. Local build, package integrity and data rehearsals passed. A Developer ID-signed, notarised DMG and first-launch acceptance on a disposable system are still required.
 
 | Release input | Value |
 | --- | --- |
 | Starting source | `fix/native-studio` at `1e8d751abc51d10286b4eeec80e4bc71a0a2e989` |
-| Qualified application source | `9f2004475ddd2f014e40e90c3903b35b9cf2417a` |
+| Application source used for the earlier offline upgrade rehearsal | `9f2004475ddd2f014e40e90c3903b35b9cf2417a`, built with temporary version and build overrides |
 | Reviewed base | Local and remote `main` at `1c07754137844bf2fac1103fa7cc09c694db4f59`, an ancestor of the candidate |
-| Proposed metadata | Version `1.2.0`, build `3`, tag `v1.2.0-beta.1`. The local build used an ignored Xcode configuration override. The source project remains at `1.1.0` (2) pending approval. The proposed tag is unused on GitHub. |
+| Approved metadata | **Pokelet 1.2.0 Beta 2**, version `1.2.0`, build `3`, planned tag `v1.2.0-beta.1`. Debug and Release use the committed Xcode settings, and About reads the generated bundle's version and build. The tag is unused and reserved for the eventual approved release commit. |
 | Verification host | Apple M2, macOS 27.3 (26C5047e), Xcode 27.2 (27B52), one 2× display |
 
 ## Publication gates
 
 | Gate | Status |
 | --- | --- |
-| Release identity | **Awaiting approval.** Confirm version, build and tag, then commit those values and qualify the final release SHA. |
+| Release identity | **Approved.** Debug and Release use version `1.2.0` and build `3`. Qualify the eventual release SHA before tagging. |
 | Apple signing | **Blocked.** The configured keychains have one valid Apple Development identity, zero Developer ID Application identities and zero matching Developer ID Application certificates. The team’s Developer Program membership and certificate inventory outside this Mac are unverified. |
 | Notary service | **Pending.** `notarytool` 1.1.4 is available. No Pokelet notary profile is configured in the release environment. A Keychain profile may already exist under an owner-known name. Confirm the team and profile, validate access, then submit the approved DMG, inspect Apple’s log and verify the stapled ticket. |
 | Trusted installation and upgrade | **Pending.** Requires the signed, notarised DMG and a clean macOS VM snapshot, spare Mac or approved isolated test account. Qualify first launch, upgrade, menu bar and Dock paths, and post-install pointer recovery. |
-| GitHub and exact-commit CI | **Ready locally.** Push and PR creation, merge, and publication each require approval. Run hosted CI on the final release commit and verify the deployed forms after merge. |
+| GitHub and exact-commit CI | **Pending.** PR creation is approved. Merge and publication each require separate approval. Verify the deployed forms after merge. |
 | Accessibility and compatibility | **Partial.** Complete the desktop checks below or agree the coverage limits for a controlled beta. |
 
 See the [release checklist](RELEASE_CHECKLIST.md) for signing, submission recovery and publishing commands. The Xcode project uses manual ad hoc signing and hardened runtime. The Developer ID private key and `notarytool` profile belong in Keychain. The GitHub workflow needs no Apple credentials. GitHub showed no repository Actions secrets or variables, and the only configured environment was `github-pages`.
@@ -63,11 +63,11 @@ Use a clean macOS VM snapshot or a spare Mac. Keep the production installation a
 
 The branch includes the frozen Studio and pointer changes, compatible feedback links, signing preflight, Release CI analysis and Debug-only acceptance profiles. The two updated issue forms retain `bug.yml`, `feature.yml` and every existing field ID, so existing links and field query parameters remain valid. The chooser’s private-security link and blank-issue setting are preserved. Both form labels exist. After merge, open the chooser and the two existing form URLs, confirm there is one entry of each kind, and load a synthetic `environment` prefill with punctuation and a line break. Close the drafts after checking the fields. [GitHub form schema](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-githubs-form-schema)
 
-The [changelog](../CHANGELOG.md) stays under **Unreleased** until metadata approval. The proposed PR and release-note copy are in `build/beta2-release-prep/BETA2_PR.md` and `build/beta2-release-prep/BETA2_RELEASE_NOTES.md`. The existing public download remains the verified Beta 1 asset during preparation.
+The [changelog](../CHANGELOG.md) records the approved release metadata. The release-note draft is in `build/beta2-release-prep/BETA2_RELEASE_NOTES.md`. The verified Beta 1 asset remains the public download during preparation.
 
 ### Approvals required
 
-1. Approve the version, build and tag, and authorise pushing `fix/native-studio` and opening the PR. Review hosted checks before separately approving the merge.
+1. Review hosted checks and separately approve the merge.
 2. Authorise Apple Developer ID issuance or import and Keychain profile setup if needed. Authorise Apple notarisation of the approved release SHA separately.
 3. Approve the disposable macOS test environment and any permission, system accessibility or hardware changes used for acceptance. Agree any compatibility limits that will accompany the beta.
 4. Approve tagging, publishing the verified stapled DMG and checksum, and switching public download links to the new release.

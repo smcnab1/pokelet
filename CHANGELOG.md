@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.2.0-beta.1
+
+Pokelet 1.2.0 Beta 2, build 3. Release candidate pending publication approval.
 
 ### Studio
 
