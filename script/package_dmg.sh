@@ -3,7 +3,31 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-}"
+IDENTITY="${POKELET_DEVELOPER_ID:-}"
+PROFILE="${POKELET_NOTARY_PROFILE:-}"
+
+check_developer_id() {
+  if [[ -n "$IDENTITY" && ! "$IDENTITY" =~ ^[[:xdigit:]]{40}$ ]]; then
+    printf 'POKELET_DEVELOPER_ID must be the local certificate fingerprint.\n' >&2
+    return 2
+  fi
+  if ! /usr/bin/security find-identity -v -p codesigning | /usr/bin/awk -v id="$IDENTITY" '
+    /^ *[0-9]+\)/ && /"Developer ID Application: / && (id == "" || toupper($2) == toupper(id)) { found = 1 }
+    END { exit !found }
+  '; then
+    printf 'A valid Developer ID Application identity with its private key is required.\n' >&2
+    return 2
+  fi
+}
+
 case "$MODE" in
+  --check-signing)
+    [[ $# -eq 1 ]] || exit 2
+    check_developer_id
+    xcrun notarytool --version
+    printf 'Local Developer ID Application identity and notarytool are available.\n'
+    exit
+    ;;
   --check-layout)
     [[ $# -eq 2 ]] || exit 2
     APP="$(cd "$2" && pwd -P)"
@@ -26,34 +50,31 @@ case "$MODE" in
     mkdir -p "$(dirname "$OUT")"
     ;;
   *)
-    printf 'Usage: %s --check-layout path/to/Pokelet.app | --beta [output-directory] | --notarise [output-directory]\n' "$0" >&2
+    printf 'Usage: %s --check-signing | --check-layout path/to/Pokelet.app | --beta [output-directory] | --notarise [output-directory]\n' "$0" >&2
     exit 2
     ;;
 esac
 
 if [[ "$MODE" == --notarise ]]; then
-  IDENTITY="${POKELET_DEVELOPER_ID:-}"
-  PROFILE="${POKELET_NOTARY_PROFILE:-}"
-  if [[ ! "$IDENTITY" =~ ^[[:xdigit:]]{40}$ || -z "$PROFILE" ]]; then
+  if [[ -z "$IDENTITY" || -z "$PROFILE" ]]; then
     printf 'Set POKELET_DEVELOPER_ID to the local certificate fingerprint and POKELET_NOTARY_PROFILE to a Keychain profile.\n' >&2
     exit 2
   fi
-  if ! /usr/bin/security find-identity -v -p codesigning | /usr/bin/awk -v id="$IDENTITY" '
-    toupper($2) == toupper(id) && $0 ~ /"Developer ID Application: / { found = 1 }
-    END { exit !found }
-  '; then
-    printf 'A valid Developer ID Application identity with its private key is required.\n' >&2
-    exit 2
-  fi
+  check_developer_id
   xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null
 fi
 
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/pokelet-dmg.XXXXXX")"
 MOUNT="$STAGE/mounted"
 attached=false
+retain_stage=false
 cleanup() {
   if [[ "$attached" == true ]] && ! /usr/bin/hdiutil detach "$MOUNT" -quiet; then
     printf 'Disk image is still mounted at %s. Staging was retained.\n' "$MOUNT" >&2
+    return
+  fi
+  if [[ "$retain_stage" == true ]]; then
+    printf 'Notarisation staging retained at %s with the submission output and DMG. Check the existing submission before retrying.\n' "$STAGE" >&2
     return
   fi
   rm -rf "$STAGE"
@@ -68,6 +89,14 @@ fi
 if [[ "$MODE" == --notarise ]]; then
   /usr/bin/codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
   /usr/bin/codesign --verify --deep --strict "$APP"
+  for arch in arm64 x86_64; do
+    /usr/bin/codesign --display --arch "$arch" --verbose=4 "$APP" 2>&1 | /usr/bin/awk '
+      /^Authority=Developer ID Application: / { developer = 1 }
+      /^Timestamp=/ { timestamp = 1 }
+      /^CodeDirectory .*flags=.*\(runtime\)/ { runtime = 1 }
+      END { exit !(developer && timestamp && runtime) }
+    ' || { printf 'Release signature on %s requires Developer ID, a secure timestamp and hardened runtime.\n' "$arch" >&2; exit 1; }
+  done
 fi
 
 if [[ "$MODE" == --beta ]]; then
@@ -89,17 +118,29 @@ DMG="$STAGE/Pokelet-$VERSION$SUFFIX.dmg"
 /usr/bin/hdiutil create -quiet -volname Pokelet -fs HFS+ -format UDZO -srcfolder "$STAGE/layout" "$DMG"
 
 if [[ "$MODE" == --notarise ]]; then
-  /usr/bin/codesign --timestamp --sign "$IDENTITY" "$DMG"
-  if ! xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait --timeout 30m \
-      --output-format plist > "$STAGE/notary.plist"; then
-    cat "$STAGE/notary.plist" >&2
+  BUNDLE_ID="$(/usr/bin/plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")"
+  /usr/bin/codesign --timestamp --sign "$IDENTITY" --identifier "$BUNDLE_ID.dmg" "$DMG"
+  /usr/bin/codesign --verify --strict "$DMG"
+  retain_stage=true
+  if ! xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" \
+      --output-format plist > "$STAGE/submission.plist" 2> "$STAGE/notary.stderr"; then
+    cat "$STAGE/submission.plist" >&2
+    cat "$STAGE/notary.stderr" >&2
+    exit 1
+  fi
+  SUBMISSION="$(/usr/bin/plutil -extract id raw "$STAGE/submission.plist")"
+  printf 'Apple notarisation submission %s\n' "$SUBMISSION"
+  if ! xcrun notarytool wait "$SUBMISSION" --keychain-profile "$PROFILE" --timeout 30m \
+      --output-format plist > "$STAGE/notary.plist" 2> "$STAGE/notary.stderr"; then
+    cat "$STAGE/notary.plist" "$STAGE/notary.stderr" >&2
     exit 1
   fi
   if [[ "$(/usr/bin/plutil -extract status raw "$STAGE/notary.plist")" != Accepted ]]; then
     /usr/bin/plutil -p "$STAGE/notary.plist" >&2
     exit 1
   fi
-  printf 'Apple notarisation accepted, submission %s\n' "$(/usr/bin/plutil -extract id raw "$STAGE/notary.plist")"
+  printf 'Apple notarisation accepted, submission %s\n' "$SUBMISSION"
+  xcrun notarytool log "$SUBMISSION" --keychain-profile "$PROFILE" "$STAGE/notary-log.json"
   xcrun stapler staple "$DMG"
   xcrun stapler validate "$DMG"
   /usr/bin/codesign --verify --strict "$DMG"
@@ -131,4 +172,6 @@ DMG_NAME="${DMG##*/}"
 )
 mkdir "$OUT"
 mv "$DMG" "$DMG.sha256" "$OUT/"
+if [[ "$MODE" == --notarise ]]; then mv "$STAGE/notary-log.json" "$OUT/"; fi
+retain_stage=false
 printf '%s\n' "$OUT/$DMG_NAME" "$OUT/$DMG_NAME.sha256"
