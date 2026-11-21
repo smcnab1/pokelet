@@ -72,7 +72,7 @@ struct SettingsView: View {
             .accessibilityLabel("Quick start")
             .help("Quick start")
             if model.mode.presentation {
-                Label("Clicks paused", systemImage: "pause.circle.fill")
+                StudioLabel("Clicks paused", symbol: "pause.circle.fill")
                     .studioFont(.callout, weight: .semibold)
                     .foregroundStyle(StudioTheme.warning)
                     .help("Press Escape or Control–Option–T to resume clicks.")
@@ -105,7 +105,9 @@ struct SettingsView: View {
                 case .sounds: SoundSettings(model: model, wide: wide)
                 case .presentation: PresentationSettings(model: model, wide: wide)
                 case .general: GeneralSettings(model: model, wide: wide)
-                case .about: AboutSettings(wide: wide)
+                case .about: AboutSettings(wide: wide, diagnostics: FeedbackDiagnostics(
+                    prefs: model.prefs, presentation: model.mode.presentation
+                ))
                 }
             }
             .frame(maxWidth: model.settingsPage == .pointer ? 1160 : 860, alignment: .leading)
