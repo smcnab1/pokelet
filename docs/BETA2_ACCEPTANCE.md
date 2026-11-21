@@ -1,0 +1,72 @@
+# Beta 2 acceptance
+
+**21 November 2026 · NO-GO for release.** The local candidate passes pixel-based renderer checks and package qualification. Live Replace in Studio, physical click-to-fingertip alignment and the remaining desktop checks still need acceptance.
+
+Testing continued on `fix/native-studio` from `7dc810c`. The pointer changes are in `c1d5212` and sound changes are in `c0b03ab`. The test Mac was an Apple M2 running macOS 27.3 and Xcode 27.2 with one 2× display. The live candidate had its own Debug bundle identifier and preference domain. The local Release package remains version 1.1.0 (2).
+
+## Cursor and click effects
+
+The original renderer used the same nominal artwork point for every character. It marked the beginning of the paths, which can sit inside the visible painted tip. Companion measured its gap from the square image canvas, including transparent space. Click-only used that same offset. The live overlay skipped ordinary local mouse-downs in Studio, and elsewhere it placed the character using the current cursor position while placing the effect using the earlier event coordinate. Effects already had separate positions, but artwork could cover them.
+
+The mouse-down event now supplies the impact point in both the live overlay and Studio. Replacement eligibility follows the current native cursor, which may already have moved after the event. The renderer uses each illustration’s painted contact point as the rotation and scaling anchor. Companion stays beside the native arrow using the visible ink bounds, while Click-only reveals the character at the mouse-down point. The standalone preview uses the same placement and effect code. Impacts render above the artwork and keep their event positions when the character moves.
+
+### Before and after
+
+The crosshair marks the reference point in both columns. These PNGs capture actual Core Animation output in the disposable native fixture. The fixture uses the system arrow image to illustrate Companion and reproduces the baseline Studio click gate for Replace. It does not hide the system cursor.
+
+| Mode | Baseline `7dc810c` | Candidate |
+| --- | --- | --- |
+| Companion, The Finger at 132 pt | ![Baseline Companion shows the character well to the right and slightly above the native arrow and ring](screenshots/beta2/companion-before.png) | ![Candidate Companion shows the character beside the arrow, with the ring centred on the arrow hotspot](screenshots/beta2/companion-after.png) |
+| Replace in Studio, The Finger at 132 pt | ![Baseline replacement shows the character with no ring at the Studio click](screenshots/beta2/replace-before.png) | ![Candidate replacement shows the ring centred at the marked fingertip](screenshots/beta2/replace-after.png) |
+
+### Rendered measurements
+
+Coordinates are in AppKit fixture points. The primary reference is **(125.25, 154.25)** and the secondary reference is **(205.75, 165.75)**. The test samples the painted tip marker, the primary impact centre and the secondary ring bounds from presentation-frame pixels. Both effects are captured after a subsequent character move. The reference is a test coordinate supplied to the renderer.
+
+| The Finger, 76 pt at 2× | Visible character hotspot | Primary impact | Secondary impact |
+| --- | --- | --- | --- |
+| Companion | (153.75, 154.25), 28.50 pt beside the click | (125.25, 154.25) | (205.75, 165.75) |
+| Replace | (125.25, 154.25) | (125.25, 154.25) | (205.75, 165.75) |
+| Click-only | (125.25, 154.25) | (125.25, 154.25) | (205.75, 165.75) |
+
+The fixture covered **72 character cases** across The Finger, Cat Paw, Foam Finger and Comic Arrow, sizes of 44, 76 and 132 pt, 1× and 2× rasters, and all three modes. Maximum observed aligned tip error was **1.46 pt**, and maximum rendered impact error was **0.36 pt**. Companion's maximum error against its intended offset was **1.41 pt**. The fixture also captured the Presenter Arm outline at the centre, all four edges and all four corners at each size, and measured rapid primary and secondary effects at each size. Presenter Arm outline proximity was within **0.36 pt** at all 27 positions.
+
+Run `./script/test_pointer_visual.sh build/beta2-visual` on a Mac with an active desktop to generate the PNGs and measurements.
+
+### Presenter Arm on the desktop
+
+| Check | Observed result |
+| --- | --- |
+| Stationary glove | At 44, 76 and 132 pt the nearest opaque outline pixel was 0.47 pixels, or **0.24 pt**, from the sampled native pointer at AppKit **(1285.668, 571.027)**. These measurements cover the final artwork, including a repeat capture at 132 pt. |
+| Primary and secondary effects in Studio | Desktop automation sent targeted mouse-downs to Studio. From the Studio window origin and the clicked offsets, the expected Quartz positions were **(961, 274.5)** and **(637, 407)**. The live overlay's primary centre and secondary ring centre matched both at the measured pixel resolution. These targeted clicks leave the physical cursor in place. |
+| Ordinary input | The disposable AppKit fixture received primary and secondary mouse-downs and activated the enabled button twice on the rapid pair. For that pair AppKit delivered **(745, 749)** and Quartz reported **(745, 363)**. The desktop driver's targeted clicks establish event delivery to the fixture. |
+| Lifecycle | The isolated candidate kept the same overlay when Studio was open, minimised and closed. A rebuilt candidate repeated the close and reopen check in the same process. Turning Presenter Arm off restored the prior character and Companion. Command–Q removed the overlay and process. |
+| Rendering cost | The regression test confirms repeated placement at the same point reuses the sleeve path. In five one-second samples after the initial reading, the final Debug process had median CPU 0.0%, peak 5.0% and about 54 MiB of memory. This was a short stationary sample. Sustained movement cost and WindowServer cost remain unmeasured. |
+
+[Live glove at 132 pt](screenshots/beta2/presenter-arm-live.png) · [Lower-right renderer capture](screenshots/beta2/presenter-arm-edge.png) · [Live primary impact crop](screenshots/beta2/presenter-primary-live.png) · [Live secondary impact crop](screenshots/beta2/presenter-secondary-live.png)
+
+**BLOCKED** on an approved Replace in Studio trial with physical input. A physical click needs to establish the full chain from the system cursor through the illustrated contact point and impact to the control that receives the click. The full physical corner and edge sweep, movement performance and cursor restoration after actual hiding also remain open.
+
+## Sound, menu bar and feedback
+
+| Area | Result |
+| --- | --- |
+| Interactive click sounds | **PASS for the fallback and scoped classifier.** When access is unavailable, Studio explains that interactive sounds are paused and offers **Use Every click**. Preview and existing sound preferences remain available. The previous system-wide AX query returned Vorssaint elements through the disposable fixture. The classifier now queries the mouse event’s receiving process and leaves clicks silent when the target or control is unavailable. |
+| Native Accessibility | With existing access in the test harness, the actual enabled button and editable field classified as interactive. The disabled button, static label and blank area did not. TextEdit’s editable document classified as interactive and its title-bar background did not. Fixture requests took 0.11–0.15 ms to enqueue and 1.25–25.71 ms to complete asynchronously. **BLOCKED** on end-to-end interactive playback permission in the isolated app and on an acoustic check. No permission prompt was requested. |
+| Menu bar and Dock | **PASS for the fallback.** Thaw and Vorssaint were running. The closed final candidate retained regular activation with no visible status item frame. Launch Services reopened Studio in the same process, and Command–Q provided an accessible exit. `NSStatusItem` lifecycle code is unchanged. A fresh native status-menu check with those utilities paused is **BLOCKED** in this trial. [Earlier unobstructed menu evidence](LIVE_ACCEPTANCE.md#menu-bar-and-dock-follow-up--21-november-2026) |
+| GitHub issue forms | **PASS for local readiness.** Both form schemas, public/private routing, labels, encoded prefill and diagnostic-copy tests passed. Public `main` at `1c07754` still has `bug.yml` and `feature.yml`. The new form filenames and field identifiers are already on the local branch. Publish them through the normal PR after approval, then verify prefill in the public chooser without submitting an issue. [Public issue templates](https://github.com/smcnab1/pokelet/tree/main/.github/ISSUE_TEMPLATE) |
+
+## Verification and release blockers
+
+| Check | Result |
+| --- | --- |
+| Core tests and source | **PASS** · 46 SwiftPM tests on Apple silicon with warnings as errors and 46 XCTest cases in the x86_64 test bundle under Rosetta. The default SwiftPM cross-architecture runner attempted to load the x86_64 bundle in an arm64 helper. Running the bundle with x86_64 XCTest resolved it. Shell syntax, documentation links, issue-form validation and diff whitespace checks passed. |
+| Build and package | **PASS** · Debug build and analysis, native Studio layout in both widths, appearances and text sizes, universal Release build and analysis, ZIP integrity and strict bundle signature, and mounted DMG layout with embedded bundle smoke. Both slices declare macOS 14.0. |
+| Presentation Mode | **PASS** · ordinary Debug displayed **Unavailable in this build**. The Release build disables Presentation Mode, and packaging checks both slices for Debug launch flags and debug entitlements. |
+| Existing settings | **PASS** · Core tests load earlier settings and preserve existing values. The disposable native candidate retained the selected character and size across relaunch. |
+| Keyboard and VoiceOver | **PARTIAL** · Studio shortcut navigation, close, reopen and quit were exercised. Controls and labels were exposed in the AX tree. Full keyboard focus traversal and spoken VoiceOver output are **BLOCKED**. |
+| Accessibility display settings and physical audio | **BLOCKED** · composed reduced-motion effects and sound resource decoding passed. The host’s system Reduce Motion and Reduce Transparency were off. A system-level visual pass with both settings enabled, acoustic playback and physical output switching remain open. |
+| Display and runtime | **BLOCKED** · physical display scaling changes, cross-display movement, macOS 14 runtime and Intel hardware were unavailable for this run. The 1× renderer and x86_64 Rosetta results cover the raster and translated code paths respectively. |
+| Publication | **BLOCKED** · the package is local and ad hoc signed. Trusted distribution, release version approval, final GitHub publication and a quarantined install or upgrade are pending. |
+
+No upload, push, merge, release, version change, permission change or installed-app replacement was performed. The earlier running Pokelet copy and both menu-bar utilities were left in place.

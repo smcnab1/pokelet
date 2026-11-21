@@ -1,6 +1,6 @@
 # Pokelet verification
 
-The [live Studio acceptance report](docs/LIVE_ACCEPTANCE.md) records the 21 November 2026 candidate checks, release blockers and the controlled pointer test plan.
+The [Beta 2 acceptance report](docs/BETA2_ACCEPTANCE.md) records the final local candidate, rendered alignment measurements and release blockers. The [earlier Studio trials](docs/LIVE_ACCEPTANCE.md) preserve the desktop evidence from preceding builds.
 
 ## Public beta v1.1.0-beta.1
 

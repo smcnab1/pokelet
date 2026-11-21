@@ -8,7 +8,7 @@ The existing Settings window put the character gallery inside a narrow preferenc
 | Navigation | Floating icon rail with destination names in tooltips and accessibility labels. It becomes a labelled horizontal dock in compact windows. Command–1 through Command–6 select the destinations in order. |
 | Type and colour | System typography with a clear hierarchy for headings, labels and tabular values. General offers a larger text setting for Studio. The website's aubergine, lavender and warm paper inform the adaptive palettes. |
 | Materials | Builds made with Xcode 26 or later use Liquid Glass for navigation on macOS 26 and later. Earlier versions and toolchains use a thin standard material. Reduce Transparency uses a solid surface. |
-| Preview | The selected character follows the cursor at its configured size when you move inside the preview. Primary and secondary clicks use the same response renderer as the pointer. Click-only mode reveals the character briefly. The preview supports light and dark test surfaces and works with the global pointer turned off. |
+| Preview | The preview uses the same placement and click effects as the live pointer. Turn the live pointer off to try the stage on its own. Companion keeps the character beside the Mac cursor and marks the actual click. Click-only reveals the character at the click position. |
 | Safety | Studio talks to the existing app model. Permission prompts and Presentation Mode keep their existing availability rules. The Presentation page places recovery instructions before the start action. |
 
 The app targets macOS 14 and later.
@@ -26,7 +26,7 @@ Open **Studio → Presenter effects** and turn on **Enable Presenter Arm**. Move
 
 ## Click sounds
 
-In **Sounds → Playback**, choose **Every click** or **Interactive clicks only**. In Interactive mode, macOS Accessibility information is used to identify controls such as buttons, links and text fields. Coverage varies by app. When Accessibility access is unavailable, Pokelet uses Every click.
+In **Sounds → Playback**, choose **Every click** or **Interactive clicks only** for clicks in other apps while the pointer is on. Interactive mode uses macOS Accessibility information to identify controls such as buttons, links and text fields. If macOS cannot identify the receiving app or control, the click is silent. If Accessibility access is unavailable, interactive click sounds pause. Choose **Use Every click** to switch modes or **Preview sound** to hear the selected sound in Studio.
 
 ## Feedback
 

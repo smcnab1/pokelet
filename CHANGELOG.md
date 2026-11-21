@@ -4,7 +4,8 @@
 
 - Try **Presenter Arm** in Studio or use it across apps with the Mac pointer visible. The bottom-edge sleeve follows the original white glove, and switching the effect off restores your selected character.
 - Anchor click effects to each mouse-down position, including secondary and rapid clicks.
-- Choose **Every click** or **Interactive clicks only** in Sounds. With Accessibility access unavailable, sounds keep playing on every click.
+- Choose **Every click** or **Interactive clicks only** in Sounds. Interactive click sounds pause when Accessibility access is unavailable, with an explicit option to switch to **Every click**.
+- Align each character's contact point and click effects with the mouse-down location in replacement and Click-only modes. Companion keeps the character beside the native pointer and draws effects at the actual click.
 - Align Studio link and settings icons and keep animation intensity tiles at consistent heights.
 - Open dedicated GitHub bug and feature forms from **About → Help & Feedback**. Review or copy the basic system information for a bug report.
 
