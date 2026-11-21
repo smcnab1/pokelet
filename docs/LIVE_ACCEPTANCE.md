@@ -1,10 +1,10 @@
 # Studio acceptance and beta readiness
 
-**21 November 2026. Public beta update on hold.** The local candidate built and passed automated checks. Run the controlled pointer and restoration checks before qualifying the update. The candidate still carries the public Beta 1 bundle version and build number. Choose a distinct release version and build before cutting the next artefact.
+**21 November 2026. Public beta update on hold.** Companion, Click-only and Replace in Studio passed controlled input and recovery checks on one Apple silicon Mac. Cross-display verification remains open. The current candidate still has Beta 1's bundle version and build number.
 
 The starting checkout was clean at `93a7947` on `fix/native-studio`. Desktop checks ran on Apple M2, macOS 27.3 (`26C5047e`), Xcode 27.2 (`27B52`), and one built-in Retina display. They used a separate Debug bundle, preferences suite, window frame and audio directory. The Studio-only profile disables pointer activation, global shortcut registration, click suppression and Login Items changes. The Release bundle was built and inspected separately. During initial setup, the native tool relaunched the test bundle without its Studio-only flag, so default shortcut registration may have run briefly. The process was stopped and the dedicated bundle ID now enforces Studio-only mode even when started without arguments. Pointer activation and permission changes were outside the session.
 
-**PASS** means verified at the evidence level shown. **FAIL** means a confirmed defect or failed release check. **BLOCKED** means the available desktop, tooling or credentials could not establish the result. **NOT RUN** means the check awaits approval.
+**PASS** means verified at the evidence level shown. **FAIL** means a confirmed defect or failed release check. **BLOCKED** means the available desktop, tooling or credentials could not establish the result. **NOT RUN** means the check was deferred, including checks that still need approval.
 
 ## Menu bar and Dock follow-up · 21 November 2026
 
@@ -31,6 +31,8 @@ To confirm the ordinary desktop setup after installation, show Pokelet in your m
 
 ## Phase 1 · Native Studio
 
+The table below preserves the original Studio evidence. The [additional Studio checks](#additional-studio-checks--21-november-2026) record the latest results for previously blocked items.
+
 | Feature | Status | Evidence |
 | --- | --- | --- |
 | Source, build and complete automated suite | PASS | Clean starting checkout. All 27 initial SwiftPM tests and all 28 after the default shortcut change passed with warnings as errors. Xcode Debug build and analysis, universal Release build and extracted and mounted bundle smoke checks passed. |
@@ -53,6 +55,20 @@ To confirm the ordinary desktop setup after installation, show Pokelet in your m
 | Crashes and console | PASS | Corrected isolated builds survived the exercised workflows and relaunches. The scoped unified-log query found no Pokelet error or fault in the final observation period. One earlier setup crash is recorded below. |
 | Short process resource sample | PASS | Studio open and pointer off, seven one-second `top` readings showed 48 MiB displayed memory and CPU at 0.0% five times, 0.3% once and 3.5% once. Separate `ps` RSS was about 35 MiB. After closing Studio in a later candidate session, seven readings showed 0.0% CPU and 46 MiB displayed memory, with a separate RSS sample of about 101 MiB. The samples came from different processes and exclude WindowServer, active tracking and battery impact. |
 
+### Additional Studio checks · 21 November 2026
+
+The RGB and audio checks used the isolated Release candidate. Window, focus and preview checks used a fresh Debug build of `3269ef0` with the Studio-only profile. Its pointer switch remained disabled and off.
+
+| Check | Status | Evidence |
+| --- | --- | --- |
+| Custom RGB persistence | PASS | Entered `#298AD1` in the native RGB colour panel. The colour well reported the matching sRGB values before and after relaunch, and the stored custom value was `0x298AD1`. |
+| Detailed preview behaviour | PASS · sampled | Native preview captures showed the initial held-click effect, settling before release, and a secondary-click ring. Bursts exercised all five intensities and produced celebration sparkles. Click-only revealed the artwork then returned to its hidden tracking state. A quick reversal produced a wobble. Studio’s Reduced Motion setting produced a brief ring and disabled wobble. The macOS Reduce Motion setting and full animation timing remain BLOCKED. |
+| Dragging and frame restoration | PASS · desktop automation | A title-area drag moved Studio 38 points horizontally. After resizing and positioning, quit and relaunch restored the exact 742 × 520 point window frame at (309, 230). |
+| Keyboard focus and VoiceOver | BLOCKED | With macOS Keyboard Navigation off, Tab and Shift–Tab left focus on the Studio window. The earlier accessibility inspection verified control labels and states. Full traversal, visible focus and spoken output still need a desktop session with Keyboard Navigation and VoiceOver enabled. |
+| Reduced Transparency | BLOCKED · live setting | Source review confirmed the macOS accessibility value selects a solid sidebar surface with a border. Earlier forced-branch captures show that material. The host reported Reduced Transparency off, and the system preference stayed in that state. |
+| Preview audio and volume | PASS · digital output | The process-scoped sample in Phase 2 captured sound preview while live click sounds were off and measured the expected volume change. Listening and switching output devices remain BLOCKED. |
+| Preview CPU and memory | PASS · sampled | Same Studio-only Debug PID, eight one-second `top` samples per workload after discarding the first. Idle CPU median/peak was 0.0%/4.7%. Under repeated six-click preview bursts it was 4.1%/4.7%. Displayed memory stayed about 43 MiB and separate RSS snapshots were about 103 MiB. The sample measures the Pokelet process. |
+
 ## Defects and release findings
 
 | Finding | Severity | Status | Reproduction and disposition |
@@ -62,11 +78,40 @@ To confirm the ordinary desktop setup after installation, show Pokelet in your m
 | First isolated test build crashed before showing Studio | High for test setup | FAIL → PASS | Launch the first experimental Debug build with its app ID and `UserDefaults` suite both set to `uk.co.sammcnab.Pokelet.StudioAcceptance`. macOS returned no suite and `AppModel.init()` trapped. Assigned a distinct suite and repeated launch and relaunch successfully. This crash was introduced during acceptance setup. |
 | Candidate repeats the existing beta’s bundle version | Medium, release blocker | FAIL | Compare About or the local Release `Info.plist` against Beta 1. Both are 1.1.0, build 2. The existing tag points to `8baf2c9` and the Studio candidate contains later changes. The release version and build were left for the next release decision. |
 
-## Phase 2 · Controlled pointer plan
+## Phase 2 · Controlled pointer acceptance
 
-**Paused after check 2 for this plan.** The owner approved checks 1–2. The follow-up above separately verified the status-menu route and Companion while Studio was closed. The remaining character, replacement and presentation checks below retain their original evidence. Use a separately staged candidate with presentation acceptance off, a disposable document and the [local input targets](../Tests/Interactive/InputTargets.html). Confirm the candidate path and PID, current permission state and initial native cursor. Keep a second terminal or owner-operated keyboard route available to quit that exact candidate. Run one numbered check at a time. After any enablement or failure, verify a visible macOS cursor and working clicks in the fixture with the overlay off. Stop if recovery is incomplete. Steps 2 and 5 establish restoration before the later tests.
+Checks 1–2 and the menu-bar and Dock follow-up are prior accepted evidence. This session resumed at check 3 on source commit `3269ef0` on `fix/native-studio`, which differs from `064de79` only in this record. The owner approved Companion and Click-only first, then separately approved Replace in Studio. Presentation remains a separate phase.
 
-### Observed results, 21 November 2026
+### Companion and Click-only follow-up · 21 November 2026
+
+The isolated Release candidate used bundle ID `uk.co.sammcnab.Pokelet.LifecycleAcceptance` and executable SHA-256 `3c251e97e88e12a8a6d5bd334281ea1eb068ea153fdd584981315e07414b6816`. It ran on the M2 Mac with one built-in Retina display. The disposable WebKit fixture loaded the existing [local input targets](../Tests/Interactive/InputTargets.html). A local copy of its wrapper provided per-window light and dark backgrounds and recorded events on the target. Desktop automation sent input to the verified fixture or Studio windows. Cursor captures, the fixture counters and WindowServer overlay counts established recovery. Local logs and captures are in `build/pointer-phase2/`.
+
+| Check | Status | Evidence |
+| --- | --- | --- |
+| Focused automated tests | PASS | 20 SwiftPM tests passed with warnings as errors. They cover cursor ownership and restore retries, geometry, artwork, colour persistence, audio import and Presentation fail-open logic. The earlier 32-test suite and universal build results remain in the record above. |
+| 3–4. Live characters and palettes | PASS | Captured all 24 combinations of The Finger, Cat Paw, Foam Finger and Comic Arrow in Original, Black and Custom `#298AD1` against light and dark backgrounds. Each capture showed one character alongside the native arrow. Disabling removed the overlay and the next fixture click arrived. |
+| 6. Companion and Click-only | PASS | Companion stayed visible between clicks. In Click-only, captures showed the native arrow before the click, the character and arrow immediately after, and the arrow alone 1.2 seconds later. The click and the first post-disable click both reached the fixture. |
+| 7. Click phases and intensity | PASS · sampled | The held primary gesture produced an early effect. The effect settled before release, the Click counter stayed unchanged during the hold, and release delivered exactly one click without a second visible effect in the post-release capture. One secondary click delivered a context event. Six clicks at each of the five intensities added 30 primary clicks. Captures sampled differing motion and comic marks. |
+| 7. Audio and ordinary input | PASS · digital output | Process-scoped audio capture detected Cartoon Pop for both preview and live fixture clicks at 15% and 70%, with normalised peaks near 0.058 and 0.272 respectively. The 0% run produced no signal above 0.0001. All three live clicks reached the fixture and a post-disable click arrived with the native cursor visible. Physical audibility and output-device switching remain BLOCKED. |
+| 8. App switching and display edges | PASS · one display | The same overlay survived WebKit → Finder → WebKit. At the left and right edges the character stayed inside the built-in display and the native cursor remained visible. A fixture click arrived after disabling each run. Cross-display transitions are BLOCKED because only one display was available. |
+| 9. Companion Studio lifecycle | PASS · prior | Retains the approved Studio-closed, reopen and normal quit evidence in the menu-bar and Dock follow-up above. |
+| 10. Restore state and exit in Companion | PASS | Normal quit restored ordinary input. With restore off, relaunch stayed off. With restore on, both a normal quit and an unexpected exit of the verified candidate PID restored the native cursor and fixture clicks. Both opt-in relaunches created exactly one overlay. The session ended with pointer and restore off, zero overlays and a working fixture click. |
+
+### Replace in Studio follow-up · 21 November 2026
+
+Used the same Release candidate with restore-state off and a timed backup quit tied to the verified PID. Captured the native arrow and recorded the first fixture click after each operation. The first close run used the backup quit when the fixture’s accessibility tree was still loading. The close test was repeated after adding a readiness check to the local harness.
+
+| Check | Status | Evidence |
+| --- | --- | --- |
+| 5. Alignment and eligible content | PASS | Over exposed Studio content the replacement tip aligned with the recorded pointer coordinate. Rechecked Comic Arrow at 44, 76 and 132 points and The Finger at 76 points. The native arrow stayed visible over a floating WebKit target while Studio remained the active key window, over the app menu, outside Studio, and in the foreground fixture. A click reached the covering fixture. |
+| 5. Disable inside Studio | PASS | Disabled while the pointer was still over eligible Studio content. The native arrow reappeared at that position, overlay count went to zero and the first fixture click arrived. |
+| 9. Close and reopen | PASS | Command–W removed Studio and restored the native arrow immediately while the overlay stayed active. The fixture received a click. Launch Services reopened Studio in the same PID. Disabling returned the overlay count to zero and the next fixture click arrived. |
+| 9. Normal termination | PASS | Before quit, a capture showed The Finger at the Studio pointer position. Normal quit removed the process and overlay. A native arrow capture and the fixture’s next click verified recovery. |
+| 10. Unexpected termination | PASS | Sent SIGKILL to the verified candidate PID while Studio owned the native cursor hide. A post-exit capture showed the native arrow and the fixture counter advanced by one. Relaunch with restore off showed Pointer off and zero overlays. |
+
+No pointer defect was confirmed in these controlled runs. No application code or regression tests changed. The candidate and fixture processes were stopped and the isolated settings domains were restored.
+
+### Earlier checks 1–2 · 21 November 2026
 
 | Check | Status | Evidence |
 | --- | --- | --- |
@@ -77,6 +122,10 @@ To confirm the ordinary desktop setup after installation, show Pokelet in your m
 | 2. Status menu activation and disable | BLOCKED | The desktop tool did not expose the status item, and the owner reported that the icon or commands were unavailable during a separate physical attempt. The candidate recorded zero overlays throughout that attempt. The observations do not distinguish menu bar placement from a candidate defect. The Studio switch and physical shortcut have separate passing evidence. |
 
 The exact candidate and fixture processes were stopped after the off state and post-disable click were observed. The dedicated acceptance preferences returned to their initial empty state. No application was replaced or installed, and no Presentation session was started.
+
+### Reuse the controlled pointer checks
+
+Get owner approval for Companion and Click-only, and separate approval for replacement. Use the verified Release candidate and disposable fixture with a second keyboard-accessible quit route. Start with the native pointer and fixture click baseline, with restore-state off. Use one activation per recovery route. After each run, verify a visible native cursor and a fixture click with the overlay off. Stop if either fails. Test unexpected exit only after disable, close and normal quit each restore input.
 
 | Test | Expected result | Recovery |
 | --- | --- | --- |
@@ -93,15 +142,17 @@ The exact candidate and fixture processes were stopped after the off state and p
 
 ## Phase 3 · Presentation and emergency recovery
 
-Every live item remains **NOT RUN** until Phase 2 passes and the owner approves Phase 3 separately.
+Every live item remains **NOT RUN**. After ordinary pointer acceptance, get independent owner approval for this session and for any permission changes. Use only a separate Debug candidate launched with `--settings --acceptance-profile --presentation-acceptance`. Start with the native cursor, the disposable fixture and a verified click. Confirm the candidate's exact PID, that an operator can reach Escape and Control–Option–T, and that a backup terminal can quit the process by keyboard. Establish a visible, reachable status indicator before testing its exit route. Run a fresh activation for each exit. Verify the native cursor and a fixture click after every stop and abort the session if either fails to recover.
 
 | Feature | Status | Acceptance condition |
 | --- | --- | --- |
-| Activation and click interception | NOT RUN | Only the designated Debug candidate can arm the tap after permission and recovery checks. The disposable fixture receives no intercepted clicks, and keyboard slide navigation continues. |
-| Escape and Control–Option–T | NOT RUN | Use one activation per exit method. Verify ordinary click delivery after each one. |
-| Restore clicks action | NOT RUN | Test the menu bar indicator and the separate **End Presentation Mode** command in distinct activations. **Restore clicks** is the pane’s recovery heading. |
-| App termination during presentation | NOT RUN | Terminate the exact candidate only after ordinary stop routes pass. Verify mouse and pointer recovery immediately. |
-| Error or unexpected interruption | NOT RUN | Verify tap loss, permission loss, session inactivity, expiry and held-button exit individually. Confirm no stuck button or continued suppression. |
+| Permission denied and activation guards | NOT RUN | Attempt startup without Accessibility and record the actual Input Monitoring requirement. Confirm denial, a held button or an unavailable recovery shortcut leaves clicks working. Grant only the permission the owner separately authorises. |
+| Active input | NOT RUN | Establish that the fixture receives left, right and other-button events before arming. While active, monitor the counters and the fixture’s button-event log for suppressed clicks. The pointer responds and arrow keys still advance the fixture slides. |
+| Escape and Control–Option–T | NOT RUN | Exercise both keyboard exits separately. The fixture also receives the Escape key. After each exit, verify the first ordinary click. |
+| Menu-bar indicator and keyboard menu command | NOT RUN | Test the indicator and keyboard navigation to **End Presentation Mode** in distinct activations. |
+| Held-button exit | NOT RUN | End during a held gesture, release it and check that the next down/up pair arrives normally with no stuck drag. Check rapid stop/start independently. |
+| Expiry, tap loss and session inactivity | NOT RUN | Observe the full 15-minute expiry. Separately exercise an agreed interruption and permission revocation. The session ends, input resumes and returning to the app leaves suppression off. |
+| App termination during Presentation | NOT RUN | Use the verified candidate PID after the ordinary exit routes pass. Confirm immediate mouse and pointer recovery. Restore only the permissions changed for the approved session. |
 
 ## Phase 4 · Release audit
 
@@ -111,16 +162,16 @@ Every live item remains **NOT RUN** until Phase 2 passes and the owner approves 
 | Universal binary and macOS 14 minimum | PASS | Release ZIP contains `arm64` and `x86_64`, both with `LC_BUILD_VERSION` minimum macOS 14.0. The navigation material uses an availability-guarded macOS 26 path with a fallback. |
 | Intel and macOS 14 runtime | BLOCKED | No Intel or macOS 14 desktop was available. Target metadata and fallback source review establish build compatibility. |
 | Permissions and entitlements | PASS | Both Release slices passed strict signature checks and the test excluding `get-task-allow` and Debug acceptance flags. Pointer monitoring handles mouse events. Debug Presentation is the path that requests Accessibility and conditionally Input Monitoring. Actual grant and recovery checks are gated. |
-| Signing and notarisation | PASS | Ad hoc hardened-runtime signatures verified for both slices and inside the read-only test DMG. The repository has a local Developer ID signing and notarisation workflow. |
-| Trusted distribution | BLOCKED | No valid Developer ID Application identity was available. Notary submission, stapling and Gatekeeper acceptance of a trusted download remain unverified. [Apple distribution guidance](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution) |
+| Ad hoc bundle signing | PASS | Ad hoc hardened-runtime signatures verified for both Release slices and inside the prior read-only test DMG. The staged replacement candidate passed strict signature verification again. |
+| Developer ID, notarisation and Gatekeeper | BLOCKED | A local Keychain identity check found an Apple Development identity. Developer ID Application credentials, notary submission, stapling and Gatekeeper acceptance of a trusted download remain open. [Apple distribution guidance](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution) |
 | First-run onboarding and defaults | PASS | Fresh local Debug Studio started pointer off with Companion, Original, The Finger and muted sounds. Quick start was accessible. Automated coverage verifies preference migration, corrupt data recovery and defaults. |
-| Quarantined install or upgrade | BLOCKED | Existing beta download matched the published checksum. The staged candidate DMG mounted read-only and verified its Applications shortcut, executable and resources. First launch through Gatekeeper and an in-place update require a separate clean desktop. [Apple Gatekeeper guidance](https://support.apple.com/102445) |
+| Quarantined first install and Beta 1 upgrade | BLOCKED | The previous Beta 1 download still matches its SHA-256 file. The earlier read-only candidate mount verified layout and resources. On a clean Mac or VM, test first install with browser quarantine, then upgrade a disposable Beta 1 profile and verify preserved character, custom RGB, sound, shortcut, window frame and pointer restore preference. Confirm one running copy and ordinary input recovery. [Apple Gatekeeper guidance](https://support.apple.com/102445) |
 | Launch at login | NOT RUN | Static review found `SMAppService.mainApp` status, registration, removal and approval handling. Registration, OS approval, login relaunch and removal change account-level state and await separate authorisation. [Apple Service Management documentation](https://developer.apple.com/documentation/servicemanagement/smappservice) |
 | Privacy and security | PASS | Source review matched the documented local data model. Preferences and imported audio stay on the Mac, and About links open in the browser. The release workflow uses no background updater or telemetry. See the [privacy statement](../PRIVACY.md). |
-| Active CPU, memory and energy | NOT RUN | Pointer-enabled workload awaits Phase 2. The Phase 1 sample cannot measure WindowServer or battery effects. |
+| Active pointer resource use | NOT RUN | This session exercised pointer functionality. A paired pointer-active CPU and memory workload and WindowServer or energy measurement remain open for the current candidate. |
 | GitHub packaging | PASS | Verified [the Beta 1 prerelease](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1), its tag commit, the downloaded DMG and SHA-256 file, and the mounted Beta 1 bundle. The local workflow verified ZIP integrity and resources, both architectures, and read-only DMG layout. |
-| Next release version | FAIL | Bundle version and build still match Beta 1. |
-| Exact-commit CI | BLOCKED | The local fixes and report have no remote CI run. |
+| Next release version | FAIL | Beta 1 and the candidate are both `1.1.0 (2)`. Recommend `v1.2.0-beta.1` with bundle version `1.2.0` and build `3` for the Studio redesign and new Dock controls. Version metadata is unchanged. |
+| Exact-commit CI | BLOCKED | GitHub Actions returned zero runs for `3269ef0f41db535855a803ee71b42f2cbc4c7a6e`. Beta 1’s successful run belongs to `8baf2c994811429ca366e8d0352cf6e104150813`. Run the macOS workflow on the eventual release commit. [Beta 1 CI](https://github.com/smcnab1/pokelet/actions/runs/44760173269) |
 
 ## Reproduce the Studio-only session
 
