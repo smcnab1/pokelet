@@ -59,7 +59,7 @@ struct Shortcut: Codable, Equatable {
     var keyCode: UInt32
     var modifiers: UInt32
 
-    static let pointerDefault = Self(keyCode: UInt32(kVK_ANSI_P), modifiers: UInt32(controlKey | optionKey))
+    static let pointerDefault = Self(keyCode: UInt32(kVK_ANSI_P), modifiers: UInt32(optionKey | cmdKey))
     static let presentationDefault = Self(keyCode: UInt32(kVK_ANSI_T), modifiers: UInt32(controlKey | optionKey))
 
     var title: String {

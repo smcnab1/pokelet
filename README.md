@@ -47,7 +47,10 @@ Open **Settings…** from the Pokelet menu. Current source builds open **Studio*
 
 | Shortcut | Action |
 | --- | --- |
-| **Control–Option–P** | Toggle the pointer. You can change this in **Settings → General**. |
+| **Option–Command–P** | Toggle the pointer in current source builds with fresh or reset settings. |
+| **Control–Option–P** | Default pointer shortcut in the published Beta 1. |
+
+Find or change your current shortcut in **Settings → General**. Pokelet registers it globally. Finder also uses Option–Command–P to show or hide the path bar, so the default can take precedence while Pokelet is running. [Apple’s keyboard shortcuts](https://support.apple.com/en-gb/102650)
 
 The public beta has click suppression disabled. Presentation Mode is available in local Debug builds for [controlled acceptance](docs/INTERACTIVE_ACCEPTANCE.md). In those sessions, use **Escape**, **Control–Option–T** or the menu bar pause symbol to restore clicks. [Desktop results and remaining checks](VERIFICATION.md#desktop-acceptance)
 
