@@ -1,6 +1,6 @@
 # Studio acceptance and beta readiness
 
-**21 November 2026. Public beta update on hold.** Companion, Click-only and Replace in Studio passed controlled input and recovery checks on one Apple silicon Mac. Presentation Mode remains a Debug experiment. The stale exit action was fixed and retested without suppression. The armed trial awaits separate Accessibility approval. The current candidate still has Beta 1's bundle version and build number.
+**21 November 2026. Public beta update on hold.** Companion, Click-only and Replace in Studio passed controlled input and recovery checks on one Apple silicon Mac. Presentation Mode remains a Debug experiment. The stale exit action was fixed and retested without suppression. macOS 27.3 blocked the armed trial because the isolated candidate could not obtain the approved Accessibility grant. The current candidate still has Beta 1's bundle version and build number.
 
 The starting checkout was clean at `93a7947` on `fix/native-studio`. Desktop checks ran on Apple M2, macOS 27.3 (`26C5047e`), Xcode 27.2 (`27B52`), and one built-in Retina display. They used a separate Debug bundle, preferences suite, window frame and audio directory. The Studio-only profile disables pointer activation, global shortcut registration, click suppression and Login Items changes. The Release bundle was built and inspected separately. During initial setup, the native tool relaunched the test bundle without its Studio-only flag, so default shortcut registration may have run briefly. The process was stopped and the dedicated bundle ID now enforces Studio-only mode even when started without arguments. Pointer activation and permission changes were outside the session.
 
@@ -186,7 +186,7 @@ The owner approved the Debug fix and controlled live trial after preflight. Comm
 | Desktop baseline | PASS · unarmed | Fixture PID `53273` received primary and secondary clicks after relaunch, detected Escape and remained running. A cursor-inclusive capture showed the native arrow. Presentation and the pointer stayed off. |
 | Build and packaging | PASS · local | All 34 SwiftPM tests passed with warnings as errors. Debug built and analysed. The rebuilt universal Release ZIP and the read-only DMG layout passed, including the Release checks for Debug flags and entitlements. The bundle is still `1.1.0 (2)`. |
 
-The armed trial awaits explicit approval to request and grant Accessibility for the isolated bundle. Input Monitoring, if the candidate demonstrates a need, and permission revocation require separate decisions. The denial check above and the idle regression use existing test-driver permissions. No candidate permissions changed.
+At the end of this preflight, the armed trial still needed approval to request and grant Accessibility. The denial check and the idle regression used existing test-driver permissions. The owner subsequently approved the isolated candidate's Accessibility request, as recorded below.
 
 To rerun the unarmed regression, launch the exact Debug acceptance bundle with the documented flags and leave the Presentation pane frontmost without a candidate Accessibility grant. Use a driver with existing Accessibility and event-posting access.
 
@@ -197,13 +197,25 @@ build/presentation-recovery-fix/PresentationRecoverySmoke \
   build/presentation-recovery-fix/debug/Build/Products/Debug/Pokelet.app
 ```
 
+### Approved Accessibility attempt · 21 November 2026
+
+The owner authorised requesting and granting Accessibility to the isolated `uk.co.sammcnab.Pokelet.PresentationAcceptance` bundle. The macOS 27.3 host was build `26C5047e`.
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Candidate identity and independent recovery | PASS · unarmed | Reverified PID `57777`, exact executable path, both SHA-256 hashes, strict code signature and launch arguments. Return in the **Pokelet Recovery - Debug Candidate** Terminal tab verified the PID against its path and start time. The earlier rehearsal terminated the same build's previous PID. The fixture received Escape and a primary click. Control–Option–T had already been detected in the Carbon surrogate and exercised on the same fixed candidate. |
+| Approved Accessibility request | BLOCKED · host permission model | Invoked the exact candidate's **Request Accessibility Access** control. The candidate remained untrusted. Opening the previous Accessibility settings link led to **System & App Protection Override**. Navigating directly through **Privacy & Security → Accessibility** showed zero entries, no Add button, and a note that the panel lists only designated accessibility apps. The candidate was absent. Apple documents the split in macOS 27.3 and an entitlement route for assistive technologies. Candidate eligibility and whether a scoped override would support the event tap remain unverified. [Apple developer notice](https://developer.apple.com/news/?id=oqng0zjk) |
+| Fail-open and restoration | PASS · unarmed | The candidate still showed Accessibility **Required** and Start disabled, with zero overlays. After the exact candidate exited, the first fixture click advanced the count from 3 to 4 and a capture showed the native arrow. Closed the fixture, System Settings and the two test recovery sessions. Thaw and Vorssaint were running. No Accessibility grant, System & App Protection Override, Input Monitoring or revocation was applied. |
+
+The armed click suppression, emergency exits, tap interruption, inactivity, termination and full 15-minute expiry were **NOT RUN**. An isolated test Mac or VM with a supported, approved Accessibility path would allow those checks to proceed. The macOS 27.3 permission path remains open for this candidate. Option B still applies.
+
 ### Live acceptance plan
 
-All armed checks remain **NOT RUN**. Get explicit owner approval before activation or requesting or changing permissions. Use a separate Debug candidate launched with `--settings --acceptance-profile --presentation-acceptance`. Start with the native cursor, the disposable fixture and a verified click. Verify both emergency keys and an independent keyboard-accessible terminal. Establish a visible, reachable status indicator before testing its exit route. Use a fresh activation for each exit. Verify the native cursor and the first ordinary fixture click after every stop. If recovery fails, terminate the exact candidate and stop the session. Test permission revocation only with separate approval.
+All armed checks remain **NOT RUN**. Use the approved isolated Debug trial on a host with an available, approved permission path. Launch with `--settings --acceptance-profile --presentation-acceptance`. Start with the native cursor, the disposable fixture and a verified click. Verify both emergency keys and an independent keyboard-accessible terminal. Establish a visible, reachable status indicator before testing its exit route. Use a fresh activation for each exit. Verify the native cursor and the first ordinary fixture click after every stop. If recovery fails, terminate the exact candidate and stop the session. Input Monitoring and permission revocation require separate approval.
 
 | Feature | Status | Acceptance condition |
 | --- | --- | --- |
-| Permission denied and activation guards | PARTIAL | Explicit Start without Accessibility was refused. Confirm the actual Input Monitoring requirement and verify that a held button or an unavailable recovery shortcut leaves clicks working. A passive fixture can reserve the Carbon shortcut for the refusal test. Grant only the permission the owner separately authorises. |
+| Permission denied and activation guards | PARTIAL · further checks blocked | Explicit Start without Accessibility was refused and the approved grant was unavailable on this host. Confirm the actual Input Monitoring requirement and verify that a held button or an unavailable recovery shortcut leaves clicks working. A passive fixture can reserve the Carbon shortcut for the refusal test. Grant only the permission the owner separately authorises. |
 | Active input | NOT RUN | Establish that the fixture receives left, right and other-button events before arming. While active, monitor the button-event log during ordinary, held and rapid clicks. The native cursor remains visible in Companion, the character responds and arrow keys still advance the fixture slides. |
 | Escape and Control–Option–T | NOT RUN | Exercise both keyboard exits separately. The fixture also receives the Escape key. After each exit, verify the first ordinary click. |
 | Menu-bar indicator and keyboard menu command | NOT RUN | Check the indicator, click its active recovery control and separately use keyboard navigation to **End Presentation Mode**. Confirm the indicator returns to its ordinary state after each. |
@@ -243,7 +255,7 @@ All armed checks remain **NOT RUN**. Get explicit owner approval before activati
 | Changelog and availability | READY · draft | **Unreleased** already lists Studio, keyboard navigation, the dynamic Dock, menu bar and preserved shortcuts. At release, promote those entries to the approved version and state that Presentation is experimental and disabled in Release. Keep the existing public download links until there is a verified replacement asset. |
 | Runtime compatibility | PARTIAL | Apple M2 and macOS 27.3 ran the isolated builds. One built-in display was attached. Intel and macOS 14 runtime and cross-display movement remain open. The universal package and minimum-OS declarations establish build compatibility. |
 
-The remaining owner decisions are Accessibility approval for the isolated trial, release version approval and the distribution route. A trusted beta requires signing credentials, packaging on the final commit and a quarantined clean install and upgrade check. An ad hoc public beta would require an explicit distribution decision and clear Gatekeeper disclosure.
+The armed trial needs an isolated environment with a supported permission path. The remaining beta decisions are release version approval and the distribution route. A trusted beta requires signing credentials, packaging on the final commit and a quarantined clean install and upgrade check. An ad hoc public beta would require an explicit distribution decision and clear Gatekeeper disclosure.
 
 ### Remaining accessibility and compatibility
 
