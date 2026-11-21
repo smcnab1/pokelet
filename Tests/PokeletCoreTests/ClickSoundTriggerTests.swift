@@ -3,12 +3,13 @@ import XCTest
 @testable import PokeletCore
 
 final class ClickSoundTriggerTests: XCTestCase {
-    func testDefaultAndMissingAccessRetainEveryClick() {
+    func testInteractiveOnlyStaysSilentWhenDetectionIsUnavailable() {
         XCTAssertEqual(Preferences().soundTrigger, .everyClick)
-        XCTAssertFalse(SoundTrigger.everyClick.needsHitTest(accessibility: true, presentation: false))
-        XCTAssertTrue(SoundTrigger.interactiveOnly.needsHitTest(accessibility: true, presentation: false))
-        XCTAssertFalse(SoundTrigger.interactiveOnly.needsHitTest(accessibility: false, presentation: false))
-        XCTAssertFalse(SoundTrigger.interactiveOnly.needsHitTest(accessibility: true, presentation: true))
+        XCTAssertEqual(SoundTrigger.everyClick.playback(accessibility: false, presentation: false), .play)
+        XCTAssertEqual(SoundTrigger.everyClick.playback(accessibility: true, presentation: true), .play)
+        XCTAssertEqual(SoundTrigger.interactiveOnly.playback(accessibility: true, presentation: false), .classify)
+        XCTAssertEqual(SoundTrigger.interactiveOnly.playback(accessibility: false, presentation: false), .silent)
+        XCTAssertEqual(SoundTrigger.interactiveOnly.playback(accessibility: true, presentation: true), .silent)
     }
 
     func testOnlyEnabledControlsOrActionableElementsClassify() {

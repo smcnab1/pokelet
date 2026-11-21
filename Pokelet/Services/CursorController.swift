@@ -5,7 +5,7 @@ import QuartzCore
 import os
 
 final class CursorController {
-    var onClick: ((CGPoint) -> Void)?
+    var onClick: ((CGPoint, pid_t?) -> Void)?
     var onTrackingFailure: (() -> Void)?
     weak var replacementWindow: NSWindow?
 
@@ -160,7 +160,8 @@ final class CursorController {
         return NSWindow.windowNumber(at: mouse, belowWindowWithWindowNumber: 0) == window.windowNumber
     }
 
-    func tap(at point: CGPoint, secondary: Bool, playSound: Bool = true) {
+    func tap(at point: CGPoint, secondary: Bool, playSound: Bool = true,
+             quartzPoint: CGPoint? = nil, targetPID: pid_t? = nil) {
         guard isRunning else { return }
         let now = CACurrentMediaTime()
         lastMotion = now
@@ -181,7 +182,10 @@ final class CursorController {
                                       secondary: secondary, motion: !reduce,
                                            effects: response.effects, celebration: response.celebration, reduced: reduce)
         }
-        if playSound { onClick?(point) }
+        if playSound {
+            let desktopPoint = quartzPoint ?? CGPoint(x: point.x, y: CGDisplayBounds(CGMainDisplayID()).height - point.y)
+            onClick?(desktopPoint, targetPID)
+        }
     }
 
     private var usesPresenterArm: Bool { prefs.usesPresenterArm(presentation: presentation) }
@@ -211,8 +215,12 @@ final class CursorController {
         guard isRunning else { return }
         switch event.type {
         case .leftMouseDown, .rightMouseDown, .otherMouseDown:
-            tap(at: event.pokeletScreenLocation, secondary: event.type != .leftMouseDown,
-                playSound: !local || usesPresenterArm)
+            let quartz = event.cgEvent
+            let reportedPID = quartz.flatMap { pid_t(exactly: $0.getIntegerValueField(.eventTargetUnixProcessID)) }
+            // Studio's sound preview owns its playback. A local click can
+            // show an impact without starting a second copy of the sound.
+            tap(at: event.pokeletScreenLocation, secondary: event.type != .leftMouseDown, playSound: !local,
+                quartzPoint: quartz?.location, targetPID: reportedPID)
         default:
             if clickOnly { return }
             if let displayLink, !displayLink.isPaused { return }

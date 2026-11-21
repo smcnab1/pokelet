@@ -13,6 +13,7 @@ final class InteractiveClickSound {
 
     private struct Request {
         let point: CGPoint
+        let target: pid_t
         let time: TimeInterval
         let generation: Int
         let result: (Bool) -> Void
@@ -20,8 +21,9 @@ final class InteractiveClickSound {
 
     static var accessibilityGranted: Bool { AXIsProcessTrusted() }
 
-    func classify(at point: CGPoint, result: @escaping (Bool) -> Void) {
-        let request = Request(point: point, time: ProcessInfo.processInfo.systemUptime,
+    func classify(at point: CGPoint, target: pid_t?, result: @escaping (Bool) -> Void) {
+        guard let target, target > 0 else { return }
+        let request = Request(point: point, target: target, time: ProcessInfo.processInfo.systemUptime,
                               generation: generation, result: result)
         if busy { next = request }
         else { start(request) }
@@ -36,7 +38,7 @@ final class InteractiveClickSound {
         busy = true
         let deadline = request.time + Self.maximumAge
         worker.async { [weak self] in
-            let actionable = Self.hitTest(at: request.point, before: deadline)
+            let actionable = Self.hitTest(at: request.point, target: request.target, before: deadline)
             DispatchQueue.main.async {
                 self?.complete(request, actionable: actionable, before: deadline)
             }
@@ -54,14 +56,18 @@ final class InteractiveClickSound {
         }
     }
 
-    nonisolated private static func hitTest(at point: CGPoint, before deadline: TimeInterval) -> Bool {
+    nonisolated private static func hitTest(at point: CGPoint, target: pid_t, before deadline: TimeInterval) -> Bool {
         guard ProcessInfo.processInfo.systemUptime < deadline else { return false }
+        // Click-through windows can still be returned by a system-wide AX
+        // query. Restrict the lookup to the process that received the click.
         let desktop = AXUIElementCreateSystemWide()
         AXUIElementSetMessagingTimeout(desktop, 0.08)
         defer { AXUIElementSetMessagingTimeout(desktop, 0) }
+        let application = AXUIElementCreateApplication(target)
         var hit: AXUIElement?
-        guard AXUIElementCopyElementAtPosition(desktop, Float(point.x), Float(point.y), &hit) == .success
-        else { return false }
+        var pid: pid_t = 0
+        guard AXUIElementCopyElementAtPosition(application, Float(point.x), Float(point.y), &hit) == .success,
+              let element = hit, AXUIElementGetPid(element, &pid) == .success, pid == target else { return false }
 
         for _ in 0..<4 {
             guard let element = hit, ProcessInfo.processInfo.systemUptime < deadline else { break }

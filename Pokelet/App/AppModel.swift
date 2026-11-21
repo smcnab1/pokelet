@@ -68,7 +68,7 @@ final class AppModel: ObservableObject {
             case .presentation, .presentationAlternate: self.endPresentation(nil)
             }
         }
-        cursor.onClick = { [weak self] point in self?.handleClickSound(at: point) }
+        cursor.onClick = { [weak self] point, target in self?.handleClickSound(at: point, target: target) }
         cursor.onTrackingFailure = { [weak self] in self?.trackingFailed() }
         tap.onClick = { [weak self] point, secondary in self?.cursor.tap(at: point, secondary: secondary) }
         tap.onStop = { [weak self] reason in self?.endPresentation(reason) }
@@ -352,14 +352,16 @@ final class AppModel: ObservableObject {
         clickSoundAccessibility = InteractiveClickSound.accessibilityGranted
     }
 
-    private func handleClickSound(at point: CGPoint) {
+    private func handleClickSound(at point: CGPoint, target: pid_t?) {
         guard shouldPlayClickSound else { return }
-        guard prefs.soundTrigger.needsHitTest(accessibility: clickSoundAccessibility, presentation: mode.presentation)
-        else { playClickSound(); return }
-        let desktopPoint = CGPoint(x: point.x, y: CGDisplayBounds(CGMainDisplayID()).height - point.y)
-        interactiveClickSound.classify(at: desktopPoint) { [weak self] actionable in
-            guard let self, self.cursor.isRunning, !self.suspended, !self.mode.presentation, actionable else { return }
-            self.playClickSound()
+        switch prefs.soundTrigger.playback(accessibility: clickSoundAccessibility, presentation: mode.presentation) {
+        case .play: playClickSound()
+        case .silent: return
+        case .classify:
+            interactiveClickSound.classify(at: point, target: target) { [weak self] actionable in
+                guard let self, self.cursor.isRunning, !self.suspended, !self.mode.presentation, actionable else { return }
+                self.playClickSound()
+            }
         }
     }
 

@@ -29,10 +29,12 @@ struct SoundSettings: View {
                                 Text(trigger.title).tag(trigger)
                             }
                         }
-                        if model.prefs.soundTrigger == .interactiveOnly {
-                            StudioNote(model.clickSoundAccessibility
-                                ? "Sounds play for controls that apps expose to macOS Accessibility."
-                                : "Accessibility access is unavailable. Sounds play on every click.")
+                        if model.prefs.soundTrigger == .interactiveOnly, model.clickSoundAccessibility {
+                            StudioNote("Sounds play when macOS can identify an interactive control. Coverage varies by app.")
+                        } else if model.prefs.soundTrigger == .interactiveOnly {
+                            StudioNote("Interactive click sounds are paused because Accessibility access is unavailable.",
+                                       symbol: "exclamationmark.circle", warning: true)
+                            Button("Use Every click") { model.update(\.soundTrigger, .everyClick) }
                         }
                         let volume = Int((model.prefs.volume * 100).rounded())
                         StudioSlider(title: "Volume", accessibilityTitle: "Click sound volume",

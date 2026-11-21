@@ -46,8 +46,11 @@ enum SoundTrigger: String, Codable, CaseIterable, Identifiable {
     var id: Self { self }
     var title: String { self == .everyClick ? "Every click" : "Interactive clicks only" }
 
-    func needsHitTest(accessibility: Bool, presentation: Bool) -> Bool {
-        self == .interactiveOnly && accessibility && !presentation
+    enum Playback: Equatable { case play, classify, silent }
+
+    func playback(accessibility: Bool, presentation: Bool) -> Playback {
+        if self == .everyClick { return .play }
+        return accessibility && !presentation ? .classify : .silent
     }
 }
 
