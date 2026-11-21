@@ -88,4 +88,6 @@ The packaging command creates an ad hoc-signed universal app, ZIP and checksum i
 
 Read the [contributing guide](CONTRIBUTING.md) before submitting a change. Pokelet is an independent alternative to Pokey and has no affiliation with it. Pokelet adapts MIT-licensed code from Quiet Pointer and uses original Pokelet artwork and sounds.
 
+See the [website development guide](docs/WEBSITE.md) to preview the landing page locally and run the browser checks.
+
 [MIT licence](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Changelog](CHANGELOG.md) · [Security reporting](SECURITY.md)
