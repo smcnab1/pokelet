@@ -267,6 +267,38 @@ The armed trial needs an isolated environment with a supported permission path. 
 | Multiple displays | BLOCKED | Only the built-in Retina display was attached. |
 | Companion CPU, memory and wakeups | PASS · short process sample | In the isolated Release build, sampled one PID for eight one-second intervals per workload after dropping the initial `top` reading. With the pointer off, CPU median and peak were 0.0% and 0.1%. With Companion tracking repeated fixture movement they were 1.3% and 1.6%. Displayed memory was about 42 MiB off and 42–43 MiB active. Separate RSS readings were 91 MiB and 61 MiB. `top` showed zero idle wakeups off and up to two active. Process measurements exclude WindowServer, power draw and battery impact. The candidate disabled Companion and quit after sampling. |
 
+## Presenter Arm and Studio feedback · 21 November 2026
+
+The live trial used an isolated Debug bundle with ID
+`uk.co.sammcnab.Pokelet.MilestoneLiveAcceptance` on an Apple silicon Mac
+running macOS 27.3 with one 2× Retina display. The desktop check was scoped
+to Presenter Arm and used the local [input fixture](../Tests/Interactive/InputTargets.html).
+The experimental Presentation Mode checks above retain their own acceptance status.
+
+| Check | Status | Evidence |
+| --- | --- | --- |
+| Studio appearance | PASS · native and automated | Reviewed all six panes in the native Debug app. Inspected About with regular and larger text, along with compact 540 × 440 pt and normal 936 × 598 pt windows. An isolated Aqua appearance copy exercised light mode. The layout smoke test covers fixed symbol widths and both appearances, widths and text sizes. |
+| Glove and sleeve | PASS · sampled positions | Captured the running overlay near the [centre](screenshots/pokelet-presenter-arm-live-centre.png) and the [lower-right edge](screenshots/pokelet-presenter-arm-live-lower-right.png). The nearest opaque outline pixel centres were 0.35 px and 0.64 px from their sampled pointer coordinates at 2×. The lower-right desktop capture predates the final edge adjustment, which was checked in the native preview and covered by a geometry regression test. |
+| Click geometry | PASS · automated | All four existing characters and Presenter Arm use the same artwork pivot. Geometry assertions use a 0.0001 pt tolerance. Presenter Arm and existing characters have independently anchored impact layers for primary and secondary mouse-down points. Moving or hiding the artwork leaves existing impacts in place. Existing character tests cover 44, 76 and 132 pt at 1× and 2×. |
+| Ordinary click delivery | PASS · controlled fixture | One baseline primary click reached the fixture. With Presenter Arm active, a double-click produced two primary events and one double-click event, and a right-click incremented its own counter. The fixture also received clicks with Studio closed and minimised, after disabling the overlay, and after quitting the active candidate. The physical click endpoints were not separately measured. |
+| Overlay lifecycle | PASS · isolated Debug | The overlay stayed visible while Studio was open, closed or minimised. Launch Services reopened Studio in the same candidate process. Turning Presenter Arm off restored Cat Paw and Companion. Turning the pointer off or quitting removed the overlay, and the native pointer was visible throughout. |
+| Interactive sounds | PARTIAL | The native Sounds pane showed its Every click fallback message when Accessibility was unavailable. SwiftPM covers the default, fallback and the classification of enabled and disabled controls. Actionable controls in other apps and acoustic playback of the new trigger remain open. |
+| GitHub feedback | PASS · local | The two existing forms were replaced without duplicate templates. YAML validation, field mapping, URL encoding, browser dispatch with a test opener and temporary pasteboard copying passed. Public form opening and prefilling remain pending until the named templates are on the default branch. |
+| Release qualification | PASS · local | SwiftPM ran 46 tests with zero failures, and the warnings-as-errors Debug build, static analysis and native layout smoke passed. Release packaging verified both architectures, macOS 14.0 minimum, bundle resources, signature, and the absence of Debug acceptance flags and debug entitlements. |
+
+[Wide About](screenshots/pokelet-studio-about-dark.png) ·
+[Compact About with larger text](screenshots/pokelet-studio-about-compact-dark.png) ·
+[Quiet Pointer credit](screenshots/pokelet-studio-quiet-pointer-compact-light.png) ·
+[Help & Feedback](screenshots/pokelet-studio-feedback-compact-light.png) ·
+[Dark Presenter Arm preview](screenshots/pokelet-studio-presenter-preview-dark.png) ·
+[Compact light preview](screenshots/pokelet-studio-presenter-compact-light.png)
+
+Remaining desktop checks include a complete physical corner sweep on the final
+build, physical click-to-impact measurements, multiple displays, system Reduce
+Motion enabled, full keyboard focus traversal, and the
+Replace in Studio path, which requires separate approval. Intel and macOS 14
+runtime checks remain open.
+
 ## Reproduce the Studio-only session
 
 ```sh

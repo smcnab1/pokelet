@@ -13,11 +13,32 @@ The existing Settings window put the character gallery inside a narrow preferenc
 
 The app targets macOS 14 and later.
 
+## Presenter Arm
+
+Open **Studio → Presenter effects** and turn on **Enable Presenter Arm**. Move or click inside the preview to try the glove while the main pointer switch is off. Use the preview’s sun or moon button to test against a different background.
+
+| Control | Effect |
+| --- | --- |
+| **Pointer on** | Shows the glove and sleeve across apps. The sleeve attaches to the bottom of the current display and your Mac cursor stays visible. |
+| **Size** | Changes the glove size. Sleeve thickness grows within a limited range. |
+| **Enable Presenter Arm** off | Returns to the previous character, colour and display settings. |
+| **Use Presenter Arm during presentations** | A separate setting for active Presentation Mode in eligible Debug acceptance builds. The public Release build keeps Presentation Mode unavailable. |
+
+## Click sounds
+
+In **Sounds → Playback**, choose **Every click** or **Interactive clicks only**. In Interactive mode, macOS Accessibility information is used to identify controls such as buttons, links and text fields. Coverage varies by app. When Accessibility access is unavailable, Pokelet uses Every click.
+
+## Feedback
+
+In **About → Help & Feedback**, open the GitHub bug or feature form. The bug form can prefill the app version, macOS version, Mac architecture and pointer settings for review. Use **Copy system information** if you need to paste the details manually. Use the [security policy](../SECURITY.md) for private reports.
+
+[See About and the feedback actions](screenshots/pokelet-studio-about-dark.png) · [See the compact Presenter Arm preview](screenshots/pokelet-studio-presenter-compact-light.png)
+
 ## Dock and menu bar
 
 | What you do | What happens |
 | --- | --- |
-| Open or minimise Studio | The Pokelet icon stays in the Dock. Click it to focus or restore Studio. |
+| Open or minimise Studio | The Pokelet icon stays in the Dock. Use Command–M to minimise, and click the Dock icon to focus or restore Studio. |
 | Close Studio with Command–W or the red close button | Pokelet keeps running, including any enabled pointer. The Dock icon hides by default when the menu bar item is available. |
 | Reopen Studio | Choose **Open Pokelet Studio** in the status menu, click its Dock icon when visible, or open Pokelet in Finder. |
 | Quit Pokelet | Choose **Quit Pokelet** or press Command–Q while Pokelet is active. The app closes and releases its pointer overlay. |
