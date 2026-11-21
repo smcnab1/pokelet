@@ -1,5 +1,7 @@
 # Pokelet verification
 
+The [live Studio acceptance report](docs/LIVE_ACCEPTANCE.md) records the 21 November 2026 candidate checks, release blockers and the controlled pointer test plan.
+
 ## Public beta v1.1.0-beta.1
 
 The [GitHub prerelease](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) uses source commit `8baf2c994811429ca366e8d0352cf6e104150813`. The app is version 1.1.0, build 2, with ad hoc signatures and a macOS 14.0 deployment target on both `arm64` and `x86_64`. The release includes a SHA-256 checksum. The mounted DMG passed the Applications shortcut, executable, signature, icon, licence and audio checks. [Exact-commit CI](https://github.com/smcnab1/pokelet/actions/runs/44760173269)
