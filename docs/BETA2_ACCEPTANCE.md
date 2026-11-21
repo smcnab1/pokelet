@@ -47,6 +47,20 @@ Run `./script/test_pointer_visual.sh build/beta2-visual` on a Mac with an active
 
 **BLOCKED** on an approved Replace in Studio trial with physical input. A physical click needs to establish the full chain from the system cursor through the illustrated contact point and impact to the control that receives the click. The full physical corner and edge sweep, movement performance and cursor restoration after actual hiding also remain open.
 
+### Physical trial preflight · 21 November 2026
+
+Built the exact `bb48c83` source from a Git archive using isolated Derived Data and the Debug bundle identifier `uk.co.sammcnab.Pokelet.PhysicalBeta2`. The strict signature check passed. The staged process was PID 85074. Its executable SHA-256 was `cdf44a554f40c244c3c5c04ffeda3543c73c18ca8bf405ec4d23abc971fa38af`. The Debug code dylib SHA-256 was `c8f510cc794b529a0b13db599cd0d5d159361a2da6f00d12787e26d37eac6346`.
+
+| Check | Result |
+| --- | --- |
+| Starting state | Studio reported **Enable pointer** off. The fresh profile had no saved values and started at The Finger, 76 pt, in Companion, with restore-on-launch off. WindowServer showed Studio and zero candidate overlay windows. The existing preference domain was read separately. |
+| Target and recovery | Studio exposed the 29 × 27 pt preview background button at Quartz **(947, 261)**. It changes the preview background on activation. A separate AppKit fixture exposed nine labelled targets and records button actions with event coordinates. General displayed **Option–Command–P** for toggling the pointer. The recovery Terminal was open and its dry run verified the candidate PID, executable path and start time. |
+| Evidence capture | The mouse-only, listen-only observer was ready. A scoped Studio screenshot passed. Physical baseline confirmation, in-Studio clicks and post-hide cursor restoration awaited the owner. No measured physical hotspot offsets or click pass or fail counts were available at this checkpoint. |
+| Safe desktop checks | With the pointer off, accessibility actions opened General and Presentation and closed Studio. Launch Services reopened Studio in the same PID. The status menu was unavailable through accessibility, and the physical Dock and status menu checks remain open. Presentation displayed **Unavailable in this build**. |
+| Fresh automated and package checks | 46 SwiftPM tests passed on arm64 and 46 on x86_64 under Rosetta. Debug build and analysis, native Studio layout, renderer captures, universal Release package and analysis, ZIP verification and mounted DMG bundle smoke passed. The Release package checks found no Debug acceptance flags or debug entitlement in either slice. The Release source still disables Presentation Mode. |
+
+Local evidence is under `build/beta2-physical.blAphB/evidence/`. Physical compatibility on additional displays, display scales, Intel hardware and macOS 14 remains **BLOCKED** on available hardware or OS. The system reported Reduce Motion, Reduce Transparency and VoiceOver off. Checks that need those settings changed remain **BLOCKED** pending separate approval.
+
 ## Sound, menu bar and feedback
 
 | Area | Result |
