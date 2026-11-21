@@ -12,26 +12,30 @@ final class PointerLayer {
     private var presenterArm = false
     private var sleeve: PresenterSleeveLayer?
     private var retiringCharacter: CALayer?
+    private var companion: CompanionPlacement?
+    private var viewport: CGRect?
 
     init() {
-        root.addSublayer(impacts)
         root.addSublayer(artwork)
+        root.addSublayer(impacts)
         artwork.addSublayer(character)
         artwork.isHidden = true
     }
 
     func configure(image: CGImage, prefs: Preferences, presenterArm: Bool = false, crossfade: Bool = false) {
         let previous = crossfade && !presenterArm && !self.presenterArm ? snapshotCharacter() : nil
-        reset()
+        resetReaction()
+        viewport = nil
         self.presenterArm = presenterArm
         style = prefs.style
+        companion = presenterArm ? nil : PointerArt.companionPlacement(for: prefs)
         let scale = CGFloat(image.width) / prefs.size
         withoutLayerActions {
             if presenterArm {
                 if sleeve == nil {
                     let next = PresenterSleeveLayer()
                     next.isHidden = true
-                    root.insertSublayer(next, below: impacts)
+                    root.insertSublayer(next, below: artwork)
                     sleeve = next
                 }
                 sleeve?.setScale(scale)
@@ -43,7 +47,7 @@ final class PointerLayer {
             character.contents = image
             character.contentsScale = scale
             character.bounds = CGRect(x: 0, y: 0, width: prefs.size, height: prefs.size)
-            character.anchorPoint = CursorGeometry.layerAnchor
+            character.anchorPoint = CursorGeometry.layerAnchor(for: presenterArm ? CursorGeometry.gloveTip : PointerArt.tip(for: style))
             character.position = .zero
             let inks = PointerArt.inks(for: prefs)
             effectInk = presenterArm ? CGColor(gray: 1, alpha: 1) : inks.effect.color()
@@ -85,7 +89,14 @@ final class PointerLayer {
         CATransaction.commit()
     }
 
+    func follow(_ point: CGPoint, in viewport: CGRect, visible: Bool, companion: Bool) {
+        let location = companion ? self.companion?.position(at: point, in: viewport) ?? point : point
+        place(location, visible: visible, viewport: viewport)
+    }
+
     func place(_ location: CGPoint, visible: Bool, viewport: CGRect = .zero) {
+        guard artwork.position != location || artwork.isHidden == visible || self.viewport != viewport else { return }
+        self.viewport = viewport
         withoutLayerActions {
             artwork.position = location
             artwork.isHidden = !visible
@@ -99,14 +110,16 @@ final class PointerLayer {
     }
 
     func reset() {
+        resetReaction()
+        impacts.sublayers?.forEach { $0.removeFromSuperlayer() }
+    }
+
+    func resetReaction() {
         retiringCharacter?.removeFromSuperlayer()
         retiringCharacter = nil
         character.removeAllAnimations()
-        impacts.sublayers?.forEach { $0.removeFromSuperlayer() }
         withoutLayerActions { character.opacity = 1 }
     }
-
-    var artworkPosition: CGPoint { artwork.position }
 
     func poke(at point: CGPoint, energy: Double, secondary: Bool, motion: Bool, effects: Bool, celebration: Bool,
               reduced: Bool) {
@@ -168,10 +181,16 @@ final class PointerLayer {
         animation.animations = [fade, expand]
 
         let mark = CALayer()
+        let pathBounds = path.boundingBoxOfPath
+        let halfWidth = max(abs(pathBounds.minX), abs(pathBounds.maxX)) + 3
+        let halfHeight = max(abs(pathBounds.minY), abs(pathBounds.maxY)) + 3
+        mark.bounds = CGRect(x: -halfWidth, y: -halfHeight, width: 2 * halfWidth, height: 2 * halfHeight)
         mark.position = point
         mark.opacity = 0
         for (width, colour) in [(5.0, effectEdge), (2.45, effectInk)] {
             let stroke = CAShapeLayer()
+            stroke.bounds = mark.bounds
+            stroke.contentsScale = character.contentsScale
             stroke.path = path
             stroke.fillColor = nil
             stroke.lineJoin = .round
@@ -179,6 +198,15 @@ final class PointerLayer {
             stroke.lineWidth = width
             stroke.strokeColor = colour
             mark.addSublayer(stroke)
+        }
+        if !secondary && !reduced {
+            let contact = CALayer()
+            contact.bounds = CGRect(x: 0, y: 0, width: 5, height: 5)
+            contact.cornerRadius = 2.5
+            contact.backgroundColor = effectInk
+            contact.borderColor = effectEdge
+            contact.borderWidth = 1
+            mark.addSublayer(contact)
         }
 
         // The mark belongs to the viewport, so pointer movement cannot drag an

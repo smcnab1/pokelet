@@ -1,4 +1,4 @@
-import CoreGraphics
+import AppKit
 import XCTest
 @testable import PokeletCore
 
@@ -36,17 +36,25 @@ final class CursorSafetyTests: XCTestCase {
     }
 
     func testCompanionStaysSeparateAndOnScreenAtBothEdges() {
+        _ = NSApplication.shared
         let frame = CGRect(x: -1440, y: 210, width: 1440, height: 900)
-        for size in [44.0, 76.0, 132.0] {
-            let left = CGPoint(x: frame.minX, y: frame.minY)
-            let right = CGPoint(x: frame.maxX - 1, y: frame.maxY - 1)
-            let a = CursorGeometry.companion(at: left, in: frame, size: size)
-            let b = CursorGeometry.companion(at: right, in: frame, size: size)
-            XCTAssertGreaterThanOrEqual(a.x - left.x, 28)
-            XCTAssertGreaterThanOrEqual(right.x - b.x, size * 0.75 + 20)
-            for point in [a, b] {
-                let canvas = CursorGeometry.canvasRect(at: point, size: size)
-                XCTAssertTrue(frame.contains(canvas))
+        for style in PointerStyle.allCases {
+            for size in [44.0, 76.0, 132.0] {
+                var prefs = Preferences()
+                prefs.style = style
+                prefs.size = size
+                let layout = PointerArt.companionPlacement(for: prefs)
+                XCTAssertGreaterThan(layout.arrow.width, 0)
+                for x in [frame.minX, frame.midX, frame.maxX - 1] {
+                    for y in [frame.minY, frame.midY, frame.maxY - 1] {
+                        let point = CGPoint(x: x, y: y)
+                        let companion = layout.position(at: point, in: frame)
+                        let ink = layout.ink.offsetBy(dx: companion.x, dy: companion.y)
+                        let arrow = layout.arrow.offsetBy(dx: x, dy: y)
+                        XCTAssertFalse(ink.intersects(arrow))
+                        XCTAssertTrue(frame.insetBy(dx: -0.01, dy: -0.01).contains(ink))
+                    }
+                }
             }
         }
     }
@@ -74,12 +82,9 @@ final class CursorSafetyTests: XCTestCase {
         XCTAssertNil(motion.stopped(at: 2.36))
     }
 
-    func testHotspotSurvivesSizeAndCoordinateConversion() {
-        for size in [44.0, 76.0, 132.0] {
-            let point = CGPoint(x: -340, y: 876)
-            let rect = CursorGeometry.canvasRect(at: point, size: size)
-            XCTAssertEqual(rect.minX + rect.width * CursorGeometry.layerAnchor.x, point.x, accuracy: 0.0001)
-            XCTAssertEqual(rect.minY + rect.height * CursorGeometry.layerAnchor.y, point.y, accuracy: 0.0001)
-        }
+    func testScreenLocalConversionPreservesPointPrecisionOnAnOffsetScreen() {
+        let point = CGPoint(x: -340.25, y: 876.75)
+        let screen = CGRect(x: -1440, y: 280, width: 1440, height: 900)
+        XCTAssertEqual(CursorGeometry.local(point, in: screen), CGPoint(x: 1099.75, y: 596.75))
     }
 }

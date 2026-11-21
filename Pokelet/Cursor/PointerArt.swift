@@ -87,6 +87,7 @@ enum PointerArt {
     }
 
     private struct Art {
+        let tip: CGPoint
         let silhouette: CGPath
         let marks: CGPath
         let accent: CGPath?
@@ -94,7 +95,7 @@ enum PointerArt {
     }
 
     private static let drawings: [PointerStyle: Art] = [
-        .finger: Art(silhouette: makePath { p in
+        .finger: Art(tip: CGPoint(x: 29.2, y: 16), silhouette: makePath { p in
             p.m(32, 15); p.c(38, 12, 44, 18, 47, 25)
             p.l(56, 43); p.c(63, 39, 68, 42, 70, 48)
             p.c(76, 44, 83, 47, 84, 54)
@@ -114,7 +115,7 @@ enum PointerArt {
             p.l(47, 39); p.c(41, 44, 39, 42, 36, 36)
             p.c(32, 29, 31, 25, 34, 23); p.z()
         }, accentColor: RGB(0xFFF6D5)),
-        .catPaw: Art(silhouette: makePath { p in
+        .catPaw: Art(tip: CGPoint(x: 28.3, y: 16.5), silhouette: makePath { p in
             p.m(32, 15); p.c(40, 12, 46, 19, 49, 26)
             p.c(50, 16, 62, 15, 68, 23)
             p.c(71, 27, 72, 31, 72, 35)
@@ -137,7 +138,7 @@ enum PointerArt {
             p.c(76, 77, 69, 80, 64, 76)
             p.c(57, 77, 47, 72, 46, 63); p.z()
         }, accentColor: RGB(0xEF8AB8)),
-        .foamFinger: Art(silhouette: makePath { p in
+        .foamFinger: Art(tip: CGPoint(x: 27.9, y: 16.1), silhouette: makePath { p in
             p.m(32, 15); p.c(38, 12, 43, 17, 46, 22)
             p.l(64, 50); p.l(70, 45); p.c(75, 40, 84, 43, 86, 49)
             p.l(97, 76); p.c(100, 83, 97, 91, 89, 95)
@@ -150,7 +151,7 @@ enum PointerArt {
             p.m(60, 83); p.l(70, 81)
             p.m(78, 64); p.l(82, 73)
         }, accent: nil, accentColor: RGB(0xFFF3D9)),
-        .comicArrow: Art(silhouette: makePath { p in
+        .comicArrow: Art(tip: CGPoint(x: 30, y: 15.1), silhouette: makePath { p in
             p.m(32, 15); p.l(91, 54); p.c(94, 56, 93, 59, 90, 60)
             p.l(69, 65); p.l(81, 85); p.c(82, 88, 82, 90, 79, 91)
             p.l(68, 97); p.c(66, 98, 64, 97, 63, 95)
@@ -162,6 +163,23 @@ enum PointerArt {
             p.m(59, 74); p.l(70, 90)
         }, accent: nil, accentColor: RGB(0xF4FFF9))
     ]
+
+    static func tip(for style: PointerStyle) -> CGPoint { drawings[style]!.tip }
+
+    static func companionPlacement(for prefs: Preferences) -> CompanionPlacement {
+        let art = drawings[prefs.style]!
+        let scale = prefs.size / canvas
+        let outline: CGFloat = prefs.outline ? 2.75 : 0
+        let path = art.silhouette.boundingBoxOfPath.insetBy(dx: -outline, dy: -outline)
+        let ink = CGRect(x: (path.minX - art.tip.x) * scale, y: (art.tip.y - path.maxY) * scale,
+                         width: path.width * scale, height: path.height * scale)
+        let arrow = NSCursor.arrow
+        let size = arrow.image.size
+        return CompanionPlacement(ink: ink,
+                                  arrow: CGRect(x: -arrow.hotSpot.x, y: arrow.hotSpot.y - size.height,
+                                                width: size.width, height: size.height),
+                                  gap: max(3, prefs.size * 0.045))
+    }
 
     static func image(prefs: Preferences, scale: CGFloat, presenterArm: Bool = false) -> CGImage? {
         let pixels = Int(ceil(prefs.size * scale))
@@ -222,9 +240,11 @@ enum PointerArt {
         context.strokePath()
 
         // A tiny keyed highlight identifies the contact point on the painted tip.
-        let hotspot = CursorGeometry.hotspot
+        let hotspot = art.tip
+        let radius: CGFloat = 1.8
         context.setFillColor(inks.highlight.color(0.96))
-        context.fillEllipse(in: CGRect(x: hotspot.x - 1.35, y: hotspot.y - 1.35, width: 2.7, height: 2.7))
+        context.fillEllipse(in: CGRect(x: hotspot.x - radius, y: hotspot.y - radius,
+                                       width: 2 * radius, height: 2 * radius))
     }
 
     static func makePath(_ draw: (Pen) -> Void) -> CGPath {

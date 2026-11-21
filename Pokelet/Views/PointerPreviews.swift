@@ -24,6 +24,7 @@ struct CharacterThumbnail: View {
 struct CharacterPreview: View {
     let prefs: Preferences
     let stageHeight: CGFloat
+    let livePointer: Bool
     var showsSecondaryClick = false
 
     @Environment(\.colorScheme) private var colourScheme
@@ -56,7 +57,7 @@ struct CharacterPreview: View {
                 .help(dark ? "Use light preview background" : "Use dark preview background")
             }
             PreviewCanvas(prefs: prefs, reducedMotion: systemReduceMotion || prefs.reducedMotion,
-                          secondaryPress: secondaryPress)
+                          livePointer: livePointer, secondaryPress: secondaryPress)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             HStack(spacing: 10) {
                 Text(prefs.presenterEffects.normal ? "Presenter Arm" : prefs.style.title)
@@ -121,16 +122,17 @@ private struct PreviewSurface: View {
 private struct PreviewCanvas: NSViewRepresentable {
     let prefs: Preferences
     let reducedMotion: Bool
+    let livePointer: Bool
     let secondaryPress: Int
 
     func makeNSView(context: Context) -> StageButton {
         let view = StageButton()
-        view.update(prefs: prefs, reducedMotion: reducedMotion, secondaryPress: secondaryPress)
+        view.update(prefs: prefs, reducedMotion: reducedMotion, livePointer: livePointer, secondaryPress: secondaryPress)
         return view
     }
 
     func updateNSView(_ view: StageButton, context: Context) {
-        view.update(prefs: prefs, reducedMotion: reducedMotion, secondaryPress: secondaryPress)
+        view.update(prefs: prefs, reducedMotion: reducedMotion, livePointer: livePointer, secondaryPress: secondaryPress)
     }
 
     static func dismantleNSView(_ view: StageButton, coordinator: ()) {
@@ -145,11 +147,13 @@ private struct PreviewCanvas: NSViewRepresentable {
         private var renderedArtwork: Preferences?
         private var renderedScale: CGFloat = 0
         private var reducedMotion = false
+        private var livePointer = false
         private var cadence = ClickCadence()
         private var motion = CursorMotion()
         private var trackedPoint: CGPoint?
         private var tracking: NSTrackingArea?
         private var reveal: DispatchWorkItem?
+        private var revealPoint: CGPoint?
         private var stopTimer: Timer?
         private var lastSecondaryPress: Int?
         private var windowObservers: [NSObjectProtocol] = []
@@ -221,20 +225,26 @@ private struct PreviewCanvas: NSViewRepresentable {
         override func mouseDragged(with event: NSEvent) { track(event) }
         override func rightMouseDragged(with event: NSEvent) { track(event) }
         override func otherMouseDragged(with event: NSEvent) { track(event) }
-        override func mouseExited(with event: NSEvent) { stopInteraction() }
+        override func mouseExited(with event: NSEvent) {
+            trackedPoint = nil
+            cancelStopTimer()
+            motion = CursorMotion()
+            if revealPoint == nil { render() }
+        }
         override func mouseDown(with event: NSEvent) { click(event, secondary: false) }
         override func rightMouseDown(with event: NSEvent) { click(event, secondary: true) }
         override func otherMouseDown(with event: NSEvent) { click(event, secondary: true) }
 
-        func update(prefs: Preferences, reducedMotion: Bool, secondaryPress: Int) {
+        func update(prefs: Preferences, reducedMotion: Bool, livePointer: Bool, secondaryPress: Int) {
             let styleChanged = self.prefs.style != prefs.style || usesPresenterArm != prefs.presenterEffects.normal
-            let visibilityChanged = self.prefs.clickOnly != prefs.clickOnly
+            let visibilityChanged = self.prefs.clickOnly != prefs.clickOnly || self.livePointer != livePointer
             let motionChanged = self.reducedMotion != reducedMotion || self.prefs.animate != prefs.animate ||
                 self.prefs.effects != prefs.effects || self.prefs.celebration != prefs.celebration ||
                 self.prefs.directionBounce != prefs.directionBounce
             self.prefs = prefs
             self.reducedMotion = reducedMotion
-            if visibilityChanged { cancelReveal() }
+            self.livePointer = livePointer
+            if styleChanged || visibilityChanged { cancelReveal() }
             if styleChanged || visibilityChanged || motionChanged {
                 pointer.reset()
                 cadence = ClickCadence()
@@ -263,23 +273,25 @@ private struct PreviewCanvas: NSViewRepresentable {
         private func cancelReveal() {
             reveal?.cancel()
             reveal = nil
+            revealPoint = nil
         }
 
         @objc private func press() { react(secondary: false) }
 
         private func click(_ event: NSEvent, secondary: Bool) {
-            track(event)
-            if trackedPoint != nil { react(secondary: secondary) }
+            if let point = track(event), !livePointer { react(secondary: secondary, at: point) }
         }
 
-        private func track(_ event: NSEvent) {
-            let point = convert(event.locationInWindow, from: nil)
-            guard visibleRect.contains(point) else { stopInteraction(); return }
+        @discardableResult
+        private func track(_ event: NSEvent) -> CGPoint? {
+            guard let window else { return nil }
+            let point = convert(window.convertPoint(fromScreen: event.pokeletScreenLocation), from: nil)
+            guard visibleRect.contains(point) else { return nil }
             let previous = trackedPoint
             trackedPoint = point
             if previous == nil { render() } else { placeArtwork() }
 
-            guard !usesPresenterArm, prefs.directionBounce, !reducedMotion, !clickOnly || reveal != nil else { return }
+            guard !livePointer, !usesPresenterArm, prefs.directionBounce, !reducedMotion, !clickOnly else { return point }
             let now = CACurrentMediaTime()
             if let previous, let turn = motion.turn(from: previous, to: point, now: now) {
                 pointer.wobble(turn: turn)
@@ -297,6 +309,7 @@ private struct PreviewCanvas: NSViewRepresentable {
                 stopTimer = timer
                 RunLoop.main.add(timer, forMode: .common)
             }
+            return point
         }
 
         private func cancelStopTimer() {
@@ -304,23 +317,26 @@ private struct PreviewCanvas: NSViewRepresentable {
             stopTimer = nil
         }
 
-        private func react(secondary: Bool) {
+        private func react(secondary: Bool, at clickPoint: CGPoint? = nil) {
             guard window?.isVisible == true, window?.isMiniaturized == false, !isHiddenOrHasHiddenAncestor,
                   !visibleRect.isEmpty, prefs.animate || clickOnly else { return }
+            let point = clickPoint ?? samplePoint(size: renderedArtwork?.size ?? prefs.size)
             if clickOnly {
                 cancelReveal()
                 let hide = DispatchWorkItem { [weak self] in
                     self?.reveal = nil
+                    self?.revealPoint = nil
                     self?.placeArtwork()
                 }
                 reveal = hide
+                revealPoint = point
                 placeArtwork()
                 DispatchQueue.main.asyncAfter(deadline: .now() + ClickResponse.revealDuration, execute: hide)
             }
             guard prefs.animate else { return }
             let response = ClickResponse(prefs: prefs, count: cadence.record(at: CACurrentMediaTime()),
                                          reduced: reducedMotion)
-            pointer.poke(at: trackedPoint ?? pointer.artworkPosition, energy: response.energy, secondary: secondary, motion: !reducedMotion,
+            pointer.poke(at: point, energy: response.energy, secondary: secondary, motion: !reducedMotion,
                          effects: response.effects, celebration: response.celebration, reduced: reducedMotion)
         }
 
@@ -334,7 +350,7 @@ private struct PreviewCanvas: NSViewRepresentable {
             artwork.outline = prefs.outline
             artwork.shadow = prefs.shadow
             artwork.size = prefs.size
-            if trackedPoint == nil {
+            if trackedPoint == nil, !clickOnly {
                 artwork.size = usesPresenterArm
                     ? min(prefs.size * 1.65, bounds.height * 0.85, bounds.width * 0.50)
                     : min(prefs.size * 2.6, bounds.height * 1.13, bounds.width * 0.73)
@@ -351,16 +367,20 @@ private struct PreviewCanvas: NSViewRepresentable {
 
         private func placeArtwork() {
             guard let size = renderedArtwork?.size else { return }
-            if let point = trackedPoint {
-                let companion = !usesPresenterArm && (prefs.keepNative || clickOnly)
-                let position = companion ? CursorGeometry.companion(at: point, in: bounds, size: size) : point
-                pointer.place(position, visible: !clickOnly || reveal != nil, viewport: bounds)
+            if clickOnly {
+                pointer.follow(revealPoint ?? .zero, in: bounds, visible: revealPoint != nil, companion: false)
+            } else if let point = trackedPoint {
+                // Mouse input is already visualised by the live overlay when enabled.
+                pointer.follow(point, in: bounds, visible: !livePointer, companion: !usesPresenterArm && prefs.keepNative)
             } else {
-                let sample = usesPresenterArm
-                    ? CGPoint(x: bounds.midX - size * 0.18, y: bounds.height * 0.75)
-                    : CGPoint(x: bounds.midX - size * 0.25, y: bounds.midY + size * 0.34)
-                pointer.place(sample, visible: true, viewport: bounds)
+                pointer.place(samplePoint(size: size), visible: true, viewport: bounds)
             }
+        }
+
+        private func samplePoint(size: CGFloat) -> CGPoint {
+            usesPresenterArm
+                ? CGPoint(x: bounds.midX - size * 0.18, y: bounds.height * 0.75)
+                : CGPoint(x: bounds.midX - size * 0.25, y: bounds.midY + size * 0.34)
         }
     }
 }

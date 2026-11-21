@@ -68,10 +68,10 @@ final class RenderingTests: XCTestCase {
                     let layer = PointerLayer()
                     layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: scale)), prefs: prefs)
                     layer.place(first, visible: true)
-                    let artwork = try XCTUnwrap(layer.root.sublayers?.last)
+                    let artwork = try XCTUnwrap(layer.root.sublayers?.first)
                     let character = try XCTUnwrap(artwork.sublayers?.last)
-                    let contact = CGPoint(x: size * CursorGeometry.hotspot.x / CursorGeometry.canvas,
-                                          y: size * (1 - CursorGeometry.hotspot.y / CursorGeometry.canvas))
+                    let anchor = CursorGeometry.layerAnchor(for: PointerArt.tip(for: style))
+                    let contact = CGPoint(x: size * anchor.x, y: size * anchor.y)
                     XCTAssertEqual(character.convert(contact, to: layer.root).x, first.x, accuracy: 0.0001)
                     XCTAssertEqual(character.convert(contact, to: layer.root).y, first.y, accuracy: 0.0001)
 
@@ -83,7 +83,7 @@ final class RenderingTests: XCTestCase {
                                celebration: false, reduced: false)
                     layer.place(.zero, visible: false)
 
-                    let impacts = try XCTUnwrap(layer.root.sublayers?.first)
+                    let impacts = try XCTUnwrap(layer.root.sublayers?.last)
                     XCTAssertEqual(impacts.sublayers?.map(\.position), [first, second])
                     XCTAssertFalse(impacts.isHidden)
                     layer.reset()
@@ -97,12 +97,12 @@ final class RenderingTests: XCTestCase {
         var prefs = Preferences()
         let layer = PointerLayer()
         layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs)
-        let character = try XCTUnwrap(layer.root.sublayers?.last?.sublayers?.last)
+        let character = try XCTUnwrap(layer.root.sublayers?.first?.sublayers?.last)
         XCTAssertNil(character.animation(forKey: "characterChange"))
 
         prefs.style = .catPaw
         layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs, crossfade: true)
-        let outgoing = try XCTUnwrap(layer.root.sublayers?.last?.sublayers?.dropLast().last)
+        let outgoing = try XCTUnwrap(layer.root.sublayers?.first?.sublayers?.dropLast().last)
         let fadeOut = try XCTUnwrap(outgoing.animation(forKey: "characterChange") as? CABasicAnimation)
         let fadeIn = try XCTUnwrap(character.animation(forKey: "characterChange") as? CABasicAnimation)
         XCTAssertEqual(fadeOut.toValue as? Int, 0)
@@ -116,7 +116,7 @@ final class RenderingTests: XCTestCase {
         var prefs = Preferences()
         let layer = PointerLayer()
         layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs)
-        let character = try XCTUnwrap(layer.root.sublayers?.last?.sublayers?.last)
+        let character = try XCTUnwrap(layer.root.sublayers?.first?.sublayers?.last)
         layer.poke(at: .zero, energy: 0.8, secondary: false, motion: true, effects: true, celebration: false, reduced: false)
         XCTAssertNotNil(character.animation(forKey: "motion"))
         prefs.style = .catPaw

@@ -11,7 +11,7 @@ struct PointerStudio: View {
             StudioHeading("Your pointer")
             StudioColumns(wide: wide) {
                 VStack(alignment: .leading, spacing: wide ? 14 : 9) {
-                    CharacterPreview(prefs: model.prefs, stageHeight: stageHeight)
+                    CharacterPreview(prefs: model.prefs, stageHeight: stageHeight, livePointer: model.mode.showsPointer)
                     if !wide {
                         presenterSettings
                             .padding(12)

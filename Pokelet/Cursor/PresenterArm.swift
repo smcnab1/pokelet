@@ -108,8 +108,8 @@ final class PresenterSleeveLayer: CALayer {
 }
 
 extension PointerArt {
-    // The cuff overlaps the sleeve around the point (62, 80). The round tip
-    // shares the same keyed canvas origin as the other Pokelet characters.
+    // The cuff overlaps the sleeve around the point (62, 80). The fingertip
+    // sits on the upper-left outline and stays fixed as the glove turns.
     private static let glove = makePath { p in
         p.m(32, 15); p.c(36, 13, 41, 16, 44, 22)
         p.l(56, 42); p.c(62, 36, 69, 39, 71, 46)

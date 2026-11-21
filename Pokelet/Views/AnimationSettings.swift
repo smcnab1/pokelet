@@ -12,7 +12,8 @@ struct AnimationSettings: View {
         VStack(alignment: .leading, spacing: 19) {
             StudioHeading("Animations", detail: "Set the click response and try it with your current character.")
             StudioColumns(wide: wide) {
-                CharacterPreview(prefs: model.prefs, stageHeight: wide ? 325 : 226, showsSecondaryClick: true)
+                CharacterPreview(prefs: model.prefs, stageHeight: wide ? 325 : 226,
+                                 livePointer: model.mode.showsPointer, showsSecondaryClick: true)
                     .frame(maxWidth: .infinity)
                 VStack(alignment: .leading, spacing: 16) {
                     responseControls
