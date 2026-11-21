@@ -6,6 +6,29 @@ The starting checkout was clean at `93a7947` on `fix/native-studio`. Desktop che
 
 **PASS** means verified at the evidence level shown. **FAIL** means a confirmed defect or failed release check. **BLOCKED** means the available desktop, tooling or credentials could not establish the result. **NOT RUN** means the check awaits approval.
 
+## Menu bar and Dock follow-up · 21 November 2026
+
+The baseline was `4162781`. It created and retained one native status item. On this Mac, it had `isVisible == true` while its AppKit host frame was 38 × 0 points and there was no accessible Pokelet item to click. A fresh bundle ID, an explicit visibility request, a stable name, different widths, a system-symbol image and regular activation each failed to reveal it. After Thaw quit, the instrumented baseline had a 38 × 38 point host frame. The remaining Vorssaint notch overlay occupied that position on this display. With both tools briefly paused, the candidate displayed its template hand and its native menu. Both tools were relaunched after testing. Thaw documents that new items can start in a hidden section. [Thaw’s placement guidance](https://www.getthaw.app/docs/thaw/frequent-issues)
+
+Pokelet retains a named `NSStatusItem` independently of Studio. If AppKit reports that it is hidden or has no usable frame, Pokelet keeps a Dock route. The app also handles Finder and Dock reopen events. The previous bundle launched as an `LSUIElement` agent. In the first candidate, Finder remained active even after Studio opened. The final bundle launches as a regular app so Finder can give it focus. AppKit switches it to accessory activation once Studio is closed and the menu bar is available, according to the saved preferences. The status item stays registered during ordinary Studio transitions. macOS can hide an item for space even when `isVisible` is true, and another app can cover a frame that AppKit reports as onscreen. [Apple’s status-item visibility documentation](https://developer.apple.com/documentation/appkit/nsstatusitem/isvisible)
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Defaults, migration and policy | PASS · automated | 32 SwiftPM tests passed with warnings as errors. New cases cover default visibility, repeated policy decisions, the Dock fallback, persistence and reset, and decoding old preferences without losing existing values. A native smoke test also opened and closed Studio three times using Launch Services and the close button, checked the original PID and single window, then verified termination. |
+| Native status menu and Dock lifecycle | PASS · observed | The native menu displayed **Open Pokelet Studio**, **Enable Pointer**, **Pointer Style**, **Animation Intensity**, **Click Sounds**, **Presentation Settings…** and **Quit Pokelet**. Across three Command–W and status-menu reopen cycles, the same process ran with one status item. The Dock item disappeared on close and returned with one focused Studio window. |
+| Finder launch, appearance and Dock Quit | PASS · observed | Finder launched and focused the final Release bundle. Finder also reopened Studio in the same process after its Dock icon disappeared. General and the native status menu rendered in Light and Dark. The Dock context menu’s **Quit** command terminated Pokelet. The previous system appearance was restored. |
+| Menu bar unavailable | PASS · observed | With Thaw and Vorssaint running, the Release candidate started in the background without a visible status item. It kept its Dock icon, and clicking it opened and focused one Studio window. |
+| Visibility preferences, minimise and relaunch | PASS · observed | Disabling automatic Dock hiding kept both access routes available after close. Disabling the status item left the Dock usable and disabled the dependent setting. Dock clicks reopened closed Studio and restored minimised Studio. Command–Q terminated the process. A `--background` relaunch preserved the Dock-only configuration and left Studio closed. Switching the menu bar back on restored the prior Dock hiding preference. The status menu quit also terminated the process. |
+| Companion with Studio closed | PASS · observed after owner approval | Enabled Companion in the status menu. The overlay had the same WindowServer ID before and after Command–W, with Studio closed and the Dock icon absent. The cursor capture showed the native arrow alongside the character. The status menu removed the overlay, reopened Studio and restored the Dock icon. A second enable followed by **Quit Pokelet** removed the process and overlay. The native arrow was visible after disable and after quit. The disposable input fixture counted all four test clicks. |
+| Global shortcut with Studio closed | PASS · observed after owner approval | Two desktop-generated Option–Command–P keypresses enabled and disabled the overlay while the Release candidate was running as an accessory with Studio closed. |
+| Build and bundle | PASS · automated | Debug build and universal Release build and analysis passed with warnings as errors. Strict signature verification and bundle smoke passed. Both slices declare macOS 14.0. Bundle version stayed at 1.1.0 (2). |
+| Installed application | BLOCKED | `/Users/sammcnab/Applications/Pokelet.app` was absent. A separate bundle in the Trash was inspected read-only. The runnable candidate had its own bundle ID and settings domain. |
+| Actual login and minimum-OS runtime | NOT RUN | The background command-line path was exercised. The login Apple Event path was implemented using Apple’s launch marker. No login item registration or actual login was exercised. This desktop ran macOS 27.3 on Apple silicon. [Apple’s login launch event marker](https://developer.apple.com/documentation/coreservices/1556410-launch_apple_event_constants/keyaelaunchedasloginitem) |
+
+The Companion result above was observed on the isolated candidate using desktop automation. The owner authorised that test. The prior owner-operated shortcut results below apply to the earlier builds. Presentation Mode was never started in this follow-up.
+
+To confirm the ordinary desktop setup after installation, show Pokelet in your menu bar manager if one is in use. Open its status menu, choose **Open Pokelet Studio**, close with Command–W and reopen from the status menu. If the item is covered or hidden by a desktop utility, reopen Pokelet in Finder and use **General → Application behaviour** to keep the Dock icon visible while testing.
+
 ## Phase 1 · Native Studio
 
 | Feature | Status | Evidence |
@@ -25,7 +48,7 @@ The starting checkout was clean at `93a7947` on `fix/native-studio`. Desktop che
 | Keyboard shortcuts and fullscreen | PASS | Command–1 to Command–6 selected their panes. Return dismissed Quick start. After the fix, Control–Command–F entered and exited native fullscreen. Captures measured 3420 × 2148 and 1872 × 1196 pixels. Command–W removed the Studio window from the tool while the candidate process stayed alive. |
 | Keyboard focus, VoiceOver and accessibility | BLOCKED | AX inspection verified named navigation, selected and disabled states, labeled switches, spoken-value text for sliders, headings, recovery text and native window actions. Tab and Shift–Tab left the window focused with system Keyboard Navigation off. Full focus traversal, visible focus indication and VoiceOver speech remain unverified. |
 | Window dragging, resizing and frame restoration | BLOCKED | Tool drags did not produce a verified frame change. The app relaunched at its observed 936 × 598 point window size. A physical move and resize are still needed to establish compact layout and persisted frame changes. |
-| Status menu, Settings reopening and menu-bar-only usage | BLOCKED | Closing Studio left the process running. The app uses accessory activation and `LSUIElement`. The native tool lost its window target on close, so opening the macOS status item and reopening **Settings…** in that process remain unverified. |
+| Status menu, Settings reopening and menu-bar-only usage | BLOCKED · earlier build | Closing Studio left the process running. The earlier native tool lost its window target on close. The follow-up above verified the native menu and Studio reopening in the new candidate. |
 | Updates and installation behaviour | PASS | Source and bundle review found no automatic updater or in-app install action. About exposes the GitHub Releases link. Installing an update from a downloaded DMG remains blocked below. |
 | Crashes and console | PASS | Corrected isolated builds survived the exercised workflows and relaunches. The scoped unified-log query found no Pokelet error or fault in the final observation period. One earlier setup crash is recorded below. |
 | Short process resource sample | PASS | Studio open and pointer off, seven one-second `top` readings showed 48 MiB displayed memory and CPU at 0.0% five times, 0.3% once and 3.5% once. Separate `ps` RSS was about 35 MiB. After closing Studio in a later candidate session, seven readings showed 0.0% CPU and 46 MiB displayed memory, with a separate RSS sample of about 101 MiB. The samples came from different processes and exclude WindowServer, active tracking and battery impact. |
@@ -41,7 +64,7 @@ The starting checkout was clean at `93a7947` on `fix/native-studio`. Desktop che
 
 ## Phase 2 · Controlled pointer plan
 
-**Paused after check 2.** The owner approved checks 1–2. The status menu route remains blocked and checks 3–10 are **NOT RUN**. Use a separately staged candidate with presentation acceptance off, a disposable document and the [local input targets](../Tests/Interactive/InputTargets.html). Confirm the candidate path and PID, current permission state and initial native cursor. Keep a second terminal or owner-operated keyboard route available to quit that exact candidate. Run one numbered check at a time. After any enablement or failure, verify a visible macOS cursor and working clicks in the fixture with the overlay off. Stop if recovery is incomplete. Steps 2 and 5 establish restoration before the later tests.
+**Paused after check 2 for this plan.** The owner approved checks 1–2. The follow-up above separately verified the status-menu route and Companion while Studio was closed. The remaining character, replacement and presentation checks below retain their original evidence. Use a separately staged candidate with presentation acceptance off, a disposable document and the [local input targets](../Tests/Interactive/InputTargets.html). Confirm the candidate path and PID, current permission state and initial native cursor. Keep a second terminal or owner-operated keyboard route available to quit that exact candidate. Run one numbered check at a time. After any enablement or failure, verify a visible macOS cursor and working clicks in the fixture with the overlay off. Stop if recovery is incomplete. Steps 2 and 5 establish restoration before the later tests.
 
 ### Observed results, 21 November 2026
 
@@ -110,3 +133,12 @@ open -n build/studio-acceptance/Build/Products/Debug/Pokelet.app --args --studio
 ```
 
 This profile accepts and persists a shortcut value for testing without registering it. The app and preferences suite identifiers are distinct. Release packaging rejects the Debug acceptance flags.
+
+With the Studio-only candidate quit and the terminal already authorised for Accessibility, run the native reopen regression test against that build.
+
+```sh
+xcrun swiftc -warnings-as-errors -parse-as-library Tests/Native/StudioLifecycleSmoke.swift \
+  -o build/studio-acceptance/StudioLifecycleSmoke
+build/studio-acceptance/StudioLifecycleSmoke \
+  build/studio-acceptance/Build/Products/Debug/Pokelet.app
+```
