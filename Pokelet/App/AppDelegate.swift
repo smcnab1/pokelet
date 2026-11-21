@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
         mainMenu.addItem(windowItem)
         mainMenu.setSubmenu(windowMenu, for: windowItem)
         add("Close Studio", to: windowMenu, action: #selector(closeStudio), key: "w")
+        add("Minimise Studio", to: windowMenu, action: #selector(minimiseStudio), key: "m")
         let fullScreen = windowMenu.addItem(withTitle: "Toggle Full Screen",
                                             action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
         fullScreen.keyEquivalentModifierMask = [.command, .control]
@@ -220,9 +221,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
     @objc private func changeIntensity(_ sender: NSMenuItem) { model.update(\.intensity, Intensity.allCases[sender.tag]) }
     @objc private func quit() { NSApp.terminate(nil) }
     @objc private func closeStudio() { studioWindow?.performClose(nil) }
+    @objc private func minimiseStudio() { studioWindow?.miniaturize(nil) }
 
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        menuItem.action != #selector(closeStudio) || studioWindow != nil
+        switch menuItem.action {
+        case #selector(closeStudio): studioWindow != nil
+        case #selector(minimiseStudio): studioWindow?.isMiniaturized == false
+        default: true
+        }
     }
 
     @objc private func openPresentationSettings() {
