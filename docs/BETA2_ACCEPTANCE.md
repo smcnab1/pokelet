@@ -56,12 +56,24 @@ Built the exact `bb48c83` source from a Git archive using isolated Derived Data 
 | Starting state | Studio reported **Enable pointer** off. The fresh profile had no saved values and started at The Finger, 76 pt, in Companion, with restore-on-launch off. WindowServer showed Studio and zero candidate overlay windows. The existing preference domain was read separately. |
 | Target and recovery | Studio exposed the 29 × 27 pt preview background button at Quartz **(947, 261)**. It changes the preview background on activation. A separate AppKit fixture exposed nine labelled targets and records button actions with event coordinates. General displayed **Option–Command–P** for toggling the pointer. The recovery Terminal was open and its dry run verified the candidate PID, executable path and start time. |
 | Physical baseline | The owner approved the isolated Replace trial. With the pointer off, the first mouse-down landed just above the Centre button at Quartz **(862.359, 409.695)** and the counter stayed at zero. The next on-target click activated Centre at **(860.730, 431.203)**. Both the mouse observer and the fixture logged that position. The owner confirmed the native arrow and counter increment. |
-| Live trial setup | The isolated process enabled Replace with The Finger at 76 pt. WindowServer showed one click-through overlay. After the Studio window moved, the preview background button occupied Quartz **(605, 409, 29, 27)**. The physical Studio target click and post-hide recovery evidence are pending. |
+| Live trial setup | The isolated process enabled Replace with The Finger at 76 pt. WindowServer showed one click-through overlay. After the Studio window moved, the preview background button occupied Quartz **(605, 409, 29, 27)**. |
 | Safe desktop checks | With the pointer off, accessibility actions opened General and Presentation and closed Studio. Launch Services reopened Studio in the same PID. The status menu was unavailable through accessibility, and the physical Dock and status menu checks remain open. Presentation displayed **Unavailable in this build**. |
 | Interactive sound classifier | A separate probe built from `bb48c83` classified the fixture's Centre button as interactive and its heading, counter and blank areas as non-interactive. The button callback completed in 23 ms. Acoustic playback remains open. |
 | Fresh automated and package checks | 46 SwiftPM tests passed on arm64 and 46 on x86_64 under Rosetta. Debug build and analysis, native Studio layout, renderer captures, universal Release package and analysis, ZIP verification and mounted DMG bundle smoke passed. The Release package checks found no Debug acceptance flags or debug entitlement in either slice. The Release source still disables Presentation Mode. |
 
 Local evidence is under `build/beta2-physical.blAphB/evidence/`. Physical compatibility on additional displays, display scales, Intel hardware and macOS 14 remains **BLOCKED** on available hardware or OS. The system reported Reduce Motion, Reduce Transparency and VoiceOver off. Checks that need those settings changed remain **BLOCKED** pending separate approval.
+
+### Live physical sample · The Finger at 76 pt
+
+The owner reported that replacement worked inside Studio and that the illustration shifted near the title bar and when Codex was in front. Studio replacement is limited to exposed content in the active window. At the boundary, the character moves to its Companion position next to the native arrow. The Studio description says “inside this window”, so it leaves the title-bar boundary implicit.
+
+| Physical check | Observed result |
+| --- | --- |
+| Fingertip | Two stationary captures over the preview background button put the painted tip within **0.27 pt** and **0.38 pt** of the sampled Quartz cursor at **(617.012, 416.133)** and **(616.742, 424.215)**. Both were captured at 2×. |
+| Target delivery | Two physical primary clicks reached the preview background button at **(616.742, 424.215)**. Captures showed the preview change from dark to light and back. The fixture baseline miss was outside the painted button. |
+| Title bar and primary effect | During the top-bar pass, the impact at **(669.012, 330.023)** was centred at **(669.000, 330.000)**. The character tip was about **31 pt** to the right. Another upper-window impact at **(838.410, 59.539)** was centred within **0.10 pt**, with the tip about **31 pt** to the right. These offsets match the Companion placement for this character and size. An AppKit window with the same titled style excluded a 32 pt top strip from its eligible content rectangle. |
+| Rapid click and movement | The observer captured a three-click burst with mouse-down intervals of **201 ms** and **165 ms**. Movement arrived **16 ms** after the first down. The captured overlays showed primary effects during the burst. |
+| Secondary, modes and restoration | No physical secondary click was recorded in this sample. Click-only, the remaining character and size cases, the complete edge and corner sweep, and post-hide recovery are still open. |
 
 ## Sound, menu bar and feedback
 
