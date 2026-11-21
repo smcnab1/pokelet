@@ -43,9 +43,9 @@ fi
 printf 'Verified universal binary: arm64 and x86_64.\n'
 for arch in arm64 x86_64; do
   xcrun strings -a -arch "$arch" "$BINARY" | awk '
-    /--presentation-acceptance/ { found = 1 }
+    /--(presentation|studio)-acceptance/ { found = 1 }
     END { exit found }
-  ' || { printf 'Release binary still includes the Presentation Mode launch flag on %s.\n' "$arch" >&2; exit 1; }
+  ' || { printf 'Release binary includes a Debug acceptance launch flag on %s.\n' "$arch" >&2; exit 1; }
   xcrun vtool -arch "$arch" -show-build "$BINARY" | awk '
     $1 == "platform" && $2 == "MACOS" { macos = 1 }
     $1 == "minos" && $2 == "14.0" { target = 1 }

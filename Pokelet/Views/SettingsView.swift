@@ -85,6 +85,7 @@ struct SettingsView: View {
                 }
                 .toggleStyle(.switch)
                 .controlSize(.small)
+                .disabled(model.isStudioAcceptance)
                 .accessibilityLabel("Enable pointer")
                 .help("Toggle pointer (\(model.prefs.pointerShortcut.title))")
             }

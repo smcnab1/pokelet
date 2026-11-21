@@ -18,6 +18,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var needsInputMonitoring = false
 
     let isAcceptanceProfile: Bool
+    let isStudioAcceptance: Bool
     let presentationAvailable: Bool
     var isMenuBarExit: ((CGPoint) -> Bool)? {
         didSet { tap.isMenuBarExit = isMenuBarExit }
@@ -34,18 +35,25 @@ final class AppModel: ObservableObject {
     init() {
         let arguments = ProcessInfo.processInfo.arguments
         let acceptance = arguments.contains("--acceptance-profile")
-        isAcceptanceProfile = acceptance
+        var defaults = acceptance ? UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.Acceptance")! : .standard
+        var supportDirectory = acceptance ? "Pokelet Acceptance" : "Pokelet"
         #if DEBUG
-        presentationAvailable = acceptance && arguments.contains("--presentation-acceptance")
+        isStudioAcceptance = arguments.contains("--studio-acceptance") ||
+            Bundle.main.bundleIdentifier == "uk.co.sammcnab.Pokelet.StudioAcceptance"
+        presentationAvailable = !isStudioAcceptance && acceptance && arguments.contains("--presentation-acceptance")
+        if isStudioAcceptance {
+            defaults = UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.StudioAcceptance.Preferences")!
+            supportDirectory = "Pokelet Studio Acceptance"
+        }
         #else
+        isStudioAcceptance = false
         presentationAvailable = false
         #endif
-        let defaults = acceptance
-            ? UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.Acceptance")! : .standard
+        isAcceptanceProfile = isStudioAcceptance || acceptance
         let store = PreferenceStore(defaults: defaults)
         self.store = store
         prefs = store.load()
-        sound = SoundPlayer(supportDirectory: acceptance ? "Pokelet Acceptance" : "Pokelet")
+        sound = SoundPlayer(supportDirectory: supportDirectory)
     }
 
     func start() {
@@ -62,7 +70,7 @@ final class AppModel: ObservableObject {
         tap.onStop = { [weak self] reason in self?.endPresentation(reason) }
         registerShortcuts()
         refreshLoginStatus()
-        mode.setPointer(prefs.restoreEnabled && prefs.lastEnabled)
+        mode.setPointer(!isStudioAcceptance && prefs.restoreEnabled && prefs.lastEnabled)
         applyInputState()
     }
 
@@ -75,6 +83,7 @@ final class AppModel: ObservableObject {
     }
 
     func togglePointer() {
+        guard !isStudioAcceptance else { return }
         pointerMessage = nil
         if mode.presentation { endPresentation(nil) }
         let enabled = !mode.pointer
@@ -210,6 +219,11 @@ final class AppModel: ObservableObject {
             shortcutMessage = "That shortcut is already assigned in Pokelet."
             return
         }
+        if isStudioAcceptance {
+            shortcutMessage = nil
+            update(\.pointerShortcut, shortcut)
+            return
+        }
         let action: HotKeys.Action = presentation ? .presentationAlternate : .pointer
         if presentation && shortcut == .presentationDefault {
             guard keys.contains(.presentation) || keys.register(.presentationDefault, for: .presentation) else {
@@ -226,6 +240,7 @@ final class AppModel: ObservableObject {
     }
 
     func toggleLaunchAtLogin(_ enabled: Bool) {
+        guard !isStudioAcceptance else { return }
         generalMessage = nil
         do {
             if enabled { try SMAppService.mainApp.register() }
@@ -286,9 +301,13 @@ final class AppModel: ObservableObject {
         do { try sound.removeCustomSound() } catch { audioMessage = error.localizedDescription }
     }
 
-    private func refreshLoginStatus() { loginStatus = SMAppService.mainApp.status }
+    private func refreshLoginStatus() {
+        guard !isStudioAcceptance else { return }
+        loginStatus = SMAppService.mainApp.status
+    }
 
     private func registerShortcuts() {
+        guard !isStudioAcceptance else { return }
         var failed: [String] = []
         if !keys.register(prefs.pointerShortcut, for: .pointer) { failed.append(prefs.pointerShortcut.title) }
         if presentationAvailable {

@@ -52,7 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         observe(NSWorkspace.screensDidWakeNotification, center: workspace) { $0.setScreenSleeping(false) }
         observe(NSWorkspace.sessionDidResignActiveNotification, center: workspace) { $0.setSessionInactive(true) }
         observe(NSWorkspace.sessionDidBecomeActiveNotification, center: workspace) { $0.setSessionInactive(false) }
-        if ProcessInfo.processInfo.arguments.contains("--settings") { openSettings() }
+        if model.isStudioAcceptance || ProcessInfo.processInfo.arguments.contains("--settings") { openSettings() }
     }
 
     func applicationDidBecomeActive(_ notification: Notification) { model.appBecameActive() }
@@ -71,7 +71,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             menu.addItem(active)
         }
         add(model.mode.pointer ? "Disable Pointer" : "Enable Pointer",
-            action: #selector(togglePointer), shortcut: model.prefs.pointerShortcut.title)
+            action: model.isStudioAcceptance ? nil : #selector(togglePointer), shortcut: model.prefs.pointerShortcut.title)
         addSubmenu("Pointer Style", choices: PointerStyle.allCases.map(\.title),
                    selected: PointerStyle.allCases.firstIndex(of: model.prefs.style), action: #selector(changeStyle(_:)))
         addSubmenu("Animation Intensity", choices: Intensity.allCases.map(\.title),
@@ -96,7 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         add("Quit Pokelet", action: #selector(quit), key: "q")
     }
 
-    private func add(_ title: String, action: Selector, checked: Bool = false, shortcut: String? = nil,
+    private func add(_ title: String, action: Selector?, checked: Bool = false, shortcut: String? = nil,
                      key: String = "") {
         let entry = NSMenuItem(title: title, action: action, keyEquivalent: key)
         entry.target = self
@@ -159,7 +159,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
             hosting.sizingOptions = []
             window.contentViewController = hosting
             window.setContentSize(initialSize)
-            let frameName = model.isAcceptanceProfile ? "PokeletSettingsAcceptance" : "PokeletSettings"
+            let frameName = model.isStudioAcceptance ? "PokeletStudioAcceptance"
+                : model.isAcceptanceProfile ? "PokeletSettingsAcceptance" : "PokeletSettings"
             window.setFrameAutosaveName(frameName)
             if !window.setFrameUsingName(frameName) { window.center() }
             settings = window

@@ -16,6 +16,7 @@ struct GeneralSettings: View {
                             get: { model.loginStatus == .enabled || model.loginStatus == .requiresApproval },
                             set: model.toggleLaunchAtLogin
                         ))
+                        .disabled(model.isStudioAcceptance)
                         if model.loginStatus == .requiresApproval {
                             StudioNote("Approve Pokelet in Login Items to finish enabling this setting.")
                             Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
