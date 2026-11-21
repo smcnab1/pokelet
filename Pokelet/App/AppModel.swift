@@ -61,7 +61,7 @@ final class AppModel: ObservableObject {
             guard let self else { return }
             switch action {
             case .pointer: self.togglePointer()
-            case .presentation, .presentationAlternate: self.togglePresentation()
+            case .presentation, .presentationAlternate: self.endPresentation(nil)
             }
         }
         cursor.onClick = { [weak self] in self?.playClickSound() }
@@ -92,9 +92,8 @@ final class AppModel: ObservableObject {
         applyInputState()
     }
 
-    func togglePresentation() {
-        if mode.presentation { endPresentation(nil); return }
-        guard !suspended, presentationAvailable else { return }
+    func startPresentation() {
+        guard !mode.presentation, !suspended, presentationAvailable else { return }
         presentationMessage = nil
         refreshPermissionStatus()
         guard accessibilityGranted else {
@@ -154,6 +153,7 @@ final class AppModel: ObservableObject {
     }
 
     func endPresentation(_ reason: String?) {
+        guard mode.presentation else { return }
         tap.stop()
         mode.stopPresentation()
         presentationMessage = reason

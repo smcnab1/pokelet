@@ -33,7 +33,7 @@ struct GeneralSettings: View {
                         }
                         if model.presentationAvailable {
                             Divider()
-                            ShortcutField(label: "Alternate presentation shortcut", shortcut: model.prefs.presentationShortcut) {
+                            ShortcutField(label: "Alternate shortcut to end Presentation Mode", shortcut: model.prefs.presentationShortcut) {
                                 model.setShortcut($0, presentation: true)
                             }
                             .disabled(model.mode.presentation)

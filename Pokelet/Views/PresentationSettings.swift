@@ -20,11 +20,14 @@ struct PresentationSettings: View {
         VStack(alignment: .leading, spacing: 15) {
             StudioSection("Click suppression") {
                 if model.presentationAvailable {
-                    Button(model.mode.presentation ? "End Presentation Mode" : "Start Presentation Mode") {
-                        model.togglePresentation()
+                    if model.mode.presentation {
+                        Button("End Presentation Mode") { model.endPresentation(nil) }
+                            .buttonStyle(.borderedProminent)
+                    } else {
+                        Button("Start Presentation Mode") { model.startPresentation() }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(!model.accessibilityGranted)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(!model.accessibilityGranted && !model.mode.presentation)
                     StudioNote("While clicks are paused, they still animate your Pokelet character.")
                     if let issue = model.presentationMessage {
                         StudioNote(issue, symbol: "exclamationmark.circle", warning: true)

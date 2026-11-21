@@ -119,9 +119,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
                    selected: model.prefs.intensity.rawValue, action: #selector(changeIntensity(_:)))
         add("Click Sounds", to: menu, action: #selector(toggleSound), checked: model.prefs.soundEnabled)
         if model.mode.presentation {
-            add("End Presentation Mode", to: menu, action: #selector(togglePresentation), shortcut: Shortcut.presentationDefault.title)
+            add("End Presentation Mode", to: menu, action: #selector(endPresentation), shortcut: Shortcut.presentationDefault.title)
         } else if model.presentationAvailable {
-            add("Start Presentation Mode", to: menu, action: #selector(togglePresentation), shortcut: Shortcut.presentationDefault.title)
+            add("Start Presentation Mode", to: menu, action: #selector(startPresentation))
         } else {
             add("Presentation Settings…", to: menu, action: #selector(openPresentationSettings))
         }
@@ -214,7 +214,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
 
     @objc private func togglePointer() { model.togglePointer() }
     @objc private func toggleSound() { model.update(\.soundEnabled, !model.prefs.soundEnabled) }
-    @objc private func togglePresentation() { model.togglePresentation() }
+    @objc private func startPresentation() { model.startPresentation() }
+    @objc private func endPresentation() { model.endPresentation(nil) }
     @objc private func changeStyle(_ sender: NSMenuItem) { model.update(\.style, PointerStyle.allCases[sender.tag]) }
     @objc private func changeIntensity(_ sender: NSMenuItem) { model.update(\.intensity, Intensity.allCases[sender.tag]) }
     @objc private func quit() { NSApp.terminate(nil) }
