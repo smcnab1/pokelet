@@ -17,9 +17,11 @@ struct PresenterArmGeometry {
         let scale = size / CursorGeometry.canvas
         let x = tip.x - viewport.minX
         let y = tip.y - viewport.minY
-        let turn = Self.ease((size * 0.85 - y) / (size * 0.85))
+        // Start the turn early enough for the knuckles to clear the lower
+        // edge as the wrist moves above the fingertip.
+        let turn = Self.ease((size - y) / (size * 0.64))
         let right = Self.ease((x - viewport.width + size) / size)
-        angle = .pi / 180 * ((115 + 54 * right) * turn - 36 * right * (1 - turn))
+        angle = .pi / 180 * ((115 + 54 * right) * turn - 49 * right * (1 - turn))
 
         let towardsWrist = CGPoint(x: Self.cuff.x * cos(angle) - Self.cuff.y * sin(angle),
                                    y: Self.cuff.x * sin(angle) + Self.cuff.y * cos(angle))

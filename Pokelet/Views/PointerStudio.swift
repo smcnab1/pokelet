@@ -12,6 +12,11 @@ struct PointerStudio: View {
             StudioColumns(wide: wide) {
                 VStack(alignment: .leading, spacing: wide ? 14 : 9) {
                     CharacterPreview(prefs: model.prefs, stageHeight: stageHeight)
+                    if !wide {
+                        presenterSettings
+                            .padding(12)
+                            .background(StudioTheme.surface.opacity(0.57), in: RoundedRectangle(cornerRadius: 12))
+                    }
                     CharacterPicker(selection: model.preference(\.style))
                         .disabled(model.prefs.presenterEffects.normal)
                 }
@@ -30,11 +35,10 @@ struct PointerStudio: View {
 
     private var inspector: some View {
         VStack(alignment: .leading, spacing: 18) {
-            StudioSection("Presenter effects") {
-                StudioSwitch("Enable Presenter Arm", isOn: model.preference(\.presenterEffects.normal))
-                StudioNote("A pointing glove extends from the bottom edge. Try it with the pointer off.")
+            if wide {
+                presenterSettings
+                Divider()
             }
-            Divider()
             StudioSection("Appearance") {
                 if !model.prefs.presenterEffects.normal { PalettePicker(model: model) }
                 StudioSlider(title: "Size", accessibilityTitle: "Pointer size",
@@ -65,6 +69,13 @@ struct PointerStudio: View {
         }
         .padding(15)
         .background(StudioTheme.surface.opacity(0.57), in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var presenterSettings: some View {
+        StudioSection("Presenter effects") {
+            StudioSwitch("Enable Presenter Arm", isOn: model.preference(\.presenterEffects.normal))
+            StudioNote("A pointing glove extends from the bottom edge. Try it with the pointer off.")
+        }
     }
 
     private var size: Binding<Double> {

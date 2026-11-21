@@ -52,6 +52,14 @@ final class PresenterArmTests: XCTestCase {
         }
     }
 
+    func testGloveTucksInsideTheLowerRightEdge() {
+        let viewport = CGRect(x: 0, y: 0, width: 496, height: 298)
+        let point = CGPoint(x: 467, y: 26)
+        let pose = PresenterArmGeometry(tip: point, viewport: viewport, size: 76)
+        XCTAssertGreaterThan(pose.wrist.y, point.y)
+        XCTAssertLessThan(pose.wrist.x + 14, viewport.maxX)
+    }
+
     func testLayerKeepsTipAndSleeveTogetherAndClearsWhenDisabled() throws {
         let prefs = Preferences()
         for scale in [1.0, 2] {
