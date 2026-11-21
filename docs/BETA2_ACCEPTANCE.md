@@ -73,7 +73,16 @@ The owner reported that replacement worked inside Studio and that the illustrati
 | Target delivery | Two physical primary clicks reached the preview background button at **(616.742, 424.215)**. Captures showed the preview change from dark to light and back. The fixture baseline miss was outside the painted button. |
 | Title bar and primary effect | During the top-bar pass, the impact at **(669.012, 330.023)** was centred at **(669.000, 330.000)**. The character tip was about **31 pt** to the right. Another upper-window impact at **(838.410, 59.539)** was centred within **0.10 pt**, with the tip about **31 pt** to the right. These offsets match the Companion placement for this character and size. An AppKit window with the same titled style excluded a 32 pt top strip from its eligible content rectangle. |
 | Rapid click and movement | The observer captured a three-click burst with mouse-down intervals of **201 ms** and **165 ms**. Movement arrived **16 ms** after the first down. The captured overlays showed primary effects during the burst. |
-| Secondary, modes and restoration | No physical secondary click was recorded in this sample. Click-only, the remaining character and size cases, the complete edge and corner sweep, and post-hide recovery are still open. |
+| Secondary and modes | No physical secondary click was recorded in this sample. Click-only, the remaining character and size cases, and the complete edge and corner sweep are still open. |
+
+### Post-hide restoration
+
+| Route | Result |
+| --- | --- |
+| Disable the pointer with Option–Command–P | **PASS for cursor restoration.** The owner used the shortcut over the preview. Cursor-inclusive captures show the replacement before the shortcut and the native arrow after it at the same Quartz position, **(354.074, 572.051)**. The pointer switch read off and WindowServer showed no candidate overlay. The owner confirmed that the fixture click worked. The fixture log did not contain a second Centre activation, so post-disable click delivery currently has owner confirmation only. |
+| Leave eligible content | The title-bar pass showed the Companion offset. A separate exit from active Studio to the adjacent fixture is queued to verify the visible native arrow and a logged ordinary click. |
+| Change the display mode, close Studio or quit normally | Pending separate trials. |
+| Unexpected termination | Pending ordinary recovery. |
 
 ## Sound, menu bar and feedback
 
