@@ -2,7 +2,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
     private let model = AppModel()
     private let menu = NSMenu()
     private var status: NSStatusItem?
@@ -143,13 +143,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func openSettings() {
         if settings == nil {
-            let window = NSWindow(contentRect: CGRect(x: 0, y: 0, width: 770, height: 595),
-                                  styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            let visibleSize = NSScreen.main?.visibleFrame.size ?? CGSize(width: 1000, height: 650)
+            let initialSize = CGSize(width: min(1000, visibleSize.width), height: min(650, visibleSize.height))
+            let window = NSWindow(contentRect: CGRect(origin: .zero, size: initialSize),
+                                  styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                                   backing: .buffered, defer: false)
-            window.title = "Pokelet Settings"
-            window.contentMinSize = CGSize(width: 670, height: 470)
+            window.title = "Pokelet Studio"
+            window.titleVisibility = .hidden
+            window.titlebarAppearsTransparent = true
+            window.collectionBehavior.insert(.fullScreenPrimary)
+            window.contentMinSize = CGSize(width: 540, height: 440)
             window.isReleasedWhenClosed = false
-            window.contentViewController = NSHostingController(rootView: SettingsView(model: model))
+            window.delegate = self
+            let hosting = NSHostingController(rootView: SettingsView(model: model))
+            hosting.sizingOptions = []
+            window.contentViewController = hosting
+            window.setContentSize(initialSize)
             let frameName = model.isAcceptanceProfile ? "PokeletSettingsAcceptance" : "PokeletSettings"
             window.setFrameAutosaveName(frameName)
             if !window.setFrameUsingName(frameName) { window.center() }
@@ -157,7 +166,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             model.setReplacementWindow(window)
         }
         NSApp.activate()
+        if settings?.isMiniaturized == true { settings?.deminiaturize(nil) }
         settings?.makeKeyAndOrderFront(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard notification.object as? NSWindow === settings else { return }
+        settings = nil
     }
 
     private func observe(_ name: Notification.Name, center: NotificationCenter,

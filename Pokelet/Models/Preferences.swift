@@ -99,6 +99,7 @@ struct Preferences: Codable, Equatable {
     var customSoundName: String?
     var restoreEnabled = false
     var lastEnabled = false
+    var largerStudioText: Bool?
     var pointerShortcut = Shortcut.pointerDefault
     var presentationShortcut = Shortcut.presentationDefault
 }

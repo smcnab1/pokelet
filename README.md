@@ -27,13 +27,15 @@ You can also [build locally with Xcode](#build-from-source) from the [beta sourc
 
 ## Make it yours
 
+Open **Settings…** from the Pokelet menu. Current source builds open **Studio**, where you can choose a character, test click reactions and change its appearance. Use **⌘1** through **⌘6** to switch sections. The published beta uses the **Pointer** pane shown below.
+
 - **Pointer** lets you choose a character, colour and size. **Companion** keeps the Mac cursor visible. **Replace in Pokelet Settings** replaces it only within the exposed area of Pokelet’s active Settings window.
 - **Animations** offers five click intensities, a preview and a click-only option. Pokelet follows macOS Reduce Motion.
 - **Sounds** offers four optional sounds or a local audio import up to 3 seconds and 5 MB. Click sounds start muted.
 - **General** lets you change the pointer shortcut, restore its previous state on launch or enable **Launch at login**.
 
 <details>
-<summary>See Pointer and Animations settings</summary>
+<summary>See the published beta’s Pointer and Animations settings</summary>
 
 ![Pointer Settings showing four black characters against light and dark swatches](docs/screenshots/pokelet-settings-pointer-dark.png)
 

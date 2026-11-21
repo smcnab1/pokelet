@@ -48,6 +48,7 @@ final class CoreTests: XCTestCase {
         prefs.size = 88
         prefs.sound = .wood
         prefs.reducedMotion = true
+        prefs.largerStudioText = true
         prefs.restoreEnabled = true
         prefs.lastEnabled = true
         prefs.pointerShortcut = .init(keyCode: 1, modifiers: Shortcut.pointerDefault.modifiers)

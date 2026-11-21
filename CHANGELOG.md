@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Open Settings to Pokelet Studio, a resizable workspace with live character previews, colour swatches and quick pointer controls.
+- Use the floating navigation dock or Command–1 through Command–6 to open Studio, Animations, Sounds, Presentation, General and About.
+- Preview both click responses, choose sounds without playing them, and find Presentation Mode recovery shortcuts at the top of its page.
+- Turn on **Larger Studio text** in General to enlarge the interface labels and headings.
+
 ## 1.1.0-beta.1
 
 - Add Companion mode, with an offset character and the native cursor kept visible. Replace the cursor only over exposed content in Pokelet’s active Settings window.
