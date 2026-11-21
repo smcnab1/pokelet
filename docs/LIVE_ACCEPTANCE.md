@@ -1,6 +1,6 @@
 # Studio acceptance and beta readiness
 
-**21 November 2026. Public beta update on hold.** Companion, Click-only and Replace in Studio passed controlled input and recovery checks on one Apple silicon Mac. Presentation Mode remains a Debug experiment. Preflight found that a stale exit action can re-arm click suppression. The current candidate still has Beta 1's bundle version and build number.
+**21 November 2026. Public beta update on hold.** Companion, Click-only and Replace in Studio passed controlled input and recovery checks on one Apple silicon Mac. Presentation Mode remains a Debug experiment. The stale exit action was fixed and retested without suppression. The armed trial awaits separate Accessibility approval. The current candidate still has Beta 1's bundle version and build number.
 
 The starting checkout was clean at `93a7947` on `fix/native-studio`. Desktop checks ran on Apple M2, macOS 27.3 (`26C5047e`), Xcode 27.2 (`27B52`), and one built-in Retina display. They used a separate Debug bundle, preferences suite, window frame and audio directory. The Studio-only profile disables pointer activation, global shortcut registration, click suppression and Login Items changes. The Release bundle was built and inspected separately. During initial setup, the native tool relaunched the test bundle without its Studio-only flag, so default shortcut registration may have run briefly. The process was stopped and the dedicated bundle ID now enforces Studio-only mode even when started without arguments. Pointer activation and permission changes were outside the session.
 
@@ -158,7 +158,7 @@ Reviewed the application at `1d5482e` on `fix/native-studio`. The ordinary point
 
 The baseline passed all 32 SwiftPM tests with warnings as errors. The augmented suite passed all 34, including seven Presentation safety tests. The new cases cover exact lease expiry during an other-button hold and clearing all button ownership when tap health is lost during drain. They exercise only the state model. The AppKit dispatch race, OS permission handling, tap delivery and actual input recovery need separate evidence. No application fix was made in this read-only preflight.
 
-**Option B · retain as experimental.** Keep Presentation Mode disabled in public builds. Before live activation, correct the stale exit behaviour, verify the candidate's menu-bar recovery route and repeat the unarmed preflight on the rebuilt bundle.
+**Option B · retain as experimental.** Keep Presentation Mode disabled in public builds until the full armed recovery checks pass.
 
 ### Controlled-test setup · stopped at approval gate
 
@@ -173,13 +173,37 @@ The baseline passed all 32 SwiftPM tests with warnings as errors. The augmented 
 
 Local logs, the fixture and the recovery terminal script are in `build/presentation-preflight/`. The Terminal and the two isolated applications were left open for the handoff, with Presentation and the pointer off. A future run must re-verify the current PIDs, the keyboard routes, cursor and fixture baseline before arming. The armed tests can suppress clicks across the current macOS session. Keep the keyboard recovery routes and the exact-process terminal available for every activation.
 
+### Recovery fix and second preflight · 21 November 2026
+
+The owner approved the Debug fix and controlled live trial after preflight. Commit `36d172e` gives Studio and the native menus separate Start and End actions. Control–Option–T and the configured alternate shortcut only end an active presentation. An End command received while idle has no effect. The tap's existing lease, drain and invalidation rules and the ordinary pointer implementation are unchanged.
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Idle emergency shortcut regression | PASS · old and new Debug bundles | On a fresh launch without Accessibility, the original bundle failed the new native test because Control–Option–T triggered the Start path and displayed its denial message. Two presses on the fixed bundle left Start disabled and produced no Start attempt. No tap was armed. The AppKit and SwiftUI End actions now call the same stop-only handler. |
+| Explicit Start without Accessibility | PASS · native menu | With the verified status item visible, opened it and invoked **Start Presentation Mode**. The app reported that Accessibility was required, Start in Studio remained disabled, and the overlay count stayed zero. The app did not request a grant. |
+| Status item availability | PASS · unarmed with utilities paused | Temporarily quit Thaw and Vorssaint, verified macOS hit-testing identified the candidate's 24 × 24 point status item, and opened its native menu. Both utilities were relaunched and verified running. Use the same isolated setup for the active indicator and keyboard menu checks. Apple documents Control–F8 or Fn–Control–F8 to focus status menus. [Apple keyboard shortcuts](https://support.apple.com/en-gb/102650) |
+| Candidate and recovery terminal | PASS · unarmed | `build/presentation-recovery-fix/debug/Build/Products/Debug/Pokelet.app`, bundle ID `uk.co.sammcnab.Pokelet.PresentationAcceptance`, PID `57777` at handoff. The Debug code image SHA-256 is `8fdbd3d655cbd0d9a641eaa711783766cc66baebc7ffd5de50745e1289a9d491`. The **Pokelet Recovery - Debug Candidate** Terminal tab terminated the previous fixed-build PID `56612`, then verified `57777` after relaunch. It retains the same PID, executable and start-time checks. |
+| Desktop baseline | PASS · unarmed | Fixture PID `53273` received primary and secondary clicks after relaunch, detected Escape and remained running. A cursor-inclusive capture showed the native arrow. Presentation and the pointer stayed off. |
+| Build and packaging | PASS · local | All 34 SwiftPM tests passed with warnings as errors. Debug built and analysed. The rebuilt universal Release ZIP and the read-only DMG layout passed, including the Release checks for Debug flags and entitlements. The bundle is still `1.1.0 (2)`. |
+
+The armed trial awaits explicit approval to request and grant Accessibility for the isolated bundle. Input Monitoring, if the candidate demonstrates a need, and permission revocation require separate decisions. The denial check above and the idle regression use existing test-driver permissions. No candidate permissions changed.
+
+To rerun the unarmed regression, launch the exact Debug acceptance bundle with the documented flags and leave the Presentation pane frontmost without a candidate Accessibility grant. Use a driver with existing Accessibility and event-posting access.
+
+```sh
+xcrun swiftc -warnings-as-errors -parse-as-library Tests/Native/PresentationRecoverySmoke.swift \
+  -o build/presentation-recovery-fix/PresentationRecoverySmoke
+build/presentation-recovery-fix/PresentationRecoverySmoke \
+  build/presentation-recovery-fix/debug/Build/Products/Debug/Pokelet.app
+```
+
 ### Live acceptance plan
 
 All armed checks remain **NOT RUN**. Get explicit owner approval before activation or requesting or changing permissions. Use a separate Debug candidate launched with `--settings --acceptance-profile --presentation-acceptance`. Start with the native cursor, the disposable fixture and a verified click. Verify both emergency keys and an independent keyboard-accessible terminal. Establish a visible, reachable status indicator before testing its exit route. Use a fresh activation for each exit. Verify the native cursor and the first ordinary fixture click after every stop. If recovery fails, terminate the exact candidate and stop the session. Test permission revocation only with separate approval.
 
 | Feature | Status | Acceptance condition |
 | --- | --- | --- |
-| Permission denied and activation guards | NOT RUN | Attempt startup without Accessibility and record the actual Input Monitoring requirement. Confirm denial, a held button or an unavailable recovery shortcut leaves clicks working. A passive fixture can reserve the Carbon shortcut for the refusal test. Grant only the permission the owner separately authorises. |
+| Permission denied and activation guards | PARTIAL | Explicit Start without Accessibility was refused. Confirm the actual Input Monitoring requirement and verify that a held button or an unavailable recovery shortcut leaves clicks working. A passive fixture can reserve the Carbon shortcut for the refusal test. Grant only the permission the owner separately authorises. |
 | Active input | NOT RUN | Establish that the fixture receives left, right and other-button events before arming. While active, monitor the button-event log during ordinary, held and rapid clicks. The native cursor remains visible in Companion, the character responds and arrow keys still advance the fixture slides. |
 | Escape and Control–Option–T | NOT RUN | Exercise both keyboard exits separately. The fixture also receives the Escape key. After each exit, verify the first ordinary click. |
 | Menu-bar indicator and keyboard menu command | NOT RUN | Check the indicator, click its active recovery control and separately use keyboard navigation to **End Presentation Mode**. Confirm the indicator returns to its ordinary state after each. |
@@ -219,7 +243,7 @@ All armed checks remain **NOT RUN**. Get explicit owner approval before activati
 | Changelog and availability | READY · draft | **Unreleased** already lists Studio, keyboard navigation, the dynamic Dock, menu bar and preserved shortcuts. At release, promote those entries to the approved version and state that Presentation is experimental and disabled in Release. Keep the existing public download links until there is a verified replacement asset. |
 | Runtime compatibility | PARTIAL | Apple M2 and macOS 27.3 ran the isolated builds. One built-in display was attached. Intel and macOS 14 runtime and cross-display movement remain open. The universal package and minimum-OS declarations establish build compatibility. |
 
-The owner decisions are approval for the Debug recovery fix and the staged live test, separate permission approval, release version approval and the distribution route. A trusted beta requires signing credentials, packaging on the final commit and a quarantined clean install and upgrade check. An ad hoc public beta would require an explicit distribution decision and clear Gatekeeper disclosure.
+The remaining owner decisions are Accessibility approval for the isolated trial, release version approval and the distribution route. A trusted beta requires signing credentials, packaging on the final commit and a quarantined clean install and upgrade check. An ad hoc public beta would require an explicit distribution decision and clear Gatekeeper disclosure.
 
 ### Remaining accessibility and compatibility
 
