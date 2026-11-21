@@ -2,6 +2,8 @@
 
 **21 November 2026 · NO-GO for public release.** The isolated candidate passed the macOS desktop pointer matrix, cursor recovery and local package checks. Trusted distribution, release version approval and the compatibility and accessibility checks below remain open.
 
+See the [release preparation follow-up](BETA2_RELEASE_READINESS.md) for the packaging rehearsal, issue form compatibility and current publication gates.
+
 Testing continued on `fix/native-studio` from `7dc810c`. The pointer changes are in `c1d5212` and sound changes are in `c0b03ab`. The test Mac was an Apple M2 running macOS 27.3 and Xcode 27.2 with one 2× display. The live candidate had its own Debug bundle identifier and preference domain. The local Release package remains version 1.1.0 (2).
 
 ## Cursor and click effects

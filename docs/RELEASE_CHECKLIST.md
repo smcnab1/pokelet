@@ -2,34 +2,35 @@
 
 ## Verify the source candidate
 
-- Run the macOS workflow on the exact release commit. It runs tests, builds and analyses Debug, then verifies a universal Release ZIP and the DMG layout.
-- Confirm the `arm64` and `x86_64` slices target macOS 14.0. Confirm the extracted app signature, bundled licences and sounds, archive integrity and the SHA-256 checksum.
-- Record results in [VERIFICATION.md](../VERIFICATION.md). Keep Presentation Mode disabled in Release builds while the [live input recovery checks](INTERACTIVE_ACCEPTANCE.md) remain open. Run those tests on a desktop only with the owner’s approval.
+- Obtain approval for the version, build and tag. Commit the approved version and build in the Xcode project, then record the release commit SHA and toolchain.
+- Run the macOS workflow on that exact commit. It runs tests, builds and analyses Debug, builds and analyses universal Release, and verifies the ZIP and DMG layout. This workflow uses ad hoc signing and runs without Apple credentials.
+- Confirm the `arm64` and `x86_64` slices target macOS 14.0. Confirm the extracted app signature, bundled licences and sounds, archive integrity and SHA-256 checksum. The package check rejects debug entitlements and acceptance flags in either slice.
+- Record results in [VERIFICATION.md](../VERIFICATION.md). Release builds keep Presentation Mode disabled. [Live Presentation Mode input testing](INTERACTIVE_ACCEPTANCE.md) uses Debug and requires desktop owner approval.
 
-## Build the public beta DMG
+## Rehearse with an ad hoc DMG
 
-From the clean release commit, run `./script/package_dmg.sh --beta`. The script verifies both architectures, the ad hoc app signature, the DMG layout, the bundled resources and the SHA-256 checksum. It writes the unnotarised DMG and checksum to `dist/beta/`. Mounting for verification is read-only and does not open Finder or launch Pokelet.
+From a clean checkout, run `./script/package_dmg.sh --beta` for a local, ad hoc-signed DMG and SHA-256 checksum in `dist/beta/`. Verification mounts the image read-only and checks the Applications shortcut, app resources and signature. `./script/package_dmg.sh --check-layout dist/candidate/Pokelet.app` uses a temporary image. These checks establish package integrity. Use the trusted DMG and an isolated desktop for launch and upgrade acceptance.
 
-Publish both files in a GitHub prerelease tagged at the build commit. State the ad hoc signing and lack of notarisation before installation instructions. Point users to [Apple’s Open Anyway guidance](https://support.apple.com/102445) for the per-app option where available. Once published, download the public DMG and compare its checksum. Record live installation coverage only if observed on an approved desktop.
+The [public Beta 1](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) used an ad hoc DMG. Follow its published checksum and [Apple’s per-app guidance](https://support.apple.com/102445) for any approved historical-installation test on a disposable system.
 
 ## Build the trusted DMG
 
-Use a Mac with Xcode, a valid **Developer ID Application** identity and its private key in Keychain, and a `notarytool` Keychain profile linked to the Apple Developer team. If Keychain lacks the identity, the Apple Developer Program account holder should create or import it for the team. Use Apple’s [Developer ID guidance](https://developer.apple.com/developer-id/) and [notarytool Keychain instructions](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow) to configure credentials locally.
+Use a Mac with Xcode, a valid **Developer ID Application** identity and its private key in Keychain, and a `notarytool` Keychain profile for the same Apple Developer team. The account holder can arrange certificate issuance or import after approval. Use `xcrun notarytool store-credentials` with interactive prompts and a team-authorised credential. Keep credentials and private keys in the team's approved storage. [Developer ID guidance](https://developer.apple.com/developer-id/) · [Keychain profile setup](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow)
 
-From the clean, verified release commit, set `POKELET_DEVELOPER_ID` to the certificate fingerprint and `POKELET_NOTARY_PROFILE` to the Keychain profile name. Then run:
+Set `POKELET_DEVELOPER_ID` to the certificate fingerprint and `POKELET_NOTARY_PROFILE` to the Keychain profile name. `./script/package_dmg.sh --check-signing` checks the configured keychains and `notarytool` locally. Run the following command from the clean release commit with the approved version and build committed, after approval to submit to Apple.
 
 ```sh
-./script/package_dmg.sh --notarise
+env -u XCODE_XCCONFIG_FILE ./script/package_dmg.sh --notarise
 ```
 
-The script builds the universal app, signs the app with hardened runtime and a secure timestamp, signs the DMG, waits for Apple to accept it, and staples the DMG ticket. It checks the disk image signature and Gatekeeper assessment, mounts the DMG read-only without opening Finder, and verifies the mounted app, the Applications shortcut and the exact executable. It writes the DMG and its SHA-256 checksum to `dist/notarised/` after those checks pass. Supply a fresh output directory to repeat the process.
+The script checks access to the Notary service, builds the universal app and verifies Developer ID, hardened runtime and a secure timestamp on both slices. It signs the DMG under a distinct signing identifier, submits it to Apple, then staples and validates the ticket after acceptance. It assesses the disk image and mounted app with Gatekeeper and verifies the Applications shortcut and embedded executable. It writes the verified DMG, its checksum and the private Apple review log to `dist/notarised/`. Review the log before distribution.
 
-For a local layout test with the candidate build, run `./script/package_dmg.sh --check-layout dist/candidate/Pokelet.app`. The image is temporary. CI uses this mode without signing credentials and retains only explicitly requested, short-lived ad hoc ZIP artefacts.
+If waiting, stapling or verification fails after submission, use the retained staging path and submission ID from `submission.plist`. Check the existing submission with `notarytool info` or `notarytool log` before considering a retry. Follow the full verification sequence on the same DMG if recovering an accepted submission.
 
 ## Publish a notarised release
 
-1. On a separate test Mac or VM, download the staged DMG through a browser and install by dragging to Applications. Check launch, the default permission experience, pointer restoration, and a repeat launch from Applications.
-2. When Apple acceptance, Gatekeeper and the applicable safety checks are verified, publish the matching version tag and GitHub Release with the DMG and checksum. Use [the changelog](../CHANGELOG.md) to write short release notes. Include the macOS minimum and the current Presentation Mode status.
-3. Update the README and [landing page](site/index.html) to show the verified download prominently. Download the public asset again and verify it against the published checksum. Confirm the public website, release and installation links.
+1. On a separate test Mac or VM, browser-download the stapled DMG and verify quarantine and its checksum. Run the [fresh installation and upgrade exercises](BETA2_RELEASE_READINESS.md#disposable-desktop-acceptance).
+2. After release approval, publish the matching version tag and GitHub prerelease with the verified DMG and checksum. Use [the changelog](../CHANGELOG.md) for the public notes and include the macOS minimum and Presentation Mode status.
+3. Download the public DMG and verify it against the published checksum. Update the README and [landing page](site/index.html) to point to the verified download, then confirm the public website, release and installation links.
 
 Apple’s [distribution guidance](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution) describes signing the app and DMG, notarising the outer container and testing distribution on a separate Mac.

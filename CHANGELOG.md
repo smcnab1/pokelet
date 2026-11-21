@@ -2,21 +2,23 @@
 
 ## Unreleased
 
-- Try **Presenter Arm** in Studio or use it across apps with the Mac pointer visible. The bottom-edge sleeve follows the original white glove, and switching the effect off restores your selected character.
-- Anchor click effects to each mouse-down position, including secondary and rapid clicks.
-- Choose **Every click** or **Interactive clicks only** in Sounds. Interactive click sounds pause when Accessibility access is unavailable, with an explicit option to switch to **Every click**.
-- Align each character's contact point and click effects with the mouse-down location in replacement and Click-only modes. Companion keeps the character beside the native pointer and draws effects at the actual click.
-- Align Studio link and settings icons and keep animation intensity tiles at consistent heights.
-- Open dedicated GitHub bug and feature forms from **About → Help & Feedback**. Review or copy the basic system information for a bug report.
+### Studio
 
-- Open Settings to Pokelet Studio, a resizable workspace with a cursor-tracking preview, a compact character picker and quick pointer controls.
-- Use the floating navigation rail or Command–1 through Command–6 to open Studio, Animations, Sounds, Presentation, General and About.
-- Preview both click responses, choose sounds without playing them, and find Presentation Mode recovery shortcuts at the top of its page.
-- Turn on **Larger Studio text** in General to enlarge the interface labels and headings.
-- Keep animation intensity names readable when **Larger Studio text** is enabled.
-- Minimise Studio with Command–M, close it with Command–W, or toggle full screen with Control–Command–F.
-- Open Studio from the menu bar or Dock. The Dock icon follows Studio by default, and General can keep it visible or turn off the menu bar item.
-- Use Option–Command–P to toggle the pointer with fresh or reset settings. Existing saved shortcuts are preserved.
+- Open Settings to a resizable Studio with a live preview, quick pointer controls and a compact character picker. Use Command–1 through Command–6 to switch panes.
+- Turn on **Larger Studio text** in General. Use Command–M to minimise, Command–W to close and Control–Command–F to toggle full screen.
+- Open Studio from the menu bar or Dock. By default, the Dock icon follows Studio when the menu bar item is available. General lets you keep the Dock icon visible or hide the menu bar item.
+
+### Pointer and sounds
+
+- Try **Presenter Arm** in Studio or use it across apps with the Mac pointer visible. Turning it off restores your selected character.
+- See click effects at each mouse-down position, including secondary and rapid clicks. Replace in Studio and Click-only align the character with the click. Companion keeps the character beside the Mac pointer.
+- Choose **Every click** or **Interactive clicks only** in Sounds. The latter pauses when Accessibility access is unavailable and offers a switch to **Every click**.
+- Use Option–Command–P to toggle the pointer with fresh or reset settings. Pokelet retains shortcuts already saved by earlier versions.
+
+### Feedback and release controls
+
+- Open the updated GitHub forms from **About → Help & Feedback**. Review the system information in the bug report or copy it for pasting.
+- Public Release builds keep Presentation Mode click suppression unavailable. Acceptance profiles are available in Debug builds.
 
 ## 1.1.0-beta.1
 
