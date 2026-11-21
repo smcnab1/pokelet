@@ -1,6 +1,6 @@
 # Beta 2 acceptance
 
-**21 November 2026 · NO-GO for release.** The local candidate passes pixel-based renderer checks and package qualification. Live Replace in Studio, physical click-to-fingertip alignment and the remaining desktop checks still need acceptance.
+**21 November 2026 · NO-GO for public release.** The isolated candidate passed the macOS desktop pointer matrix, cursor recovery and local package checks. Trusted distribution, release version approval and the compatibility and accessibility checks below remain open.
 
 Testing continued on `fix/native-studio` from `7dc810c`. The pointer changes are in `c1d5212` and sound changes are in `c0b03ab`. The test Mac was an Apple M2 running macOS 27.3 and Xcode 27.2 with one 2× display. The live candidate had its own Debug bundle identifier and preference domain. The local Release package remains version 1.1.0 (2).
 
@@ -45,7 +45,7 @@ Run `./script/test_pointer_visual.sh build/beta2-visual` on a Mac with an active
 
 [Live glove at 132 pt](screenshots/beta2/presenter-arm-live.png) · [Lower-right renderer capture](screenshots/beta2/presenter-arm-edge.png) · [Live primary impact crop](screenshots/beta2/presenter-primary-live.png) · [Live secondary impact crop](screenshots/beta2/presenter-secondary-live.png)
 
-**BLOCKED** on an approved Replace in Studio trial with physical input. A physical click needs to establish the full chain from the system cursor through the illustrated contact point and impact to the control that receives the click. The full physical corner and edge sweep, movement performance and cursor restoration after actual hiding also remain open.
+These samples preceded the approved owner-operated trial and the autonomous desktop run below.
 
 ### Physical trial preflight · 21 November 2026
 
@@ -75,7 +75,7 @@ The owner reported that replacement worked inside Studio and that the illustrati
 | Rapid click and movement | The observer captured a three-click burst with mouse-down intervals of **201 ms** and **165 ms**. Movement arrived **16 ms** after the first down. The captured overlays showed primary effects during the burst. |
 | Secondary and modes | No physical secondary click was recorded in this sample. Click-only, the remaining character and size cases, and the complete edge and corner sweep are still open. |
 
-### Post-hide restoration
+### Owner-operated post-hide restoration
 
 | Route | Result |
 | --- | --- |
@@ -83,6 +83,48 @@ The owner reported that replacement worked inside Studio and that the illustrati
 | Leave eligible content | The title-bar pass showed the Companion offset. A separate exit from active Studio to the adjacent fixture is queued to verify the visible native arrow and a logged ordinary click. |
 | Change the display mode, close Studio or quit normally | Pending separate trials. |
 | Unexpected termination | Pending ordinary recovery. |
+
+## Autonomous desktop acceptance
+
+Resumed from `8dcf72c`. The isolated Debug executable and code dylib matched the earlier `bb48c83` build. Git confirmed that the commits between them changed documentation only. The first candidate PID was **85074** and the disposable fixture PID was **85073**. Bundle paths, signatures, process start times and window positions were checked before input. The recovery Terminal and an independent executable-and-PID check were available throughout.
+
+The driver posted mouse and keyboard events to the macOS HID event stream and read the resulting real desktop pointer position. The event observer retained timestamps, coordinates and source and receiving PIDs. The AppKit fixture recorded control actions, and the Studio background button showed its activation through its state change. Measurements used cursor-inclusive and cursor-excluded desktop captures plus transparent captures of the live overlay. The native hotspot reference is the Quartz pointer location. The driver exercised the window server and actual controls. Hardware switch and device-specific behaviour are outside what these posted events establish.
+
+### Cursor and click matrix
+
+| Check | Result |
+| --- | --- |
+| Studio to fixture | **PASS.** With Studio still frontmost, the native arrow was absent in the purple preview at **(386, 585)** and visible at fixture Centre **(1308, 522)** before any click. The first click activated Centre at **(1308, 522)**. After disable, the overlay was absent and the next click activated Centre at the same point. A separate title-bar click produced no button action. Fixture activation rows, rather than a focus change or a mouse-down alone, establish control delivery. |
+| Replace · 12 combinations | **PASS.** Four characters at 44, 76 and 132 pt. All 12 primary clicks changed the Studio preview background at **(620, 422)**. All 12 secondary downs reached the Studio event stream. The native arrow was hidden for the in-content captures. The maximum fitted tip error was **0.52 pt**. The measured primary dot and secondary ring centres matched the event to the 2× capture resolution. |
+| Companion · 12 combinations | **PASS.** The native arrow was visible. All 12 primary and 12 secondary actions reached fixture Centre at **(1308, 522)**. The maximum tip error against the intended offset was **0.56 pt**. The measured primary and secondary centres matched the event at capture resolution, including a retake for Cat Paw at 76 pt. |
+| Click-only · 12 combinations | **PASS.** The native arrow remained visible. All 12 primary and 12 secondary actions reached Centre at **(1308, 522)**. Overlay captures showed the character absent before the click and again after expiration. The revealed tip aligned within **0.52 pt**. Comparing the primary capture with the same character at rest estimated the contact dot within **1.46 pt**. Fits to the exposed side of the secondary ring were within **1.13 pt**, including the timed Comic Arrow retake. |
+| Held and rapid input | **PASS.** The primary button activated once after a **646 ms** hold. Its counter stayed unchanged while held. The secondary handler received the down before the end of a **549 ms** hold. A three-click burst of each button produced three separate fixture actions. The desktop observer recorded immediate motion after release, down to **0.46 ms** in the matrix and pilot samples. |
+| Screen positions | **PASS on one display.** The desktop pointer visited the centre and each edge and corner at x **1, 855, 1708** and y **1, 556, 1110**. The Finger at 76 pt in Companion tracked all nine positions within **0.38 pt** of the intended placement. The edge sweep used movement. The input fixture separately verified centre clicks. |
+
+After each of the 36 matrix cases, the driver disabled the pointer, confirmed a visible native arrow and zero candidate overlays, and recorded another ordinary Centre activation. The two primary target types accounted for all 36 matrix deliveries. Fixture secondary actions were recorded in all 24 Companion and Click-only cases.
+
+### Post-hide recovery
+
+| Route | Result |
+| --- | --- |
+| Leave eligible content | **PASS.** The arrow returned over the fixture while Studio was still active and the overlay still existed. The first Centre click counted. |
+| Switch to Companion or disable by shortcut | **PASS.** Each returned the native arrow at the unchanged position **(386, 585)**. Companion kept the offset overlay until it was disabled. The shortcut removed the overlay. Each route ended with a separate logged fixture click. |
+| Minimise and reopen | **PASS.** Command–M returned the arrow at **(400, 662)**. The now-exposed fixture recorded the click. The same Studio window and process reopened. Disabling removed the overlay, and another click arrived. |
+| Close and reopen | **PASS.** Command–W restored the arrow at **(400, 662)** and exposed the fixture, which recorded the click. Studio reopened in the same process. Disabling removed the overlay, and another fixture click arrived. |
+| Normal quit | **PASS.** Command–Q ended the isolated process with replacement active. The native arrow returned at **(400, 662)** and the fixture recorded the next click. A relaunch restored the saved character, size and display mode with the pointer off as configured. |
+| Unexpected exit | **PASS.** After the ordinary routes passed, SIGKILL terminated verified isolated PID **1007** while the arrow was hidden. The native arrow returned at **(400, 662)**, the next fixture click arrived, and no candidate overlay remained. A final run left the candidate quit and validated one more ordinary fixture click. |
+
+### Additional desktop checks
+
+| Check | Result |
+| --- | --- |
+| Presenter Arm movement | **PASS for the sampled run.** At 76 pt, 660 desktop movement events ran over 11 s with the native arrow visible. Pokelet idle CPU was **0.0% median / 0.3% peak**, versus **6.85% / 7.2%** during movement. WindowServer went from **43.6% / 46.6%** to **46.4% / 48.1%** in the same short system-wide sample. The fixture received primary, secondary and post-disable clicks. |
+| Sound triggers | **PASS for digital Every click, mute and fallback.** Process-scoped audio capture measured the same peak **0.134047** for primary and secondary fixture clicks. Muted and permission-paused interactive clicks produced no samples above **0.0001**. The fallback returned the picker to Every click. **BLOCKED** for end-to-end interactive playback and acoustic output on this setup. |
+| Dock, menu bar and keyboard | **PASS for Dock and window shortcuts.** The Dock tile matched the exact isolated bundle URL and reopened Studio in the same process. The native status menu remained unavailable to the desktop probe with the existing menu utilities running. Full Tab traversal was **BLOCKED** under the current keyboard configuration. The AX focus stayed on the window. Standard shortcuts and the expected accessible controls were observed. |
+| Window layout and preferences | **PASS.** Live widths of 660, 936 and 1030 pt were captured, and the layout fixture passed light and dark appearances, both text sizes, and compact and wide layouts. The isolated candidate retained preference values on relaunch. The existing user preference file matched its pre-run SHA-256. |
+| System compatibility | **BLOCKED** for VoiceOver output, system Reduce Motion and Reduce Transparency variants, other physical displays or scales, older macOS and Intel hardware. **NOT RUN** for installation, publication and any Presentation Mode session. |
+
+Raw logs and captures are in `build/beta2-physical.blAphB/autonomous/evidence/`. The corresponding event and fixture action logs are in `build/beta2-physical.blAphB/evidence/`. No product defect was confirmed and no source correction was needed.
 
 ## Sound, menu bar and feedback
 
