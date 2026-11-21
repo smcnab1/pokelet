@@ -14,6 +14,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        let mainMenu = NSMenu()
+        let windowMenu = NSMenu(title: "Window")
+        let windowItem = NSMenuItem(title: "Window", action: nil, keyEquivalent: "")
+        mainMenu.addItem(windowItem)
+        mainMenu.setSubmenu(windowMenu, for: windowItem)
+        windowMenu.addItem(withTitle: "Close Studio", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        let fullScreen = windowMenu.addItem(withTitle: "Toggle Full Screen",
+                                            action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
+        fullScreen.keyEquivalentModifierMask = [.command, .control]
+        NSApp.mainMenu = mainMenu
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

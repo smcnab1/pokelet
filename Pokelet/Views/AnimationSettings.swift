@@ -4,6 +4,7 @@ struct AnimationSettings: View {
     @ObservedObject var model: AppModel
     let wide: Bool
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.studioLargerText) private var largerText
 
     private var reduced: Bool { model.prefs.reducedMotion || systemReduceMotion }
 
@@ -50,7 +51,7 @@ struct AnimationSettings: View {
     }
 
     private var intensityPicker: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: Intensity.allCases.count),
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: largerText ? 3 : Intensity.allCases.count),
                   spacing: 6) {
             ForEach(Intensity.allCases) { intensity in
                 let selected = model.prefs.intensity == intensity

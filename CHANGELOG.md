@@ -6,6 +6,8 @@
 - Use the floating navigation rail or Command–1 through Command–6 to open Studio, Animations, Sounds, Presentation, General and About.
 - Preview both click responses, choose sounds without playing them, and find Presentation Mode recovery shortcuts at the top of its page.
 - Turn on **Larger Studio text** in General to enlarge the interface labels and headings.
+- Keep animation intensity names readable when **Larger Studio text** is enabled.
+- Close Studio with Command–W or toggle full screen with Control–Command–F.
 
 ## 1.1.0-beta.1
 
