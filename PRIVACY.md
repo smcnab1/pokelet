@@ -12,3 +12,7 @@ Pokelet runs locally. It has no account, telemetry, background updater or networ
 | GitHub feedback | **Report a problem** hands your browser a GitHub form link with the app version and build, macOS version, Mac architecture and pointer mode. The information is editable before you submit the issue yourself. **Copy system information** writes the same summary to the clipboard on request. The feature request link carries no diagnostics. |
 
 Preferences live in macOS’s local preferences store. You can reset them in **Settings → General → Reset Settings…** and remove any grants in **System Settings → Privacy & Security**. Screen recording permissions belong to the recorder you choose.
+
+## Website
+
+The landing page remembers cursor preferences in your browser. It asks GitHub’s public API for release metadata to resolve the download link and caches the answer briefly in your browser tab. Click sounds start muted each time you load the page.

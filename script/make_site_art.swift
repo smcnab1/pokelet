@@ -11,7 +11,7 @@ enum MakeSiteArt {
         for style in PointerStyle.allCases {
             for palette: Palette in [.original, .white, .black] {
                 let name = "\(style.rawValue)-\(palette.rawValue)"
-                try render(style, palette: palette, pixels: 312, to: output.appendingPathComponent("\(name).png"))
+                try render(style, palette: palette, pixels: palette == .original ? 624 : 312, to: output.appendingPathComponent("\(name).png"))
                 try render(style, palette: palette, pixels: 52, to: output.appendingPathComponent("\(name)-cursor.png"))
             }
         }

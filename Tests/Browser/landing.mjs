@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { api, listing, beta, newerBeta, stable } from "./release-fixtures.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium, firefox, webkit, devices } = require("playwright");
 const { default: AxeBuilder } = require("@axe-core/playwright");
 const url = process.env.POKELET_SITE_URL ?? "http://127.0.0.1:4173/pokelet/";
-const download = "https://github.com/smcnab1/pokelet/releases/download/v1.1.0-beta.1/Pokelet-1.1.0-unnotarised.dmg";
+
+async function mockReleases(page, data = [beta]) {
+  await page.route(`${api}?*`, (route) => route.fulfill({ json: data, headers: { "Access-Control-Allow-Origin": "*" } }));
+}
 
 function collectErrors(page) {
   const errors = [];
   page.on("console", (message) => {
-    if (message.type() === "error" || message.type() === "warning") errors.push(message.text());
+    if (message.type() === "error" || message.type() === "warning") errors.push(`${message.location().url} ${message.text()}`.trim());
   });
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("response", (response) => {
@@ -20,175 +24,168 @@ function collectErrors(page) {
 }
 
 async function waitForCursor(page, name) {
-  await page.waitForFunction((stem) =>
-    getComputedStyle(document.querySelector(".play-target")).cursor.includes(`${stem}-cursor.png") 16 8`), name);
+  await page.waitForFunction((stem) => {
+    const selectors = ["header .brand", ".hero h1", ".feature-copy", "#install a", ".faq-list summary", ".site-footer a"];
+    return selectors.every((selector) =>
+      getComputedStyle(document.querySelector(selector)).cursor.includes(`${stem}-cursor.png") 16 8`));
+  }, name);
 }
 
-async function checkImages(page) {
-  await page.evaluate(async () => {
-    await Promise.all([...document.images].map((image) => {
-      image.loading = "eager";
-      return image.decode();
-    }));
-  });
+async function waitForDownload(page, href) {
+  await page.waitForFunction((expected) =>
+    [...document.querySelectorAll("a[data-download]")].every((link) => link.href === expected), href);
 }
 
-// Snapshot the reaction on the click itself so assertions do not race the 245 ms animation.
 async function observeClicks(page) {
-  await page.locator(".play-target").evaluate((target) => {
-    target.addEventListener("click", (event) => {
-      const surface = target.parentElement;
-      const live = surface.querySelector(".live-pointer");
-      const image = live.querySelector("img");
-      const poster = surface.querySelector(".stage-character");
-      const impact = surface.querySelector(".impact").getAnimations()[0];
-      const bounds = target.getBoundingClientRect();
-      const point = live.getBoundingClientRect();
-      const impactPosition = new DOMMatrixReadOnly(surface.querySelector(".impact").style.transform);
-      target.dataset.observed = JSON.stringify({
-        hidesCursor: getComputedStyle(target).cursor === "none",
-        hotspot: [point.x - event.clientX, point.y - event.clientY],
-        effectAtClick: Math.abs(impactPosition.e + bounds.left - event.clientX) < 0.5 &&
-          Math.abs(impactPosition.f + bounds.top - event.clientY) < 0.5,
-        pointerAnimation: image.getAnimations().length,
-        posterAnimation: poster.getAnimations().length,
-        reactionScale: (image.getAnimations()[0] ?? poster.getAnimations()[0])?.effect.getKeyframes()[1].scale,
-        effect: impact?.effect.getKeyframes().at(-1),
+  await page.evaluate(() => {
+    for (const type of ["click", "contextmenu", "dblclick"]) {
+      document.addEventListener(type, (event) => {
+        const sprite = document.querySelector(".live-pointer");
+        const art = sprite.querySelector("img");
+        const effect = document.querySelector(".impact svg").getAnimations()[0];
+        const point = new DOMMatrixReadOnly(sprite.style.transform);
+        document.body.dataset.observed = JSON.stringify({
+          type, preventsDefault: event.defaultPrevented,
+          hidesCursor: getComputedStyle(event.target).cursor === "none",
+          capturesEvents: getComputedStyle(sprite).pointerEvents !== "none",
+          hotspot: [point.e - event.clientX, point.f - event.clientY],
+          characterAnimation: art.getAnimations().length,
+          characterScale: art.getAnimations()[0]?.effect.getKeyframes()[1].scale,
+          effect: effect?.effect.getKeyframes().at(-1),
+        });
       });
-    });
+    }
   });
 }
+
+const observed = async (page) => JSON.parse(await page.locator("body").getAttribute("data-observed"));
+const picker = (page) => page.locator(".cursor-picker summary");
 
 async function desktop(browser) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, colorScheme: "light" });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, colorScheme: "light", deviceScaleFactor: 2 });
+  page.setDefaultTimeout(12_000);
   const errors = collectErrors(page);
-  page.setDefaultTimeout(10_000);
   try {
+    await mockReleases(page);
     assert.equal((await page.goto(url)).status(), 200);
-    await checkImages(page);
+    await waitForDownload(page, beta.assets[0].browser_download_url);
     assert.equal(await page.title(), "Pokelet · Free animated cursor for macOS");
-    assert.equal(await page.locator(".hero .button").getAttribute("href"), download);
-    assert.equal(await page.locator(".nav-github").getAttribute("href"), "https://github.com/smcnab1/pokelet");
-    assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), "https://smcnab1.github.io/pokelet/");
+    await waitForCursor(page, "finger-original");
+    await observeClicks(page);
 
-    const hero = page.getByRole("button", { name: "Click to poke" });
-    await hero.press("Enter");
-    assert(await page.locator(".hero-character").first().evaluate((art) => art.getAnimations().length > 0));
+    await page.locator(".intro").click();
+    const first = await observed(page);
+    assert.equal(first.hidesCursor, true);
+    assert.equal(first.capturesEvents, false);
+    assert.equal(first.characterAnimation, 1);
+    assert(first.hotspot.every((offset) => Math.abs(offset) < 1));
 
-    await page.getByRole("link", { name: "Try it in your browser" }).click();
-    assert.equal(new URL(page.url()).hash, "#try");
-    const target = page.getByRole("button", { name: "Play a click reaction" });
-    assert(await page.locator("#play-hint").isVisible());
-    assert.match(await page.locator("#play-hint").innerText(), /Click\s+anywhere in this area/);
+    await page.mouse.move(-5, -5);
+    await page.waitForFunction(() => !document.documentElement.hasAttribute("data-cursor-reaction"));
+    await page.mouse.move(8, 90);
+    await waitForCursor(page, "finger-original");
+    await page.locator(".intro").dblclick();
+    assert.equal((await observed(page)).type, "dblclick");
+    await page.evaluate(() => getSelection().removeAllRanges());
+
+    await picker(page).press("Enter");
     const colour = page.getByLabel("Colour", { exact: true });
+    assert(await colour.isVisible());
+    assert(!((await colour.evaluate((select) => getComputedStyle(select).cursor)).includes("url(")));
+    assert.equal(await page.getByLabel("Sound", { exact: true }).isChecked(), false);
     const response = page.getByLabel("Click response");
-    const sound = page.getByLabel("Sound", { exact: true });
-    assert.equal(await sound.isChecked(), false);
+    await response.selectOption("4");
+    await page.locator(".intro").click();
+    assert(Number((await observed(page)).characterScale.split(" ")[0]) > Number(first.characterScale.split(" ")[0]));
+    await picker(page).press("Enter");
+    await response.selectOption("2");
 
-    for (const [label, stem] of [
-      ["The Finger", "finger"], ["Cat Paw", "catPaw"], ["Foam Finger", "foamFinger"], ["Comic Arrow", "comicArrow"],
-    ]) {
+    for (const [label, stem] of [["The Finger", "finger"], ["Cat Paw", "catPaw"], ["Foam Finger", "foamFinger"], ["Comic Arrow", "comicArrow"]]) {
       await page.getByRole("radio", { name: label }).check();
       for (const variant of ["black", "white", "original"]) {
         await colour.selectOption(variant);
         await waitForCursor(page, `${stem}-${variant}`);
-        await page.locator(".stage-character").evaluate((image) => image.decode());
-        assert.match(await page.locator(".stage-character").getAttribute("src"), new RegExp(`${stem}-${variant}\\.webp$`));
+        const artwork = await page.locator(`[data-character="${stem}"] img`).evaluate((image) => image.src);
+        assert(artwork.endsWith(`/assets/characters/${stem}-${variant}.webp`));
       }
     }
-
     await page.getByRole("radio", { name: "The Finger" }).press("ArrowRight");
     assert(await page.getByRole("radio", { name: "Cat Paw" }).isChecked());
     await waitForCursor(page, "catPaw-original");
-    await observeClicks(page);
-    const observation = async () => JSON.parse(await target.getAttribute("data-observed"));
-
-    await response.selectOption("0");
-    await target.click({ position: { x: 109, y: 90 } });
-    const soft = await observation();
-    assert.equal(soft.pointerAnimation, 1);
-    assert.equal(soft.posterAnimation, 0);
-    assert.equal(soft.hidesCursor, true);
-    assert(soft.effectAtClick);
-    assert(soft.hotspot.every((offset) => Math.abs(offset) < 1));
-    await page.waitForFunction(() => !document.querySelector(".play-target").classList.contains("is-animating"));
-
-    await response.selectOption("4");
-    await target.click({ position: { x: 112, y: 92 } });
-    const strong = await observation();
-    assert(Number(strong.reactionScale.split(" ")[0]) > Number(soft.reactionScale.split(" ")[0]));
-    await target.click({ position: { x: 114, y: 94 } });
-    assert(Number((await observation()).reactionScale.split(" ")[0]) > Number(strong.reactionScale.split(" ")[0]));
-
-    await target.press("Space");
-    const keyboard = await observation();
-    assert.equal(keyboard.hidesCursor, false);
-    assert.equal(keyboard.posterAnimation, 1);
-
-    const audio = page.waitForResponse((result) => result.url().endsWith("/assets/tap.wav"));
-    await sound.check();
-    assert((await audio).ok());
-    await sound.uncheck();
+    const soundResponse = page.waitForResponse((response) => response.url().endsWith("/assets/tap.wav"));
+    await page.getByLabel("Sound", { exact: true }).check();
+    assert((await soundResponse).ok());
+    await page.getByLabel("Sound", { exact: true }).uncheck();
 
     const reset = page.getByRole("button", { name: "Use normal cursor" });
     await reset.click();
     assert.equal(await reset.getAttribute("aria-pressed"), "true");
-    assert.equal(await target.evaluate((element) => getComputedStyle(element).cursor), "auto");
-    assert(await target.isDisabled());
-    assert(await page.getByText("Normal cursor active", { exact: true }).isVisible());
+    assert.equal(await page.locator("html").getAttribute("data-pokelet"), null);
+    await page.reload();
+    assert.equal(await page.locator("html").getAttribute("data-pokelet"), null);
+    await picker(page).press("Enter");
+    assert.equal(await reset.getAttribute("aria-pressed"), "true");
     await reset.click();
     await waitForCursor(page, "catPaw-original");
+    await page.keyboard.press("Escape");
+    assert.equal(await colour.isVisible(), false);
+    assert.equal(await picker(page).evaluate((summary) => document.activeElement === summary), true);
 
-    await target.evaluate((button) => button.addEventListener("contextmenu", (event) => {
-      button.dataset.contextMenuPreserved = String(!event.defaultPrevented);
-    }));
-    await target.click({ button: "right" });
-    assert.equal(await target.getAttribute("data-context-menu-preserved"), "true");
+    await observeClicks(page);
+    await page.locator(".intro").click({ button: "right" });
+    const right = await observed(page);
+    assert.equal(right.type, "contextmenu");
+    assert.equal(right.preventsDefault, false);
+    assert.equal(right.hidesCursor, false);
     await page.keyboard.press("Escape");
 
-    const text = page.locator("#try .section-heading p");
-    await text.scrollIntoViewIfNeeded();
-    const box = await text.boundingBox();
-    await page.mouse.move(box.x + 2, box.y + box.height / 2);
+    const copy = page.locator(".intro");
+    const copyBox = await copy.boundingBox();
+    await page.mouse.move(copyBox.x + 2, copyBox.y + 12);
     await page.mouse.down();
-    await page.mouse.move(box.x + 168, box.y + box.height / 2, { steps: 8 });
+    await page.mouse.move(copyBox.x + 174, copyBox.y + 12, { steps: 8 });
     await page.mouse.up();
-    assert.match(await page.evaluate(() => String(getSelection())), /Pick a character/);
+    assert.match(await page.evaluate(() => String(getSelection())), /Four animated/);
+    await page.evaluate(() => getSelection().removeAllRanges());
 
-    const downloadLink = page.getByRole("link", { name: "Download Pokelet" });
-    await downloadLink.scrollIntoViewIfNeeded();
-    await downloadLink.evaluate((link) => link.addEventListener("dragstart", (event) => {
+    const download = page.locator(".hero a[data-download]");
+    await download.evaluate((link) => link.addEventListener("dragstart", (event) => {
       link.dataset.dragged = String(!event.defaultPrevented && event.dataTransfer.types.includes("text/uri-list"));
     }));
-    const linkBox = await downloadLink.boundingBox();
-    await page.mouse.move(linkBox.x + 50, linkBox.y + linkBox.height / 2);
+    const box = await download.boundingBox();
+    await page.mouse.move(box.x + 35, box.y + box.height / 2);
     await page.mouse.down();
-    await page.mouse.move(linkBox.x + linkBox.width + 30, linkBox.y + linkBox.height / 2, { steps: 6 });
+    await page.mouse.move(box.x + box.width + 30, box.y + box.height / 2, { steps: 8 });
     await page.mouse.up();
-    assert.equal(await downloadLink.getAttribute("data-dragged"), "true");
+    assert.equal(await download.getAttribute("data-dragged"), "true");
 
+    // The fixture catches CSS inheritance and native editing regressions without adding a public input box.
+    await page.locator(".hero-copy").evaluate((copy) => {
+      const input = document.createElement("input");
+      input.setAttribute("aria-label", "Test editor");
+      copy.append(input);
+    });
+    const editor = page.getByRole("textbox", { name: "Test editor" });
+    assert.equal(await editor.evaluate((input) => getComputedStyle(input).cursor), "text");
+    await editor.fill("Native editing");
+    assert.equal(await editor.inputValue(), "Native editing");
+    await editor.evaluate((input) => input.remove());
+
+    await page.getByRole("link", { name: "Installation", exact: true }).click();
+    assert.equal(new URL(page.url()).hash, "#install");
+    assert([200, 304].includes((await page.reload()).status()));
+    await waitForCursor(page, "catPaw-original");
+    await waitForDownload(page, beta.assets[0].browser_download_url);
     const faq = page.getByText("Does it need special permissions?", { exact: true });
     await faq.press("Enter");
     assert(await faq.locator("..").evaluate((details) => details.open));
-    await faq.press("Enter");
-    assert.equal(await faq.locator("..").evaluate((details) => details.open), false);
 
-    const direct = new URL("#install", url).href;
-    await page.goto(direct);
-    assert([200, 304].includes((await page.reload()).status()));
-    assert.equal(page.url(), direct);
-    assert.equal(await page.locator("#install .button").getAttribute("href"), download);
-    assert(await page.getByRole("heading", { name: "Install Pokelet" }).isVisible());
-    assert((await page.request.get(new URL("sitemap.xml", url).href)).ok());
-    assert((await page.request.get(new URL("assets/pokelet-social.jpg", url).href)).ok());
-
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    // Full reload clears the click observer and restores the initial character.
     await observeClicks(page);
-    await target.click({ position: { x: 100, y: 100 } });
-    const reduced = await observation();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await faq.click();
+    const reduced = await observed(page);
     assert.equal(reduced.hidesCursor, false);
-    assert.equal(reduced.pointerAnimation + reduced.posterAnimation, 0);
+    assert.equal(reduced.characterAnimation, 0);
     assert(!("scale" in reduced.effect));
     assert.deepEqual(errors, []);
   } finally {
@@ -197,13 +194,14 @@ async function desktop(browser) {
 }
 
 async function responsive(browser) {
-  for (const width of [375, 768, 1280, 1920]) {
-    const page = await browser.newPage({ viewport: { width, height: 850 }, colorScheme: "light" });
+  for (const width of [320, 375, 768, 1280, 1920]) {
+    const page = await browser.newPage({ viewport: { width, height: 850 } });
     try {
+      await mockReleases(page);
       await page.goto(url);
-      await checkImages(page);
+      await picker(page).click();
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), width);
-      assert(await page.getByRole("heading", { level: 1 }).isVisible());
+      assert(await page.getByLabel("Colour", { exact: true }).isVisible());
     } finally {
       await page.close();
     }
@@ -214,26 +212,57 @@ async function touchscreen(browser) {
   const page = await browser.newPage({ ...devices["iPhone 13"], viewport: { width: 375, height: 812 } });
   const errors = collectErrors(page);
   try {
+    await mockReleases(page);
     await page.goto(url);
-    const menu = page.getByRole("button", { name: "Menu" });
-    await menu.tap();
-    await page.getByRole("link", { name: "Try it", exact: true }).tap();
-    assert.equal(await menu.getAttribute("aria-expanded"), "false");
-    assert.equal(new URL(page.url()).hash, "#try");
-    assert.equal(await page.locator("#try").evaluate((section) => section === document.activeElement), true);
-    assert(await page.getByRole("button", { name: "Tap to poke" }).isVisible());
-    assert(await page.locator("#play-hint").isVisible());
-    assert.match(await page.locator("#play-hint").innerText(), /Tap\s+anywhere in this area/);
-    await page.getByRole("radio", { name: "Foam Finger" }).tap();
-    await page.locator(".stage-character").evaluate((image) => image.decode());
     await observeClicks(page);
-    const target = page.getByRole("button", { name: "Play a click reaction" });
-    await target.tap();
-    const tap = JSON.parse(await target.getAttribute("data-observed"));
+    await page.locator(".hero-cat").tap();
+    assert.equal(await page.locator(".hero-cat").getAttribute("aria-pressed"), "true");
+    const tap = await observed(page);
     assert.equal(tap.hidesCursor, false);
-    assert.equal(tap.pointerAnimation, 0);
-    assert.equal(tap.posterAnimation, 1);
+    assert.equal(tap.characterAnimation, 0);
+    assert(tap.effect);
+    assert.equal(await page.locator("html").getAttribute("data-pokelet"), null);
+    await page.getByRole("button", { name: "Menu" }).tap();
+    await page.getByRole("link", { name: "Features", exact: true }).tap();
+    assert.equal(new URL(page.url()).hash, "#features");
     assert.deepEqual(errors, []);
+  } finally {
+    await page.close();
+  }
+}
+
+async function downloads(browser) {
+  const page = await browser.newPage();
+  try {
+    await page.clock.install();
+    let requests = 0;
+    let state = "beta";
+    await page.route(`${api}?*`, (route) => {
+      requests += 1;
+      const headers = { "Access-Control-Allow-Origin": "*", "Access-Control-Expose-Headers": "Link" };
+      const nextPage = new URL(route.request().url()).searchParams.get("page") === "2";
+      if (state === "failure") return route.fulfill({ status: 503, body: "Service unavailable", headers });
+      if (state === "stable" && !nextPage) headers.Link = '<https://api.github.com/repositories/123/releases?page=2>; rel="next"';
+      const json = state === "beta" ? [beta] : state === "new" ? [beta, newerBeta] : nextPage ? [stable] : [newerBeta];
+      return route.fulfill({ json, headers });
+    });
+    await page.goto(url);
+    await waitForDownload(page, beta.assets[0].browser_download_url);
+    await page.reload();
+    await waitForDownload(page, beta.assets[0].browser_download_url);
+    assert.equal(requests, 1);
+    state = "new";
+    await page.clock.fastForward(300_100);
+    await waitForDownload(page, newerBeta.assets[0].browser_download_url);
+    assert.equal(requests, 2);
+    state = "stable";
+    await page.clock.fastForward(300_100);
+    await waitForDownload(page, stable.assets[0].browser_download_url);
+    assert.equal(requests, 4);
+    state = "failure";
+    await page.clock.fastForward(300_100);
+    await waitForDownload(page, listing);
+    assert.equal(await page.locator(".hero .download-label").textContent(), "Get Pokelet");
   } finally {
     await page.close();
   }
@@ -244,11 +273,10 @@ async function accessibility(browser) {
     const context = await browser.newContext({ viewport: { width: 375, height: 812 }, colorScheme });
     try {
       const page = await context.newPage();
+      await mockReleases(page);
       await page.goto(url);
-      await page.getByRole("button", { name: "Menu" }).click();
-      const { violations } = await new AxeBuilder({ page })
-        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-        .analyze();
+      await picker(page).click();
+      const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
       assert.deepEqual(violations.map(({ id, nodes }) => ({ id, targets: nodes.map(({ target }) => target) })), []);
     } finally {
       await context.close();
@@ -264,12 +292,12 @@ for (const [name, engine] of [["Chromium", chromium], ["Firefox", firefox], ["We
     await responsive(browser);
     if (engine !== firefox) await touchscreen(browser);
     if (engine === chromium) {
+      await downloads(browser);
       await accessibility(browser);
-      const noScript = await browser.newPage({ javaScriptEnabled: false, viewport: { width: 375, height: 812 } });
+      const noScript = await browser.newPage({ javaScriptEnabled: false });
       await noScript.goto(url);
-      assert(await noScript.getByRole("heading", { level: 1 }).isVisible());
-      assert(await noScript.getByRole("link", { name: "Try it", exact: true }).isVisible());
-      assert(await noScript.getByText("Enable JavaScript to try the cursor in your browser.").isVisible());
+      await waitForDownload(noScript, listing);
+      assert.equal(await picker(noScript).isVisible(), false);
       await noScript.close();
     }
     console.log(`${name} ${browser.version()} passed`);
