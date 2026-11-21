@@ -233,6 +233,7 @@ async function touchscreen(browser) {
 
 async function downloads(browser) {
   const page = await browser.newPage();
+  const notes = page.getByRole("link", { name: "Latest Release Notes", exact: true });
   try {
     await page.clock.install();
     let requests = 0;
@@ -248,20 +249,24 @@ async function downloads(browser) {
     });
     await page.goto(url);
     await waitForDownload(page, beta.assets[0].browser_download_url);
+    assert.equal(await notes.getAttribute("href"), beta.html_url);
     await page.reload();
     await waitForDownload(page, beta.assets[0].browser_download_url);
     assert.equal(requests, 1);
     state = "new";
     await page.clock.fastForward(300_100);
     await waitForDownload(page, newerBeta.assets[0].browser_download_url);
+    assert.equal(await notes.getAttribute("href"), newerBeta.html_url);
     assert.equal(requests, 2);
     state = "stable";
     await page.clock.fastForward(300_100);
     await waitForDownload(page, stable.assets[0].browser_download_url);
+    assert.equal(await notes.getAttribute("href"), stable.html_url);
     assert.equal(requests, 4);
     state = "failure";
     await page.clock.fastForward(300_100);
     await waitForDownload(page, listing);
+    assert.equal(await notes.getAttribute("href"), listing);
     assert.equal(await page.locator(".hero .download-label").textContent(), "Get Pokelet");
   } finally {
     await page.close();

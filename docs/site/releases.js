@@ -81,7 +81,6 @@ async function discover(signal) {
 export function initialiseDownloads() {
   const buttons = document.querySelectorAll("a[data-download]");
   const notes = document.querySelectorAll("a[data-release-notes]");
-  const caption = document.querySelector("[data-release-caption]");
   const fallbackLabels = Array.from(buttons, (link) => link.querySelector(".download-label")?.textContent ?? "");
   let refreshAt = 0;
   let timer = 0;
@@ -96,7 +95,6 @@ export function initialiseDownloads() {
       if (label) label.textContent = release ? (link.dataset.download ?? fallbackLabels[index]) : fallbackLabels[index];
     });
     notes.forEach((link) => link.setAttribute("href", release?.notes ?? listing));
-    if (caption) caption.textContent = release ? release.tag + " release notes" : "GitHub Releases";
   };
 
   try {
