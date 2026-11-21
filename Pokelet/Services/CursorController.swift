@@ -5,7 +5,7 @@ import QuartzCore
 import os
 
 final class CursorController {
-    var onClick: (() -> Void)?
+    var onClick: ((CGPoint) -> Void)?
     var onTrackingFailure: (() -> Void)?
     weak var replacementWindow: NSWindow?
 
@@ -170,7 +170,7 @@ final class CursorController {
             overlay.pointerLayer.poke(at: local(point, in: overlay.frame), energy: response.energy, secondary: secondary, motion: !reduce,
                                            effects: response.effects, celebration: response.celebration, reduced: reduce)
         }
-        onClick?()
+        onClick?(point)
     }
 
     private var usesPresenterArm: Bool { prefs.usesPresenterArm(presentation: presentation) }

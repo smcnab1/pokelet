@@ -40,6 +40,17 @@ enum Intensity: Int, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum SoundTrigger: String, Codable, CaseIterable, Identifiable {
+    case everyClick, interactiveOnly
+
+    var id: Self { self }
+    var title: String { self == .everyClick ? "Every click" : "Interactive clicks only" }
+
+    func needsHitTest(accessibility: Bool, presentation: Bool) -> Bool {
+        self == .interactiveOnly && accessibility && !presentation
+    }
+}
+
 enum ClickSound: String, Codable, CaseIterable, Identifiable {
     case tap, pop, wood, squeak, silent, custom
     var id: Self { self }
@@ -109,6 +120,7 @@ struct Preferences: Codable, Equatable {
     var directionBounce = false
     var soundEnabled = false
     var sound = ClickSound.tap
+    private var savedSoundTrigger: SoundTrigger?
     var volume = 0.35
     var customSoundName: String?
     var restoreEnabled = false
@@ -118,6 +130,11 @@ struct Preferences: Codable, Equatable {
     var presentationShortcut = Shortcut.presentationDefault
     private var savedPresenterEffects: PresenterEffects?
     private var savedApplicationBehaviour: ApplicationBehaviour?
+
+    var soundTrigger: SoundTrigger {
+        get { savedSoundTrigger ?? .everyClick }
+        set { savedSoundTrigger = newValue }
+    }
 
     var presenterEffects: PresenterEffects {
         get { savedPresenterEffects ?? PresenterEffects() }

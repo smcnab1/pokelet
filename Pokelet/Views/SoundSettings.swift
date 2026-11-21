@@ -24,13 +24,23 @@ struct SoundSettings: View {
                 VStack(alignment: .leading, spacing: 17) {
                     StudioSection("Playback") {
                         StudioSwitch("Play click sounds", isOn: model.preference(\.soundEnabled))
+                        Picker("Play on", selection: model.preference(\.soundTrigger)) {
+                            ForEach(SoundTrigger.allCases) { trigger in
+                                Text(trigger.title).tag(trigger)
+                            }
+                        }
+                        if model.prefs.soundTrigger == .interactiveOnly {
+                            StudioNote(model.clickSoundAccessibility
+                                ? "Sounds play for controls that apps expose to macOS Accessibility."
+                                : "Accessibility access is unavailable. Sounds play on every click.")
+                        }
                         let volume = Int((model.prefs.volume * 100).rounded())
                         StudioSlider(title: "Volume", accessibilityTitle: "Click sound volume",
                                      displayValue: "\(volume)%", spokenValue: "\(volume) percent",
                                      range: 0...1, value: model.preference(\.volume))
                             .accessibilityIdentifier("studio.sound.volume")
                         Button { model.previewSound() } label: {
-                            Label("Preview sound", systemImage: "play.fill")
+                            StudioLabel("Preview sound", symbol: "play.fill")
                         }
                         .disabled(model.prefs.sound == .silent || model.prefs.volume == 0)
                         .help("Play the selected sound once")
@@ -50,6 +60,7 @@ struct SoundSettings: View {
                 StudioNote(issue, symbol: "exclamationmark.circle", warning: true)
             }
         }
+        .onAppear { model.refreshClickSoundAccessibility() }
     }
 
     private func soundChoice(_ sound: ClickSound) -> some View {
@@ -58,10 +69,8 @@ struct SoundSettings: View {
             model.update(\.sound, sound)
         } label: {
             HStack(spacing: 10) {
-                Image(systemName: sound == .silent ? "speaker.slash" : sound == .custom ? "music.note" : "waveform")
-                    .frame(width: 22)
+                StudioLeadingIcon(symbol: sound == .silent ? "speaker.slash" : sound == .custom ? "music.note" : "waveform")
                     .foregroundStyle(selected ? StudioTheme.accent : StudioTheme.secondary)
-                    .accessibilityHidden(true)
                 Text(sound.title)
                     .studioFont(.body, weight: selected ? .semibold : .regular)
                 Spacer(minLength: 4)

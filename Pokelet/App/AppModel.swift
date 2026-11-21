@@ -3,6 +3,7 @@ import Combine
 import ServiceManagement
 import UniformTypeIdentifiers
 
+@MainActor
 final class AppModel: ObservableObject {
     @Published var settingsPage = SettingsPage.pointer
     @Published private(set) var prefs: Preferences
@@ -24,10 +25,13 @@ final class AppModel: ObservableObject {
         didSet { tap.isMenuBarExit = isMenuBarExit }
     }
 
+    @Published private(set) var clickSoundAccessibility = false
+
     private let store: PreferenceStore
     private let cursor = CursorController()
     private let tap = PresentationTap()
     private let sound: SoundPlayer
+    private let interactiveClickSound = InteractiveClickSound()
     private let keys = HotKeys()
     private var suspended = false
     private var audioNeedsRecovery = false
@@ -64,17 +68,19 @@ final class AppModel: ObservableObject {
             case .presentation, .presentationAlternate: self.endPresentation(nil)
             }
         }
-        cursor.onClick = { [weak self] in self?.playClickSound() }
+        cursor.onClick = { [weak self] point in self?.handleClickSound(at: point) }
         cursor.onTrackingFailure = { [weak self] in self?.trackingFailed() }
         tap.onClick = { [weak self] point, secondary in self?.cursor.tap(at: point, secondary: secondary) }
         tap.onStop = { [weak self] reason in self?.endPresentation(reason) }
         registerShortcuts()
+        refreshClickSoundAccessibility()
         refreshLoginStatus()
         mode.setPointer(!isStudioAcceptance && prefs.restoreEnabled && prefs.lastEnabled)
         applyInputState()
     }
 
     func shutDown() {
+        interactiveClickSound.cancel()
         tap.invalidate()
         cursor.stop()
         keys.stop()
@@ -162,6 +168,7 @@ final class AppModel: ObservableObject {
 
     func pause() {
         suspended = true
+        interactiveClickSound.cancel()
         tap.invalidate()
         if mode.presentation { endPresentation("Presentation Mode ended when the session became inactive.") }
         cursor.stop()
@@ -186,6 +193,7 @@ final class AppModel: ObservableObject {
     func menuTrackingChanged(started: Bool) { cursor.menuTrackingChanged(started: started) }
     func motionPreferenceChanged() { cursor.cancelAnimations() }
     func appBecameActive() {
+        refreshClickSoundAccessibility()
         cursor.activationChanged(isActive: true)
         refreshLoginStatus()
         refreshPermissionStatus()
@@ -202,6 +210,7 @@ final class AppModel: ObservableObject {
         let soundChanged = next.sound != prefs.sound || next.soundEnabled != prefs.soundEnabled ||
             (next.volume == 0) != (prefs.volume == 0)
         guard next != prefs else { return }
+        if next.soundTrigger != prefs.soundTrigger || soundChanged { interactiveClickSound.cancel() }
         prefs = next
         store.save(next)
         cursor.apply(next, presentation: mode.presentation)
@@ -287,6 +296,7 @@ final class AppModel: ObservableObject {
     }
 
     func reset() {
+        interactiveClickSound.cancel()
         endPresentation(nil)
         mode.setPointer(false)
         cursor.stop()
@@ -338,6 +348,21 @@ final class AppModel: ObservableObject {
         }
     }
 
+    func refreshClickSoundAccessibility() {
+        clickSoundAccessibility = InteractiveClickSound.accessibilityGranted
+    }
+
+    private func handleClickSound(at point: CGPoint) {
+        guard shouldPlayClickSound else { return }
+        guard prefs.soundTrigger.needsHitTest(accessibility: clickSoundAccessibility, presentation: mode.presentation)
+        else { playClickSound(); return }
+        let desktopPoint = CGPoint(x: point.x, y: CGDisplayBounds(CGMainDisplayID()).height - point.y)
+        interactiveClickSound.classify(at: desktopPoint) { [weak self] actionable in
+            guard let self, self.cursor.isRunning, !self.suspended, !self.mode.presentation, actionable else { return }
+            self.playClickSound()
+        }
+    }
+
     private func playClickSound() {
         guard shouldPlayClickSound else { return }
         if sound.play(volume: prefs.volume) { audioNeedsRecovery = false; return }
@@ -355,6 +380,7 @@ final class AppModel: ObservableObject {
     private func applyInputState() {
         cursor.apply(prefs, presentation: mode.presentation)
         guard !suspended, mode.showsPointer else {
+            interactiveClickSound.cancel()
             cursor.stop()
             sound.stop()
             return
@@ -368,6 +394,7 @@ final class AppModel: ObservableObject {
     }
 
     private func trackingFailed() {
+        interactiveClickSound.cancel()
         tap.invalidate()
         sound.stop()
         mode.setPointer(false)
