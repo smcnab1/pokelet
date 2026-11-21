@@ -41,7 +41,17 @@ The starting checkout was clean at `93a7947` on `fix/native-studio`. Desktop che
 
 ## Phase 2 · Controlled pointer plan
 
-**NOT RUN. Owner approval required.** Use a separately staged candidate with presentation acceptance off, a disposable document and the [local input targets](../Tests/Interactive/InputTargets.html). Confirm the candidate path and PID, current permission state and initial native cursor. Keep a second terminal or owner-operated keyboard route available to quit that exact candidate. Run one numbered check at a time. After any enablement or failure, verify a visible macOS cursor and working clicks in the fixture with the overlay off. Stop if recovery is incomplete. Steps 2 and 5 establish restoration before the later tests.
+**Paused at check 2.** The owner approved checks 1–2. Checks 3–10 are **NOT RUN**. Use a separately staged candidate with presentation acceptance off, a disposable document and the [local input targets](../Tests/Interactive/InputTargets.html). Confirm the candidate path and PID, current permission state and initial native cursor. Keep a second terminal or owner-operated keyboard route available to quit that exact candidate. Run one numbered check at a time. After any enablement or failure, verify a visible macOS cursor and working clicks in the fixture with the overlay off. Stop if recovery is incomplete. Steps 2 and 5 establish restoration before the later tests.
+
+### Observed results, 21 November 2026
+
+| Check | Status | Evidence |
+| --- | --- | --- |
+| 1. Accessibility and Input Monitoring | PASS | The isolated Release candidate used bundle ID `uk.co.sammcnab.Pokelet.PointerAcceptance`. It started with Companion selected and the pointer off. The Privacy & Security panels showed zero Accessibility entries and two unrelated Input Monitoring entries. Counts remained the same after the cycle. No Pokelet permission prompt appeared and no grant changed. |
+| 2. Companion activation, disable and click delivery | PASS | The native tool could not reach the macOS status item, so the Studio pointer switch provided the one enable–disable cycle. WindowServer reported zero candidate overlay windows before, one on, and zero after disable. One coordinate click reached the disposable WebKit fixture at each stage, taking its click count from 0 to 1, 2 and 3. Studio showed Pointer off after disable. No Pokelet error or fault appeared in the scoped log query. |
+| 2. Native pointer visibility, character pixels and status menu | BLOCKED | The tool captured the fixture window and its own pointer indicator. That capture cannot establish the physical macOS pointer or the separate overlay pixels. A legacy Quartz visibility query had already returned false at baseline, and the AppKit cursor image resolved after the trial without establishing on-screen visibility. The shortcut repeat was held at the recovery gate. |
+
+The exact candidate and fixture processes were stopped after the off state and post-disable click were observed. The dedicated acceptance preferences returned to their initial empty state. No application was replaced or installed, and no Presentation session was started.
 
 | Test | Expected result | Recovery |
 | --- | --- | --- |
