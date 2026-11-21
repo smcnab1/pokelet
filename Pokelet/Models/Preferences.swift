@@ -75,6 +75,15 @@ struct Shortcut: Codable, Equatable {
     }
 }
 
+struct ApplicationBehaviour: Codable, Equatable {
+    var hideDockWhenStudioClosed = true
+    var showInMenuBar = true
+
+    func showsDock(studioOpen: Bool, menuBarAvailable: Bool) -> Bool {
+        studioOpen || !hideDockWhenStudioClosed || !showInMenuBar || !menuBarAvailable
+    }
+}
+
 struct Preferences: Codable, Equatable {
     static let defaultCustomColour: UInt32 = 0xE58B51
     static let sizeRange: ClosedRange<Double> = 44...132
@@ -102,6 +111,12 @@ struct Preferences: Codable, Equatable {
     var largerStudioText: Bool?
     var pointerShortcut = Shortcut.pointerDefault
     var presentationShortcut = Shortcut.presentationDefault
+    private var savedApplicationBehaviour: ApplicationBehaviour?
+
+    var applicationBehaviour: ApplicationBehaviour {
+        get { savedApplicationBehaviour ?? ApplicationBehaviour() }
+        set { savedApplicationBehaviour = newValue }
+    }
 }
 
 struct PreferenceStore {

@@ -12,3 +12,16 @@ The existing Settings window put the character gallery inside a narrow preferenc
 | Safety | Studio talks to the existing app model. Permission prompts and Presentation Mode keep their existing availability rules. The Presentation page places recovery instructions before the start action. |
 
 The app targets macOS 14 and later.
+
+## Dock and menu bar
+
+| What you do | What happens |
+| --- | --- |
+| Open or minimise Studio | The Pokelet icon stays in the Dock. Click it to focus or restore Studio. |
+| Close Studio with Command–W or the red close button | Pokelet keeps running, including any enabled pointer. The Dock icon hides by default when the menu bar item is available. |
+| Reopen Studio | Choose **Open Pokelet Studio** in the status menu, click its Dock icon when visible, or open Pokelet in Finder. |
+| Quit Pokelet | Choose **Quit Pokelet** or press Command–Q while Pokelet is active. The app closes and releases its pointer overlay. |
+
+Under **General → Application behaviour**, turn off **Hide Dock icon when Studio is closed** to keep Pokelet in the Dock. Turn off **Show Pokelet in the menu bar** for a Dock-only setup. This keeps the Dock icon available and preserves your automatic hiding preference for when you switch the menu bar item back on.
+
+macOS controls placement of status items, and menu bar managers can put Pokelet in a hidden section. If AppKit reports that the item is hidden or has no usable frame, Pokelet keeps its Dock icon. Finder can reopen Studio if another app covers the item. [Apple’s guide to menu bar settings](https://support.apple.com/en-asia/guide/mac-help/mchlad96d366/mac)

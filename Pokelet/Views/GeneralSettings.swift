@@ -8,7 +8,7 @@ struct GeneralSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 19) {
-            StudioHeading("General", detail: "Manage startup and the shortcuts you use from any app.")
+            StudioHeading("General", detail: "Manage startup, Dock and menu bar visibility, and global shortcuts.")
             StudioColumns(wide: wide) {
                 VStack(alignment: .leading, spacing: 17) {
                     StudioSection("Startup") {
@@ -22,7 +22,6 @@ struct GeneralSettings: View {
                             Button("Open Login Items") { SMAppService.openSystemSettingsLoginItems() }
                         }
                         StudioSwitch("Restore pointer state on launch", isOn: model.preference(\.restoreEnabled))
-                        StudioNote("Pokelet stays in the menu bar when you close Studio.", symbol: "menubar.rectangle")
                         if let issue = model.generalMessage {
                             StudioNote(issue, symbol: "exclamationmark.circle", warning: true)
                         }
@@ -46,6 +45,18 @@ struct GeneralSettings: View {
                     }
                 }
                 VStack(alignment: .leading, spacing: 17) {
+                    StudioSection("Application behaviour") {
+                        StudioSwitch("Show Pokelet in the menu bar", isOn: model.preference(\.applicationBehaviour.showInMenuBar))
+                        StudioNote("Keep Pokelet accessible from the macOS menu bar.")
+                        StudioSwitch("Hide Dock icon when Studio is closed", isOn: model.preference(\.applicationBehaviour.hideDockWhenStudioClosed))
+                            .disabled(!model.prefs.applicationBehaviour.showInMenuBar)
+                        if model.prefs.applicationBehaviour.showInMenuBar {
+                            StudioNote("When Studio is closed, keep Pokelet running in the menu bar without showing its Dock icon.")
+                        } else {
+                            StudioNote("The Dock icon stays visible while the menu bar icon is off, so you can reopen Studio.")
+                        }
+                    }
+                    Divider()
                     StudioSection("Accessibility") {
                         StudioSwitch("Larger Studio text", isOn: Binding(
                             get: { model.prefs.largerStudioText == true },

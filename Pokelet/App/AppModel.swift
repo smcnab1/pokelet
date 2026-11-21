@@ -178,7 +178,10 @@ final class AppModel: ObservableObject {
 
     func screensChanged() { cursor.rebuildScreens() }
     func spaceChanged() { cursor.spaceChanged() }
-    func setReplacementWindow(_ window: NSWindow) { cursor.replacementWindow = window }
+    func setReplacementWindow(_ window: NSWindow?) {
+        cursor.replacementWindow = window
+        cursor.refreshPlacement()
+    }
     func keyWindowChanged() { cursor.refreshPlacement() }
     func menuTrackingChanged(started: Bool) { cursor.menuTrackingChanged(started: started) }
     func motionPreferenceChanged() { cursor.cancelAnimations() }

@@ -8,6 +8,7 @@
 - Turn on **Larger Studio text** in General to enlarge the interface labels and headings.
 - Keep animation intensity names readable when **Larger Studio text** is enabled.
 - Close Studio with Command–W or toggle full screen with Control–Command–F.
+- Open Studio from the menu bar or Dock. The Dock icon follows Studio by default, and General can keep it visible or turn off the menu bar item.
 - Use Option–Command–P to toggle the pointer with fresh or reset settings. Existing saved shortcuts are preserved.
 
 ## 1.1.0-beta.1
