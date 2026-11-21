@@ -1,6 +1,6 @@
 # Contributing to Pokelet
 
-Use the [feature request](https://github.com/smcnab1/pokelet/issues/new?template=feature_request.yml) or [bug report](https://github.com/smcnab1/pokelet/issues/new?template=bug_report.yml) form. Include the Pokelet version, macOS version, Mac architecture, display setup and the relevant pointer mode. Follow the [security policy](SECURITY.md) for private reports.
+Use the [feature request](https://github.com/smcnab1/pokelet/issues/new?template=feature.yml) or [bug report](https://github.com/smcnab1/pokelet/issues/new?template=bug.yml) form. Include the Pokelet version, macOS version, Mac architecture, display setup and the relevant pointer mode. Follow the [security policy](SECURITY.md) for private reports.
 
 1. Build the Pokelet scheme using Xcode 16 or later.
 2. Run `swift test`, `./script/test_native.sh` and `python3 script/check_docs.py` and `ruby script/check_issue_forms.rb`.

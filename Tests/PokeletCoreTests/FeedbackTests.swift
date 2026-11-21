@@ -11,14 +11,14 @@ final class FeedbackTests: XCTestCase {
         XCTAssertEqual(parts.host, "github.com")
         XCTAssertEqual(parts.path, "/smcnab1/pokelet/issues/new")
         XCTAssertEqual(parts.queryItems, [
-            URLQueryItem(name: "template", value: "bug_report.yml"),
+            URLQueryItem(name: "template", value: "bug.yml"),
             URLQueryItem(name: "environment", value: summary)
         ])
         XCTAssertTrue(url.absoluteString.contains("%2B"))
         XCTAssertTrue(url.absoluteString.contains("%0A"))
         XCTAssertFalse(url.absoluteString.contains("#"))
         XCTAssertEqual(GitHubFeedback.Form.feature.url.absoluteString,
-                       "https://github.com/smcnab1/pokelet/issues/new?template=feature_request.yml")
+                       "https://github.com/smcnab1/pokelet/issues/new?template=feature.yml")
         XCTAssertEqual(GitHubFeedback.bugURL(diagnostics: String(repeating: "?", count: 2_000)),
                        GitHubFeedback.Form.bug.url)
     }

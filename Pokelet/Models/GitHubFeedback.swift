@@ -4,8 +4,8 @@ enum GitHubFeedback {
     static let repository = URL(string: "https://github.com/smcnab1/pokelet")!
 
     enum Form: String {
-        case bug = "bug_report.yml"
-        case feature = "feature_request.yml"
+        case bug = "bug.yml"
+        case feature = "feature.yml"
 
         var url: URL { GitHubFeedback.url(for: self, diagnostics: nil)! }
     }

@@ -82,8 +82,8 @@ The packaging command creates an ad hoc-signed universal app, ZIP and checksum i
 
 ## Feedback and contributing
 
-- [Report a bug](https://github.com/smcnab1/pokelet/issues/new?template=bug_report.yml). Include steps to reproduce, what you expected and what happened. In current source builds, **About → Report a problem** opens the form with editable system information. **Copy system information** is also available.
-- [Request a feature](https://github.com/smcnab1/pokelet/issues/new?template=feature_request.yml). Tell us what you want to do and why it would help.
+- [Report a bug](https://github.com/smcnab1/pokelet/issues/new?template=bug.yml). Include steps to reproduce, what you expected and what happened. In current source builds, **About → Report a problem** opens the form with editable system information. **Copy system information** is also available.
+- [Request a feature](https://github.com/smcnab1/pokelet/issues/new?template=feature.yml). Tell us what you want to do and why it would help.
 - [Report a security issue privately](https://github.com/smcnab1/pokelet/security/advisories/new). See the [security policy](SECURITY.md) for maintainer contact guidance.
 
 Read the [contributing guide](CONTRIBUTING.md) before submitting a change. Pokelet is an independent alternative to Pokey and has no affiliation with it. Pokelet adapts MIT-licensed code from Quiet Pointer and uses original Pokelet artwork and sounds.

@@ -34,7 +34,7 @@ body:
       description: Review the details filled in by Pokelet, or paste them from About → Copy system information.
       render: text
   - type: textarea
-    id: additional
+    id: setup
     attributes:
       label: Screenshots, recordings or additional information
       description: If relevant, include the display setup or recording app you used.
