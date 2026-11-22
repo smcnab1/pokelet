@@ -405,12 +405,6 @@ p { color: var(--muted); }
 }
 .steps li > strong { font-size: 1.02rem; }
 .steps li p { margin-top: .16rem; }
-kbd {
-  font: inherit;
-  font-size: .88em;
-  font-weight: 620;
-  color: var(--ink);
-}
 details summary {
   position: relative;
   display: flex;
