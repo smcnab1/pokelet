@@ -1,3 +1,4 @@
+import Carbon.HIToolbox
 import XCTest
 @testable import PokeletCore
 
@@ -48,6 +49,7 @@ final class CoreTests: XCTestCase {
         prefs.size = 88
         prefs.sound = .wood
         prefs.reducedMotion = true
+        prefs.largerStudioText = true
         prefs.restoreEnabled = true
         prefs.lastEnabled = true
         prefs.pointerShortcut = .init(keyCode: 1, modifiers: Shortcut.pointerDefault.modifiers)
@@ -55,6 +57,25 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(PreferenceStore(defaults: defaults).load(), prefs)
         store.reset()
         XCTAssertEqual(store.load(), Preferences())
+    }
+
+    func testPointerShortcutDefaultAndSavedLegacyBinding() throws {
+        let suite = "PokeletTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = PreferenceStore(defaults: defaults)
+        let expected = Shortcut(keyCode: UInt32(kVK_ANSI_P), modifiers: UInt32(optionKey | cmdKey))
+        let legacy = Shortcut(keyCode: UInt32(kVK_ANSI_P), modifiers: UInt32(controlKey | optionKey))
+
+        var prefs = store.load()
+        XCTAssertEqual(prefs.pointerShortcut, expected)
+        XCTAssertEqual(prefs.pointerShortcut.title, "⌥⌘P")
+        prefs.pointerShortcut = legacy
+        store.save(prefs)
+        XCTAssertEqual(store.load().pointerShortcut, legacy)
+
+        store.reset()
+        XCTAssertEqual(store.load().pointerShortcut, expected)
     }
 
     func testVersionOnePreferencesWithoutCustomColourArePreserved() throws {

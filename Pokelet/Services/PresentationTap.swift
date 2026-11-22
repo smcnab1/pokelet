@@ -13,7 +13,7 @@ final class PresentationTap {
     ]
     private static let mask = (mouseTypes + [.keyDown]).reduce(CGEventMask(0)) { $0 | (1 << $1.rawValue) }
 
-    var onClick: ((Bool) -> Void)?
+    var onClick: ((CGPoint, Bool) -> Void)?
     var onStop: ((String?) -> Void)?
     var isMenuBarExit: ((CGPoint) -> Bool)?
     private var port: CFMachPort?
@@ -171,10 +171,11 @@ final class PresentationTap {
             // The indicator itself is a stop control. Consume this gesture too.
             finishFromTap(nil)
         } else if phase == .down {
+            let point = event.unflippedLocation
             let current = generation
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.session.isActive, self.generation == current else { return }
-                self.onClick?(type != .leftMouseDown)
+                self.onClick?(point, type != .leftMouseDown)
             }
         }
         return nil

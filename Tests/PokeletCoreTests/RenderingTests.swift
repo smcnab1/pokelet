@@ -56,20 +56,76 @@ final class RenderingTests: XCTestCase {
         XCTAssertLessThan(light.outline.luminance, 0.1)
     }
 
+    func testAllCharacterHotspotsAndIndependentMouseDownImpacts() throws {
+        let first = CGPoint(x: 32.25, y: 84.75)
+        let second = CGPoint(x: 73.5, y: 92.25)
+        for style in PointerStyle.allCases {
+            for size in [44.0, 76, 132] {
+                for scale in [1.0, 2] {
+                    var prefs = Preferences()
+                    prefs.style = style
+                    prefs.size = size
+                    let layer = PointerLayer()
+                    layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: scale)), prefs: prefs)
+                    layer.place(first, visible: true)
+                    let artwork = try XCTUnwrap(layer.root.sublayers?.first)
+                    let character = try XCTUnwrap(artwork.sublayers?.last)
+                    let anchor = CursorGeometry.layerAnchor(for: PointerArt.tip(for: style))
+                    let contact = CGPoint(x: size * anchor.x, y: size * anchor.y)
+                    XCTAssertEqual(character.convert(contact, to: layer.root).x, first.x, accuracy: 0.0001)
+                    XCTAssertEqual(character.convert(contact, to: layer.root).y, first.y, accuracy: 0.0001)
+
+                    layer.place(CGPoint(x: 120, y: 120), visible: true) // Companion offset
+                    layer.poke(at: first, energy: 1, secondary: false, motion: true, effects: true,
+                               celebration: false, reduced: false)
+                    layer.place(second, visible: true)
+                    layer.poke(at: second, energy: 1, secondary: true, motion: true, effects: true,
+                               celebration: false, reduced: false)
+                    layer.place(.zero, visible: false)
+
+                    let impacts = try XCTUnwrap(layer.root.sublayers?.last)
+                    XCTAssertEqual(impacts.sublayers?.map(\.position), [first, second])
+                    XCTAssertFalse(impacts.isHidden)
+                    layer.reset()
+                    XCTAssertNil(impacts.sublayers)
+                }
+            }
+        }
+    }
+
+    func testCharacterCrossfadeIsOptInAndCancellable() throws {
+        var prefs = Preferences()
+        let layer = PointerLayer()
+        layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs)
+        let character = try XCTUnwrap(layer.root.sublayers?.first?.sublayers?.last)
+        XCTAssertNil(character.animation(forKey: "characterChange"))
+
+        prefs.style = .catPaw
+        layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs, crossfade: true)
+        let outgoing = try XCTUnwrap(layer.root.sublayers?.first?.sublayers?.dropLast().last)
+        let fadeOut = try XCTUnwrap(outgoing.animation(forKey: "characterChange") as? CABasicAnimation)
+        let fadeIn = try XCTUnwrap(character.animation(forKey: "characterChange") as? CABasicAnimation)
+        XCTAssertEqual(fadeOut.toValue as? Int, 0)
+        XCTAssertEqual(fadeIn.toValue as? Int, 1)
+        layer.reset()
+        XCTAssertNil(outgoing.superlayer)
+        XCTAssertNil(character.animation(forKey: "characterChange"))
+    }
+
     func testSwitchingCharactersAndResetCancelAnimations() throws {
         var prefs = Preferences()
         let layer = PointerLayer()
         layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs)
-        let character = try XCTUnwrap(layer.root.sublayers?.last)
-        layer.poke(energy: 0.8, secondary: false, motion: true, effects: true, celebration: false, reduced: false)
+        let character = try XCTUnwrap(layer.root.sublayers?.first?.sublayers?.last)
+        layer.poke(at: .zero, energy: 0.8, secondary: false, motion: true, effects: true, celebration: false, reduced: false)
         XCTAssertNotNil(character.animation(forKey: "motion"))
         prefs.style = .catPaw
         layer.configure(image: try XCTUnwrap(PointerArt.image(prefs: prefs, scale: 1)), prefs: prefs)
         XCTAssertNil(character.animation(forKey: "motion"))
-        layer.poke(energy: 0.8, secondary: true, motion: false, effects: false, celebration: false, reduced: true)
+        layer.poke(at: .zero, energy: 0.8, secondary: true, motion: false, effects: false, celebration: false, reduced: true)
         XCTAssertNil(character.animation(forKey: "motion"))
         XCTAssertNotNil(character.animation(forKey: "pulse"))
         layer.reset()
-        XCTAssertTrue(layer.root.sublayers?.allSatisfy { $0.animationKeys()?.isEmpty != false } ?? false)
+        XCTAssertTrue(character.animationKeys()?.isEmpty != false)
     }
 }

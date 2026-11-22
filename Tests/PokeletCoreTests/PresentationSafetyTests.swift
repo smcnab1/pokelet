@@ -62,4 +62,39 @@ final class PresentationSafetyTests: XCTestCase {
         XCTAssertFalse(session.suppresses(button: 0, phase: .drag))
         XCTAssertTrue(session.arm(tapReady: true, shortcutReady: true, now: 12))
     }
+
+    func testLeaseExpiresDuringAHeldGestureAndOnlyDrainsMatchedEvents() {
+        var session = PresentationSession()
+        let deadline = 10 + PresentationSession.maximumDuration
+        XCTAssertTrue(session.arm(tapReady: true, shortcutReady: true, now: 10))
+        XCTAssertTrue(session.suppresses(button: 2, phase: .down))
+        XCTAssertNil(session.recovery(tapHealthy: true, now: deadline - 0.001))
+        XCTAssertEqual(session.recovery(tapHealthy: true, now: deadline), .leaseExpired)
+
+        session.end(now: deadline)
+        XCTAssertFalse(session.suppresses(button: 0, phase: .down))
+        XCTAssertTrue(session.suppresses(button: 2, phase: .drag))
+        XCTAssertTrue(session.suppresses(button: 2, phase: .up))
+        XCTAssertFalse(session.isDraining)
+        XCTAssertFalse(session.suppresses(button: 2, phase: .down))
+    }
+
+    func testTapLossDuringDrainClearsAllOldButtonOwnership() {
+        var session = PresentationSession()
+        XCTAssertTrue(session.arm(tapReady: true, shortcutReady: true, now: 10))
+        XCTAssertTrue(session.suppresses(button: 0, phase: .down))
+        XCTAssertTrue(session.suppresses(button: 1, phase: .down))
+        session.end(now: 11)
+        XCTAssertTrue(session.isDraining)
+        XCTAssertEqual(session.recovery(tapHealthy: false, now: 11), .tapUnavailable)
+
+        session.reset()
+        for button in 0...2 {
+            XCTAssertFalse(session.suppresses(button: button, phase: .drag))
+            XCTAssertFalse(session.suppresses(button: button, phase: .up))
+            XCTAssertFalse(session.suppresses(button: button, phase: .down))
+        }
+        XCTAssertFalse(session.isActive)
+        XCTAssertFalse(session.isDraining)
+    }
 }

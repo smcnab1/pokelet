@@ -3,6 +3,7 @@ import Combine
 import ServiceManagement
 import UniformTypeIdentifiers
 
+@MainActor
 final class AppModel: ObservableObject {
     @Published var settingsPage = SettingsPage.pointer
     @Published private(set) var prefs: Preferences
@@ -18,34 +19,48 @@ final class AppModel: ObservableObject {
     @Published private(set) var needsInputMonitoring = false
 
     let isAcceptanceProfile: Bool
+    let isStudioAcceptance: Bool
     let presentationAvailable: Bool
     var isMenuBarExit: ((CGPoint) -> Bool)? {
         didSet { tap.isMenuBarExit = isMenuBarExit }
     }
 
+    @Published private(set) var clickSoundAccessibility = false
+
     private let store: PreferenceStore
     private let cursor = CursorController()
     private let tap = PresentationTap()
     private let sound: SoundPlayer
+    private let interactiveClickSound = InteractiveClickSound()
     private let keys = HotKeys()
     private var suspended = false
     private var audioNeedsRecovery = false
 
     init() {
+        #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
         let acceptance = arguments.contains("--acceptance-profile")
-        isAcceptanceProfile = acceptance
-        #if DEBUG
-        presentationAvailable = acceptance && arguments.contains("--presentation-acceptance")
+        var defaults = acceptance ? UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.Acceptance")! : .standard
+        var supportDirectory = acceptance ? "Pokelet Acceptance" : "Pokelet"
+        isStudioAcceptance = arguments.contains("--studio-acceptance") ||
+            Bundle.main.bundleIdentifier == "uk.co.sammcnab.Pokelet.StudioAcceptance"
+        presentationAvailable = !isStudioAcceptance && acceptance && arguments.contains("--presentation-acceptance")
+        if isStudioAcceptance {
+            defaults = UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.StudioAcceptance.Preferences")!
+            supportDirectory = "Pokelet Studio Acceptance"
+        }
+        isAcceptanceProfile = isStudioAcceptance || acceptance
         #else
+        let defaults = UserDefaults.standard
+        let supportDirectory = "Pokelet"
+        isStudioAcceptance = false
         presentationAvailable = false
+        isAcceptanceProfile = false
         #endif
-        let defaults = acceptance
-            ? UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.Acceptance")! : .standard
         let store = PreferenceStore(defaults: defaults)
         self.store = store
         prefs = store.load()
-        sound = SoundPlayer(supportDirectory: acceptance ? "Pokelet Acceptance" : "Pokelet")
+        sound = SoundPlayer(supportDirectory: supportDirectory)
     }
 
     func start() {
@@ -53,20 +68,22 @@ final class AppModel: ObservableObject {
             guard let self else { return }
             switch action {
             case .pointer: self.togglePointer()
-            case .presentation, .presentationAlternate: self.togglePresentation()
+            case .presentation, .presentationAlternate: self.endPresentation(nil)
             }
         }
-        cursor.onClick = { [weak self] in self?.playClickSound() }
+        cursor.onClick = { [weak self] point, target in self?.handleClickSound(at: point, target: target) }
         cursor.onTrackingFailure = { [weak self] in self?.trackingFailed() }
-        tap.onClick = { [weak self] secondary in self?.cursor.tap(secondary: secondary) }
+        tap.onClick = { [weak self] point, secondary in self?.cursor.tap(at: point, secondary: secondary) }
         tap.onStop = { [weak self] reason in self?.endPresentation(reason) }
         registerShortcuts()
+        refreshClickSoundAccessibility()
         refreshLoginStatus()
-        mode.setPointer(prefs.restoreEnabled && prefs.lastEnabled)
+        mode.setPointer(!isStudioAcceptance && prefs.restoreEnabled && prefs.lastEnabled)
         applyInputState()
     }
 
     func shutDown() {
+        interactiveClickSound.cancel()
         tap.invalidate()
         cursor.stop()
         keys.stop()
@@ -75,6 +92,7 @@ final class AppModel: ObservableObject {
     }
 
     func togglePointer() {
+        guard !isStudioAcceptance else { return }
         pointerMessage = nil
         if mode.presentation { endPresentation(nil) }
         let enabled = !mode.pointer
@@ -83,9 +101,8 @@ final class AppModel: ObservableObject {
         applyInputState()
     }
 
-    func togglePresentation() {
-        if mode.presentation { endPresentation(nil); return }
-        guard !suspended, presentationAvailable else { return }
+    func startPresentation() {
+        guard !mode.presentation, !suspended, presentationAvailable else { return }
         presentationMessage = nil
         refreshPermissionStatus()
         guard accessibilityGranted else {
@@ -145,6 +162,7 @@ final class AppModel: ObservableObject {
     }
 
     func endPresentation(_ reason: String?) {
+        guard mode.presentation else { return }
         tap.stop()
         mode.stopPresentation()
         presentationMessage = reason
@@ -153,6 +171,7 @@ final class AppModel: ObservableObject {
 
     func pause() {
         suspended = true
+        interactiveClickSound.cancel()
         tap.invalidate()
         if mode.presentation { endPresentation("Presentation Mode ended when the session became inactive.") }
         cursor.stop()
@@ -169,11 +188,15 @@ final class AppModel: ObservableObject {
 
     func screensChanged() { cursor.rebuildScreens() }
     func spaceChanged() { cursor.spaceChanged() }
-    func setReplacementWindow(_ window: NSWindow) { cursor.replacementWindow = window }
+    func setReplacementWindow(_ window: NSWindow?) {
+        cursor.replacementWindow = window
+        cursor.refreshPlacement()
+    }
     func keyWindowChanged() { cursor.refreshPlacement() }
     func menuTrackingChanged(started: Bool) { cursor.menuTrackingChanged(started: started) }
     func motionPreferenceChanged() { cursor.cancelAnimations() }
     func appBecameActive() {
+        refreshClickSoundAccessibility()
         cursor.activationChanged(isActive: true)
         refreshLoginStatus()
         refreshPermissionStatus()
@@ -190,6 +213,7 @@ final class AppModel: ObservableObject {
         let soundChanged = next.sound != prefs.sound || next.soundEnabled != prefs.soundEnabled ||
             (next.volume == 0) != (prefs.volume == 0)
         guard next != prefs else { return }
+        if next.soundTrigger != prefs.soundTrigger || soundChanged { interactiveClickSound.cancel() }
         prefs = next
         store.save(next)
         cursor.apply(next, presentation: mode.presentation)
@@ -210,6 +234,11 @@ final class AppModel: ObservableObject {
             shortcutMessage = "That shortcut is already assigned in Pokelet."
             return
         }
+        if isStudioAcceptance {
+            shortcutMessage = nil
+            update(\.pointerShortcut, shortcut)
+            return
+        }
         let action: HotKeys.Action = presentation ? .presentationAlternate : .pointer
         if presentation && shortcut == .presentationDefault {
             guard keys.contains(.presentation) || keys.register(.presentationDefault, for: .presentation) else {
@@ -226,6 +255,7 @@ final class AppModel: ObservableObject {
     }
 
     func toggleLaunchAtLogin(_ enabled: Bool) {
+        guard !isStudioAcceptance else { return }
         generalMessage = nil
         do {
             if enabled { try SMAppService.mainApp.register() }
@@ -269,6 +299,7 @@ final class AppModel: ObservableObject {
     }
 
     func reset() {
+        interactiveClickSound.cancel()
         endPresentation(nil)
         mode.setPointer(false)
         cursor.stop()
@@ -286,9 +317,13 @@ final class AppModel: ObservableObject {
         do { try sound.removeCustomSound() } catch { audioMessage = error.localizedDescription }
     }
 
-    private func refreshLoginStatus() { loginStatus = SMAppService.mainApp.status }
+    private func refreshLoginStatus() {
+        guard !isStudioAcceptance else { return }
+        loginStatus = SMAppService.mainApp.status
+    }
 
     private func registerShortcuts() {
+        guard !isStudioAcceptance else { return }
         var failed: [String] = []
         if !keys.register(prefs.pointerShortcut, for: .pointer) { failed.append(prefs.pointerShortcut.title) }
         if presentationAvailable {
@@ -316,6 +351,23 @@ final class AppModel: ObservableObject {
         }
     }
 
+    func refreshClickSoundAccessibility() {
+        clickSoundAccessibility = InteractiveClickSound.accessibilityGranted
+    }
+
+    private func handleClickSound(at point: CGPoint, target: pid_t?) {
+        guard shouldPlayClickSound else { return }
+        switch prefs.soundTrigger.playback(accessibility: clickSoundAccessibility, presentation: mode.presentation) {
+        case .play: playClickSound()
+        case .silent: return
+        case .classify:
+            interactiveClickSound.classify(at: point, target: target) { [weak self] actionable in
+                guard let self, self.cursor.isRunning, !self.suspended, !self.mode.presentation, actionable else { return }
+                self.playClickSound()
+            }
+        }
+    }
+
     private func playClickSound() {
         guard shouldPlayClickSound else { return }
         if sound.play(volume: prefs.volume) { audioNeedsRecovery = false; return }
@@ -333,6 +385,7 @@ final class AppModel: ObservableObject {
     private func applyInputState() {
         cursor.apply(prefs, presentation: mode.presentation)
         guard !suspended, mode.showsPointer else {
+            interactiveClickSound.cancel()
             cursor.stop()
             sound.stop()
             return
@@ -346,6 +399,7 @@ final class AppModel: ObservableObject {
     }
 
     private func trackingFailed() {
+        interactiveClickSound.cancel()
         tap.invalidate()
         sound.stop()
         mode.setPointer(false)

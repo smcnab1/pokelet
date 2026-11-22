@@ -40,6 +40,20 @@ enum Intensity: Int, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum SoundTrigger: String, Codable, CaseIterable, Identifiable {
+    case everyClick, interactiveOnly
+
+    var id: Self { self }
+    var title: String { self == .everyClick ? "Every click" : "Interactive clicks only" }
+
+    enum Playback: Equatable { case play, classify, silent }
+
+    func playback(accessibility: Bool, presentation: Bool) -> Playback {
+        if self == .everyClick { return .play }
+        return accessibility && !presentation ? .classify : .silent
+    }
+}
+
 enum ClickSound: String, Codable, CaseIterable, Identifiable {
     case tap, pop, wood, squeak, silent, custom
     var id: Self { self }
@@ -59,7 +73,7 @@ struct Shortcut: Codable, Equatable {
     var keyCode: UInt32
     var modifiers: UInt32
 
-    static let pointerDefault = Self(keyCode: UInt32(kVK_ANSI_P), modifiers: UInt32(controlKey | optionKey))
+    static let pointerDefault = Self(keyCode: UInt32(kVK_ANSI_P), modifiers: UInt32(optionKey | cmdKey))
     static let presentationDefault = Self(keyCode: UInt32(kVK_ANSI_T), modifiers: UInt32(controlKey | optionKey))
 
     var title: String {
@@ -73,6 +87,20 @@ struct Shortcut: Codable, Equatable {
             modifiers & UInt32(cmdKey | controlKey | optionKey) != 0 &&
             modifiers & ~UInt32(cmdKey | controlKey | optionKey | shiftKey) == 0
     }
+}
+
+struct ApplicationBehaviour: Codable, Equatable {
+    var hideDockWhenStudioClosed = true
+    var showInMenuBar = true
+
+    func showsDock(studioOpen: Bool, menuBarAvailable: Bool) -> Bool {
+        studioOpen || !hideDockWhenStudioClosed || !showInMenuBar || !menuBarAvailable
+    }
+}
+
+struct PresenterEffects: Codable, Equatable {
+    var normal = false
+    var presentation = false
 }
 
 struct Preferences: Codable, Equatable {
@@ -95,12 +123,35 @@ struct Preferences: Codable, Equatable {
     var directionBounce = false
     var soundEnabled = false
     var sound = ClickSound.tap
+    private var savedSoundTrigger: SoundTrigger?
     var volume = 0.35
     var customSoundName: String?
     var restoreEnabled = false
     var lastEnabled = false
+    var largerStudioText: Bool?
     var pointerShortcut = Shortcut.pointerDefault
     var presentationShortcut = Shortcut.presentationDefault
+    private var savedPresenterEffects: PresenterEffects?
+    private var savedApplicationBehaviour: ApplicationBehaviour?
+
+    var soundTrigger: SoundTrigger {
+        get { savedSoundTrigger ?? .everyClick }
+        set { savedSoundTrigger = newValue }
+    }
+
+    var presenterEffects: PresenterEffects {
+        get { savedPresenterEffects ?? PresenterEffects() }
+        set { savedPresenterEffects = newValue }
+    }
+
+    func usesPresenterArm(presentation: Bool) -> Bool {
+        presentation ? presenterEffects.presentation : presenterEffects.normal
+    }
+
+    var applicationBehaviour: ApplicationBehaviour {
+        get { savedApplicationBehaviour ?? ApplicationBehaviour() }
+        set { savedApplicationBehaviour = newValue }
+    }
 }
 
 struct PreferenceStore {

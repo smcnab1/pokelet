@@ -4,58 +4,126 @@ import QuartzCore
 final class PointerLayer {
     let root = CALayer()
     private let character = CALayer()
-    private let effect = CAShapeLayer()
-    private let effectOutline = CAShapeLayer()
+    private let impacts = CALayer()
+    private let artwork = CALayer()
+    private var effectInk = CGColor(gray: 1, alpha: 1)
+    private var effectEdge = CGColor(gray: 0, alpha: 1)
     private var style = PointerStyle.finger
+    private var presenterArm = false
+    private var sleeve: PresenterSleeveLayer?
+    private var retiringCharacter: CALayer?
+    private var companion: CompanionPlacement?
+    private var viewport: CGRect?
 
     init() {
-        root.addSublayer(effectOutline)
-        root.addSublayer(effect)
-        root.addSublayer(character)
-        root.isHidden = true
-        for layer in [effectOutline, effect] {
-            layer.fillColor = nil
-            layer.lineJoin = .round
-            layer.lineCap = .round
-            layer.opacity = 0
-        }
-        effectOutline.lineWidth = 5
-        effect.lineWidth = 2.45
+        root.addSublayer(artwork)
+        root.addSublayer(impacts)
+        artwork.addSublayer(character)
+        artwork.isHidden = true
     }
 
-    func configure(image: CGImage, prefs: Preferences) {
-        reset()
+    func configure(image: CGImage, prefs: Preferences, presenterArm: Bool = false, crossfade: Bool = false) {
+        let previous = crossfade && !presenterArm && !self.presenterArm ? snapshotCharacter() : nil
+        resetReaction()
+        viewport = nil
+        self.presenterArm = presenterArm
         style = prefs.style
+        companion = presenterArm ? nil : PointerArt.companionPlacement(for: prefs)
         let scale = CGFloat(image.width) / prefs.size
         withoutLayerActions {
+            if presenterArm {
+                if sleeve == nil {
+                    let next = PresenterSleeveLayer()
+                    next.isHidden = true
+                    root.insertSublayer(next, below: artwork)
+                    sleeve = next
+                }
+                sleeve?.setScale(scale)
+            } else {
+                sleeve?.removeFromSuperlayer()
+                sleeve = nil
+                character.setAffineTransform(.identity)
+            }
             character.contents = image
             character.contentsScale = scale
             character.bounds = CGRect(x: 0, y: 0, width: prefs.size, height: prefs.size)
-            character.anchorPoint = CursorGeometry.layerAnchor
+            character.anchorPoint = CursorGeometry.layerAnchor(for: presenterArm ? CursorGeometry.gloveTip : PointerArt.tip(for: style))
             character.position = .zero
             let inks = PointerArt.inks(for: prefs)
-            effect.strokeColor = inks.effect.color()
-            effectOutline.strokeColor = (inks.effect.luminance < 0.18 ? inks.highlight : inks.shadow).color(0.85)
+            effectInk = presenterArm ? CGColor(gray: 1, alpha: 1) : inks.effect.color()
+            effectEdge = presenterArm ? PointerArt.ink.color() :
+                (inks.effect.luminance < 0.18 ? inks.highlight : inks.shadow).color(0.85)
         }
+        if let previous { transition(from: previous) }
     }
 
-    func place(_ location: CGPoint, visible: Bool) {
+    private func snapshotCharacter() -> CALayer? {
+        guard let contents = character.contents else { return nil }
+        let layer = CALayer()
+        layer.contents = contents
+        layer.contentsScale = character.contentsScale
+        layer.bounds = character.bounds
+        layer.anchorPoint = character.anchorPoint
+        layer.position = character.position
+        layer.opacity = 0
+        return layer
+    }
+
+    private func transition(from previous: CALayer) {
+        withoutLayerActions { artwork.insertSublayer(previous, below: character) }
+        retiringCharacter = previous
+        CATransaction.begin()
+        CATransaction.setCompletionBlock { [weak self, weak previous] in
+            guard let self, let previous, self.retiringCharacter === previous else { return }
+            previous.removeFromSuperlayer()
+            self.retiringCharacter = nil
+        }
+        for (layer, start, end) in [(previous, 1, 0), (character, 0, 1)] {
+            let fade = CABasicAnimation(keyPath: "opacity")
+            fade.fromValue = start
+            fade.toValue = end
+            fade.duration = 0.17
+            fade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            layer.add(fade, forKey: "characterChange")
+        }
+        CATransaction.commit()
+    }
+
+    func follow(_ point: CGPoint, in viewport: CGRect, visible: Bool, companion: Bool) {
+        let location = companion ? self.companion?.position(at: point, in: viewport) ?? point : point
+        place(location, visible: visible, viewport: viewport)
+    }
+
+    func place(_ location: CGPoint, visible: Bool, viewport: CGRect = .zero) {
+        guard artwork.position != location || artwork.isHidden == visible || self.viewport != viewport else { return }
+        self.viewport = viewport
         withoutLayerActions {
-            root.position = location
-            root.isHidden = !visible
+            artwork.position = location
+            artwork.isHidden = !visible
+            if visible, let sleeve {
+                let angle = sleeve.place(tip: location, viewport: viewport, size: character.bounds.width)
+                character.setAffineTransform(CGAffineTransform(rotationAngle: angle))
+            } else {
+                sleeve?.isHidden = true
+            }
         }
     }
 
     func reset() {
+        resetReaction()
+        impacts.sublayers?.forEach { $0.removeFromSuperlayer() }
+    }
+
+    func resetReaction() {
+        retiringCharacter?.removeFromSuperlayer()
+        retiringCharacter = nil
         character.removeAllAnimations()
-        effect.removeAllAnimations()
-        effectOutline.removeAllAnimations()
         withoutLayerActions { character.opacity = 1 }
     }
 
-    func poke(energy: Double, secondary: Bool, motion: Bool, effects: Bool, celebration: Bool,
+    func poke(at point: CGPoint, energy: Double, secondary: Bool, motion: Bool, effects: Bool, celebration: Bool,
               reduced: Bool) {
-        if motion {
+        if motion && !presenterArm {
             let next = CAKeyframeAnimation(keyPath: "transform")
             next.duration = secondary ? 0.29 : 0.24
             next.keyTimes = [0, 0.17, 0.43, 0.70, 1]
@@ -70,17 +138,18 @@ final class PointerLayer {
             character.add(next, forKey: "motion")
         }
         if effects {
-            impact(secondary: secondary, celebration: celebration, reduced: reduced, energy: energy)
-        } else if reduced {
+            impact(at: point, secondary: secondary, celebration: celebration, reduced: reduced, energy: energy)
+        }
+        if (presenterArm && motion) || (reduced && !effects) {
             let blink = CAKeyframeAnimation(keyPath: "opacity")
-            blink.values = [1.0, 0.76, 1.0]
+            blink.values = [1.0, presenterArm ? (secondary ? 0.85 : 0.92) : 0.76, 1.0]
             blink.duration = 0.15
             character.add(blink, forKey: "pulse")
         }
     }
 
     func wobble(turn: Double) {
-        guard character.animation(forKey: "motion") == nil else { return }
+        guard !presenterArm, character.animation(forKey: "motion") == nil else { return }
         let bounce = CAKeyframeAnimation(keyPath: "transform.rotation.z")
         bounce.values = [0, turn * 0.11, -turn * 0.035, 0]
         bounce.duration = 0.21
@@ -91,10 +160,10 @@ final class PointerLayer {
         CATransform3DScale(CATransform3DMakeRotation(angle, 0, 0, 1), x, y, 1)
     }
 
-    private func impact(secondary: Bool, celebration: Bool, reduced: Bool, energy: Double) {
+    private func impact(at point: CGPoint, secondary: Bool, celebration: Bool, reduced: Bool, energy: Double) {
         let path: CGPath
         if reduced { path = Self.ring }
-        else if style == .catPaw, !secondary, !celebration { path = Self.pawPrint }
+        else if !presenterArm, style == .catPaw, !secondary, !celebration { path = Self.pawPrint }
         else if secondary { path = Self.ring }
         else { path = celebration ? Self.celebration : Self.rays }
 
@@ -111,12 +180,46 @@ final class PointerLayer {
         expand.duration = animation.duration
         animation.animations = [fade, expand]
 
-        withoutLayerActions {
-            for layer in [effectOutline, effect] {
-                layer.path = path
-                layer.add(animation, forKey: "impact")
-            }
+        let mark = CALayer()
+        let pathBounds = path.boundingBoxOfPath
+        let halfWidth = max(abs(pathBounds.minX), abs(pathBounds.maxX)) + 3
+        let halfHeight = max(abs(pathBounds.minY), abs(pathBounds.maxY)) + 3
+        mark.bounds = CGRect(x: -halfWidth, y: -halfHeight, width: 2 * halfWidth, height: 2 * halfHeight)
+        mark.position = point
+        mark.opacity = 0
+        for (width, colour) in [(5.0, effectEdge), (2.45, effectInk)] {
+            let stroke = CAShapeLayer()
+            stroke.bounds = mark.bounds
+            stroke.contentsScale = character.contentsScale
+            stroke.path = path
+            stroke.fillColor = nil
+            stroke.lineJoin = .round
+            stroke.lineCap = .round
+            stroke.lineWidth = width
+            stroke.strokeColor = colour
+            mark.addSublayer(stroke)
         }
+        if !secondary && !reduced {
+            let contact = CALayer()
+            contact.bounds = CGRect(x: 0, y: 0, width: 5, height: 5)
+            contact.cornerRadius = 2.5
+            contact.backgroundColor = effectInk
+            contact.borderColor = effectEdge
+            contact.borderWidth = 1
+            mark.addSublayer(contact)
+        }
+
+        // The mark belongs to the viewport, so pointer movement cannot drag an
+        // existing impact away from the mouse-down point.
+        if let marks = impacts.sublayers, marks.count >= 16 {
+            marks.first?.removeFromSuperlayer()
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        CATransaction.setCompletionBlock { [weak mark] in mark?.removeFromSuperlayer() }
+        impacts.addSublayer(mark)
+        mark.add(animation, forKey: "impact")
+        CATransaction.commit()
     }
 
     private static let ring = CGPath(ellipseIn: CGRect(x: -15, y: -15, width: 30, height: 30), transform: nil)
@@ -128,7 +231,9 @@ final class PointerLayer {
                     CGRect(x: -20, y: 3, width: 13, height: 10)] {
             path.addEllipse(in: dot)
         }
-        return path.copy()!
+        let bounds = path.boundingBoxOfPath
+        var centre = CGAffineTransform(translationX: -bounds.midX, y: -bounds.midY)
+        return path.copy(using: &centre)!
     }()
 
     private static let rays = burst(count: 5, sparks: false)

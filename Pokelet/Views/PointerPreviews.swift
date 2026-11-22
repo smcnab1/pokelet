@@ -1,86 +1,171 @@
 import QuartzCore
 import SwiftUI
 
-/// Two fixed swatches show the same artwork against a light and dark surface.
-struct SplitPointerPreview: View {
-    let prefs: Preferences
+struct CharacterThumbnail: View {
     let style: PointerStyle
 
     var body: some View {
         Canvas { context, size in
-            let artworkSize = min(size.height - 4, size.width - 4, max(36, prefs.size * 0.72))
+            let width = min(size.width, size.height)
+            var prefs = Preferences()
+            prefs.style = style
+            prefs.shadow = false
             context.withCGContext { cg in
-                var preview = prefs
-                preview.style = style
-                cg.translateBy(x: (size.width - artworkSize) / 2 - 5, y: (size.height - artworkSize) / 2 - 3)
-                cg.scaleBy(x: artworkSize / PointerArt.canvas, y: artworkSize / PointerArt.canvas)
-                PointerArt.draw(in: cg, prefs: preview)
+                let factor = width / PointerArt.canvas
+                cg.translateBy(x: (size.width - width) / 2 - 11 * factor, y: (size.height - width) / 2)
+                cg.scaleBy(x: factor, y: factor)
+                PointerArt.draw(in: cg, prefs: prefs)
             }
-        }
-        .background {
-            HStack(spacing: 0) {
-                Color(nsColor: NSColor(srgbRed: 0.93, green: 0.91, blue: 0.88, alpha: 1))
-                Color(nsColor: NSColor(srgbRed: 0.17, green: 0.16, blue: 0.19, alpha: 1))
-            }
-            .clipShape(.rect(cornerRadius: 6))
         }
         .accessibilityHidden(true)
     }
 }
 
-struct AnimationPreview: View {
+struct CharacterPreview: View {
     let prefs: Preferences
-    let reducedMotion: Bool
-    @State private var cadence = ClickCadence()
-    @State private var click: PreviewClick?
+    let stageHeight: CGFloat
+    let livePointer: Bool
+    var showsSecondaryClick = false
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            PreviewCanvas(prefs: prefs, click: click, reducedMotion: reducedMotion)
-                .frame(height: 153)
-                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 7))
-                .accessibilityHidden(true)
-            HStack {
-                Button("Try Left Click") { play(secondary: false) }
-                Button("Try Right Click") { play(secondary: true) }
-            }
-            .disabled(!prefs.animate)
-        }
-        .onChange(of: prefs.style) { _, _ in cadence = ClickCadence() }
+    @Environment(\.colorScheme) private var colourScheme
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @State private var testDark: Bool?
+    @State private var secondaryPress = 0
+
+    private var dark: Bool { testDark ?? (colourScheme == .dark) }
+    private var ink: Color { dark ? Color(red: 0.96, green: 0.91, blue: 0.99) :
+        Color(red: 0.24, green: 0.15, blue: 0.33) }
+    private var clickOnly: Bool { prefs.clickOnly && !prefs.presenterEffects.normal }
+    private var hint: String {
+        if clickOnly { return "Click to reveal" }
+        return prefs.animate ? "Move and click to try" : "Move to try"
     }
 
-    private func play(secondary: Bool) {
-        let now = CACurrentMediaTime()
-        click = PreviewClick(when: now, count: cadence.record(at: now), secondary: secondary)
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 19)
+        VStack(spacing: 0) {
+            HStack {
+                StudioLabel("Pointer preview", symbol: "viewfinder")
+                    .studioFont(.caption, weight: .semibold)
+                Spacer()
+                Button { testDark = !dark } label: {
+                    Image(systemName: dark ? "sun.max" : "moon")
+                        .frame(width: 29, height: 27)
+                }
+                .buttonStyle(StudioButtonStyle(radius: 8))
+                .accessibilityLabel(dark ? "Use light preview background" : "Use dark preview background")
+                .help(dark ? "Use light preview background" : "Use dark preview background")
+            }
+            PreviewCanvas(prefs: prefs, reducedMotion: systemReduceMotion || prefs.reducedMotion,
+                          livePointer: livePointer, secondaryPress: secondaryPress)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            HStack(spacing: 10) {
+                Text(prefs.presenterEffects.normal ? "Presenter Arm" : prefs.style.title)
+                    .studioFont(.body, weight: .semibold)
+                Spacer(minLength: 4)
+                if showsSecondaryClick {
+                    Button { secondaryPress += 1 } label: {
+                        StudioLabel("Try secondary click", symbol: "cursorarrow.click.2")
+                            .studioFont(.caption, weight: .semibold)
+                            .padding(6)
+                    }
+                    .buttonStyle(StudioButtonStyle(radius: 7))
+                    .disabled(!prefs.animate && !clickOnly)
+                } else {
+                    Text(hint)
+                        .studioFont(.caption)
+                        .foregroundStyle(ink.opacity(0.82))
+                }
+            }
+            .padding(.bottom, 5)
+        }
+        .padding(.horizontal, 15)
+        .padding(.vertical, 8)
+        .frame(height: stageHeight)
+        .foregroundStyle(ink)
+        .background { PreviewSurface(dark: dark).clipShape(shape) }
+        .overlay(shape.strokeBorder(ink.opacity(dark ? 0.15 : 0.20)).allowsHitTesting(false))
     }
 }
 
-private struct PreviewClick: Equatable {
-    let when: CFTimeInterval
-    let count: Int
-    let secondary: Bool
+private struct PreviewSurface: View {
+    let dark: Bool
+
+    var body: some View {
+        let base = dark ? Color(red: 0.16, green: 0.11, blue: 0.21) :
+            Color(red: 0.93, green: 0.88, blue: 0.95)
+        let light = dark ? Color(red: 0.29, green: 0.20, blue: 0.38) :
+            Color(red: 0.99, green: 0.95, blue: 0.94)
+        let dot = dark ? Color(red: 0.78, green: 0.66, blue: 0.92) :
+            Color(red: 0.43, green: 0.28, blue: 0.55)
+        ZStack {
+            base
+            EllipticalGradient(colors: [light, base], center: UnitPoint(x: 0.47, y: 0.42),
+                               startRadiusFraction: 0.06, endRadiusFraction: 0.77)
+            Canvas { context, size in
+                let step: CGFloat = 19
+                var dots = Path()
+                for x in stride(from: size.width.truncatingRemainder(dividingBy: step) / 2,
+                                to: size.width, by: step) {
+                    for y in stride(from: size.height.truncatingRemainder(dividingBy: step) / 2,
+                                    to: size.height, by: step) {
+                        dots.addEllipse(in: CGRect(x: x, y: y, width: 1.25, height: 1.25))
+                    }
+                }
+                context.fill(dots, with: .color(dot.opacity(dark ? 0.23 : 0.21)))
+            }
+        }
+        .accessibilityHidden(true)
+    }
 }
 
 private struct PreviewCanvas: NSViewRepresentable {
     let prefs: Preferences
-    let click: PreviewClick?
     let reducedMotion: Bool
+    let livePointer: Bool
+    let secondaryPress: Int
 
-    func makeNSView(context: Context) -> LayerView { LayerView() }
-
-    func updateNSView(_ view: LayerView, context: Context) {
-        view.update(prefs: prefs, click: click, reducedMotion: reducedMotion)
+    func makeNSView(context: Context) -> StageButton {
+        let view = StageButton()
+        view.update(prefs: prefs, reducedMotion: reducedMotion, livePointer: livePointer, secondaryPress: secondaryPress)
+        return view
     }
 
-    final class LayerView: NSView {
+    func updateNSView(_ view: StageButton, context: Context) {
+        view.update(prefs: prefs, reducedMotion: reducedMotion, livePointer: livePointer, secondaryPress: secondaryPress)
+    }
+
+    static func dismantleNSView(_ view: StageButton, coordinator: ()) {
+        view.stopInteraction()
+    }
+
+    final class StageButton: NSButton {
         private let pointer = PointerLayer()
-        private var cachedPrefs: Preferences?
-        private var lastClick: PreviewClick?
-        private var lastReducedMotion = false
-        private var scale: CGFloat = 0
+        private var prefs = Preferences()
+        private var usesPresenterArm: Bool { prefs.presenterEffects.normal }
+        private var clickOnly: Bool { prefs.clickOnly && !usesPresenterArm }
+        private var renderedArtwork: Preferences?
+        private var renderedScale: CGFloat = 0
+        private var reducedMotion = false
+        private var livePointer = false
+        private var cadence = ClickCadence()
+        private var motion = CursorMotion()
+        private var trackedPoint: CGPoint?
+        private var tracking: NSTrackingArea?
+        private var reveal: DispatchWorkItem?
+        private var revealPoint: CGPoint?
+        private var stopTimer: Timer?
+        private var lastSecondaryPress: Int?
+        private var windowObservers: [NSObjectProtocol] = []
 
         init() {
             super.init(frame: .zero)
+            title = ""
+            isBordered = false
+            setButtonType(.momentaryPushIn)
+            setAccessibilityIdentifier("studio.preview")
+            target = self
+            action = #selector(press)
             wantsLayer = true
             layer?.masksToBounds = true
             layer?.addSublayer(pointer.root)
@@ -89,35 +174,213 @@ private struct PreviewCanvas: NSViewRepresentable {
         @available(*, unavailable)
         required init?(coder: NSCoder) { fatalError() }
 
+        // Keep the stage, artwork anchors and mouse locations in the same
+        // bottom-up coordinate space as the display overlays.
+        override var isFlipped: Bool { false }
+
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            if let tracking { removeTrackingArea(tracking) }
+            let area = NSTrackingArea(rect: .zero, options: [.inVisibleRect, .activeInKeyWindow,
+                                                            .mouseEnteredAndExited, .mouseMoved, .enabledDuringMouseDrag],
+                                      owner: self)
+            addTrackingArea(area)
+            tracking = area
+        }
+
+        override func viewWillMove(toWindow newWindow: NSWindow?) {
+            super.viewWillMove(toWindow: newWindow)
+            let center = NotificationCenter.default
+            windowObservers.forEach(center.removeObserver)
+            windowObservers.removeAll()
+            stopInteraction()
+            guard let newWindow else { return }
+            for name in [NSWindow.didResignKeyNotification, NSWindow.didChangeOcclusionStateNotification] {
+                windowObservers.append(center.addObserver(forName: name, object: newWindow, queue: .main) { [weak self] note in
+                    let window = note.object as? NSWindow
+                    if name == NSWindow.didResignKeyNotification || window?.occlusionState.contains(.visible) == false {
+                        self?.stopInteraction()
+                    }
+                })
+            }
+        }
+
+        override func viewDidHide() {
+            super.viewDidHide()
+            stopInteraction()
+        }
+
         override func layout() {
             super.layout()
-            pointer.place(CGPoint(x: bounds.midX - 12, y: bounds.midY + 30), visible: true)
+            render()
         }
 
         override func viewDidChangeBackingProperties() {
             super.viewDidChangeBackingProperties()
-            if let cachedPrefs { render(cachedPrefs) }
+            render()
         }
 
-        fileprivate func update(prefs: Preferences, click: PreviewClick?, reducedMotion: Bool) {
-            render(prefs)
-            if reducedMotion != lastReducedMotion { pointer.reset() }
-            lastReducedMotion = reducedMotion
-            guard prefs.animate, let click, click != lastClick else { return }
-            lastClick = click
-            let response = ClickResponse(prefs: prefs, count: click.count, reduced: reducedMotion)
-            pointer.poke(energy: response.energy, secondary: click.secondary, motion: !reducedMotion,
+        override func mouseEntered(with event: NSEvent) { track(event) }
+        override func mouseMoved(with event: NSEvent) { track(event) }
+        override func mouseDragged(with event: NSEvent) { track(event) }
+        override func rightMouseDragged(with event: NSEvent) { track(event) }
+        override func otherMouseDragged(with event: NSEvent) { track(event) }
+        override func mouseExited(with event: NSEvent) {
+            trackedPoint = nil
+            cancelStopTimer()
+            motion = CursorMotion()
+            if revealPoint == nil { render() }
+        }
+        override func mouseDown(with event: NSEvent) { click(event, secondary: false) }
+        override func rightMouseDown(with event: NSEvent) { click(event, secondary: true) }
+        override func otherMouseDown(with event: NSEvent) { click(event, secondary: true) }
+
+        func update(prefs: Preferences, reducedMotion: Bool, livePointer: Bool, secondaryPress: Int) {
+            let styleChanged = self.prefs.style != prefs.style || usesPresenterArm != prefs.presenterEffects.normal
+            let visibilityChanged = self.prefs.clickOnly != prefs.clickOnly || self.livePointer != livePointer
+            let motionChanged = self.reducedMotion != reducedMotion || self.prefs.animate != prefs.animate ||
+                self.prefs.effects != prefs.effects || self.prefs.celebration != prefs.celebration ||
+                self.prefs.directionBounce != prefs.directionBounce
+            self.prefs = prefs
+            self.reducedMotion = reducedMotion
+            self.livePointer = livePointer
+            if styleChanged || visibilityChanged { cancelReveal() }
+            if styleChanged || visibilityChanged || motionChanged {
+                pointer.reset()
+                cadence = ClickCadence()
+                cancelStopTimer()
+                motion = CursorMotion()
+            }
+            isEnabled = prefs.animate || clickOnly
+            setAccessibilityLabel(prefs.animate ? "Try primary click" : clickOnly ? "Reveal character" : "Pointer preview")
+            setAccessibilityHelp(usesPresenterArm ? "Preview for Presenter Arm." : "Preview for \(prefs.style.title).")
+            render(crossfade: styleChanged && !reducedMotion)
+            if let lastSecondaryPress, lastSecondaryPress != secondaryPress { react(secondary: true) }
+            lastSecondaryPress = secondaryPress
+        }
+
+        func stopInteraction() {
+            let wasTracking = trackedPoint != nil
+            trackedPoint = nil
+            cancelStopTimer()
+            cancelReveal()
+            cadence = ClickCadence()
+            motion = CursorMotion()
+            pointer.reset()
+            if wasTracking { render() }
+        }
+
+        private func cancelReveal() {
+            reveal?.cancel()
+            reveal = nil
+            revealPoint = nil
+        }
+
+        @objc private func press() { react(secondary: false) }
+
+        private func click(_ event: NSEvent, secondary: Bool) {
+            if let point = track(event), !livePointer { react(secondary: secondary, at: point) }
+        }
+
+        @discardableResult
+        private func track(_ event: NSEvent) -> CGPoint? {
+            guard let window else { return nil }
+            let point = convert(window.convertPoint(fromScreen: event.pokeletScreenLocation), from: nil)
+            guard visibleRect.contains(point) else { return nil }
+            let previous = trackedPoint
+            trackedPoint = point
+            if previous == nil { render() } else { placeArtwork() }
+
+            guard !livePointer, !usesPresenterArm, prefs.directionBounce, !reducedMotion, !clickOnly else { return point }
+            let now = CACurrentMediaTime()
+            if let previous, let turn = motion.turn(from: previous, to: point, now: now) {
+                pointer.wobble(turn: turn)
+            }
+            if let stopTimer {
+                stopTimer.fireDate = Date(timeIntervalSinceNow: CursorMotion.stopDelay)
+            } else {
+                let timer = Timer(timeInterval: CursorMotion.stopDelay, repeats: false) { [weak self] _ in
+                    guard let self else { return }
+                    self.stopTimer = nil
+                    if let turn = self.motion.stopped(at: CACurrentMediaTime()) {
+                        self.pointer.wobble(turn: turn)
+                    }
+                }
+                stopTimer = timer
+                RunLoop.main.add(timer, forMode: .common)
+            }
+            return point
+        }
+
+        private func cancelStopTimer() {
+            stopTimer?.invalidate()
+            stopTimer = nil
+        }
+
+        private func react(secondary: Bool, at clickPoint: CGPoint? = nil) {
+            guard window?.isVisible == true, window?.isMiniaturized == false, !isHiddenOrHasHiddenAncestor,
+                  !visibleRect.isEmpty, prefs.animate || clickOnly else { return }
+            let point = clickPoint ?? samplePoint(size: renderedArtwork?.size ?? prefs.size)
+            if clickOnly {
+                cancelReveal()
+                let hide = DispatchWorkItem { [weak self] in
+                    self?.reveal = nil
+                    self?.revealPoint = nil
+                    self?.placeArtwork()
+                }
+                reveal = hide
+                revealPoint = point
+                placeArtwork()
+                DispatchQueue.main.asyncAfter(deadline: .now() + ClickResponse.revealDuration, execute: hide)
+            }
+            guard prefs.animate else { return }
+            let response = ClickResponse(prefs: prefs, count: cadence.record(at: CACurrentMediaTime()),
+                                         reduced: reducedMotion)
+            pointer.poke(at: point, energy: response.energy, secondary: secondary, motion: !reducedMotion,
                          effects: response.effects, celebration: response.celebration, reduced: reducedMotion)
         }
 
-        private func render(_ prefs: Preferences) {
-            let nextScale = window?.backingScaleFactor ?? 2
-            guard cachedPrefs != prefs || scale != nextScale else { return }
-            cachedPrefs = prefs
-            scale = nextScale
-            if let image = PointerArt.image(prefs: prefs, scale: scale) {
-                pointer.configure(image: image, prefs: prefs)
+        private func render(crossfade: Bool = false) {
+            guard bounds.width > 0, bounds.height > 0 else { return }
+            var artwork = Preferences()
+            artwork.style = prefs.style
+            artwork.presenterEffects.normal = usesPresenterArm
+            artwork.palette = prefs.palette
+            artwork.customColour = prefs.customColour
+            artwork.outline = prefs.outline
+            artwork.shadow = prefs.shadow
+            artwork.size = prefs.size
+            if trackedPoint == nil, !clickOnly {
+                artwork.size = usesPresenterArm
+                    ? min(prefs.size * 1.65, bounds.height * 0.85, bounds.width * 0.50)
+                    : min(prefs.size * 2.6, bounds.height * 1.13, bounds.width * 0.73)
             }
+            let scale = window?.backingScaleFactor ?? 2
+            if renderedArtwork != artwork || renderedScale != scale,
+               let image = PointerArt.image(prefs: artwork, scale: scale, presenterArm: usesPresenterArm) {
+                renderedArtwork = artwork
+                renderedScale = scale
+                pointer.configure(image: image, prefs: artwork, presenterArm: usesPresenterArm, crossfade: crossfade)
+            }
+            placeArtwork()
+        }
+
+        private func placeArtwork() {
+            guard let size = renderedArtwork?.size else { return }
+            if clickOnly {
+                pointer.follow(revealPoint ?? .zero, in: bounds, visible: revealPoint != nil, companion: false)
+            } else if let point = trackedPoint {
+                // Mouse input is already visualised by the live overlay when enabled.
+                pointer.follow(point, in: bounds, visible: !livePointer, companion: !usesPresenterArm && prefs.keepNative)
+            } else {
+                pointer.place(samplePoint(size: size), visible: true, viewport: bounds)
+            }
+        }
+
+        private func samplePoint(size: CGFloat) -> CGPoint {
+            usesPresenterArm
+                ? CGPoint(x: bounds.midX - size * 0.18, y: bounds.height * 0.75)
+                : CGPoint(x: bounds.midX - size * 0.25, y: bounds.midY + size * 0.34)
         }
     }
 }

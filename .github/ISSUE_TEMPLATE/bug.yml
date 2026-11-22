@@ -1,22 +1,40 @@
 name: Bug report
-description: Report a reproducible Pokelet problem
+description: Report something that is not working in Pokelet
 title: "[Bug] "
+labels: [bug]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        This report is public. Report security issues [privately](https://github.com/smcnab1/pokelet/security/advisories/new), or follow the [security policy](https://github.com/smcnab1/pokelet/security/policy).
+        Leave personal information out of the report and any attachments.
   - type: textarea
     id: behaviour
     attributes:
-      label: Steps and observed behaviour
-      description: Include what you expected, what happened and how to reproduce it using non-sensitive data.
-    validations:
-      required: true
-  - type: input
-    id: environment
-    attributes:
-      label: Pokelet version, macOS version and Mac architecture
+      label: What happened?
     validations:
       required: true
   - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps or briefly describe when this occurs.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Pokelet version and system information
+      description: Review the details filled in by Pokelet, or paste them from About → Copy system information.
+      render: text
+  - type: textarea
     id: setup
     attributes:
-      label: Relevant settings and display setup
-      description: Include Companion or Replacement mode, displays, Spaces and capture app when applicable. Keep personal information out of attachments.
+      label: Screenshots, recordings or additional information
+      description: If relevant, include the display setup or recording app you used.

@@ -20,6 +20,8 @@ struct ClickCadence {
 }
 
 struct ClickResponse {
+    static let revealDuration: TimeInterval = 0.43
+
     let energy: Double
     let effects: Bool
     let celebration: Bool
