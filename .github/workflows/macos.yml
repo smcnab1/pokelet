@@ -40,7 +40,7 @@ jobs:
           git diff --check "HEAD^" HEAD
           python3 script/check_docs.py
           ruby script/check_issue_forms.rb
-          for script in script/*.sh; do bash -n "$script"; done
+          for script in script/*.sh packaging/dmg/*.sh; do bash -n "$script"; done
           swift test -Xswiftc -warnings-as-errors
           ./script/test_studio_layout.sh
       - name: Build and analyse Debug

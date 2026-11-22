@@ -16,7 +16,7 @@ The command checks the app's identity, architectures and signatures, then verifi
 
 - [Background.swift](Background.swift) renders the 720 × 432 and 1440 × 864 illustrations into one TIFF with 72 and 144 DPI representations.
 - [FinderLayout.applescript](FinderLayout.applescript) places 112-point icons and 13-point labels in icon view and hides the toolbar, sidebar, path bar and status bar.
-- [InstallerTemplate.dmg](InstallerTemplate.dmg) contains the original Finder-authored layout, artwork, volume icon, Applications symlink and empty icon-position placeholder. Packaging replaces the placeholder with the signed bundle and retains the original filesystem so Finder's background reference stays valid.
+- [InstallerTemplate.dmg](InstallerTemplate.dmg) is the only disk image tracked in Git. It contains the Finder-authored layout, artwork, volume icon, Applications symlink and empty icon-position placeholder. Packaging replaces the placeholder with the signed bundle and retains the original filesystem so Finder's background reference stays valid. Keep generated installers and screenshots in `dist/`.
 
 Regenerate the template in a macOS desktop session with Xcode installed and Finder available for AppleScript. The HFS+ template reserves 32 MiB. Increase the size in the generator if a future bundle outgrows the image.
 

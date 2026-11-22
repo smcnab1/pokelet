@@ -189,7 +189,6 @@ for item in "$MOUNT"/* "$MOUNT"/.background/*; do
   esac
 done
 shopt -u dotglob nullglob
-cmp "$APP/Contents/MacOS/Pokelet" "$MOUNT/Pokelet.app/Contents/MacOS/Pokelet"
 diff -qr "$APP" "$MOUNT/Pokelet.app"
 "$ROOT/script/test_native.sh" "$MOUNT/Pokelet.app"
 if [[ "$MODE" == --notarise ]]; then
