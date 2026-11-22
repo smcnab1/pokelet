@@ -16,3 +16,7 @@ The [upstream MIT notice](Pokelet/Resources/QuietPointer-MIT.txt) is carried ver
 | Documentation gallery | Output of [make_gallery.swift](script/make_gallery.swift) using the app’s vector paths. |
 
 The app depends on system frameworks and uses SF Symbols supplied by macOS. It ships no external package, font, stock audio or third-party artwork. [Vorssaint’s public Settings images](https://github.com/vorssaint/vorssaint-utils/tree/main/docs/assets/readme) informed the use of a compact sidebar and grouped controls. No Vorssaint source or assets are included.
+
+## Website font
+
+The website self-hosts [Geist](https://github.com/vercel/geist-font) by Vercel and basement.studio under the [SIL Open Font License](docs/site/assets/geist-OFL.txt).
