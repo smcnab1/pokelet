@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-}"
+APP=""
 IDENTITY="${POKELET_DEVELOPER_ID:-}"
 PROFILE="${POKELET_NOTARY_PROFILE:-}"
 
@@ -33,10 +34,14 @@ case "$MODE" in
     APP="$(cd "$2" && pwd -P)"
     ;;
   --beta|--notarise)
-    [[ $# -le 2 ]] || exit 2
     if [[ "$MODE" == --beta ]]; then
+      [[ $# -le 3 ]] || exit 2
       OUT="${2:-$ROOT/dist/beta}"
+      if [[ $# -eq 3 ]]; then
+        APP="$(cd "$3" && pwd -P)"
+      fi
     else
+      [[ $# -le 2 ]] || exit 2
       OUT="${2:-$ROOT/dist/notarised}"
     fi
     if [[ -e "$OUT" || -L "$OUT" ]]; then
@@ -50,7 +55,7 @@ case "$MODE" in
     mkdir -p "$(dirname "$OUT")"
     ;;
   *)
-    printf 'Usage: %s --check-signing | --check-layout path/to/Pokelet.app | --beta [output-directory] | --notarise [output-directory]\n' "$0" >&2
+    printf 'Usage: %s --check-signing | --check-layout path/to/Pokelet.app | --beta [output-directory [path/to/Pokelet.app]] | --notarise [output-directory]\n' "$0" >&2
     exit 2
     ;;
 esac
@@ -81,7 +86,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [[ "$MODE" != --check-layout ]]; then
+if [[ -z "$APP" ]]; then
   "$ROOT/script/package_release.sh" "$STAGE/candidate"
   APP="$STAGE/candidate/Pokelet.app"
 fi
@@ -100,6 +105,15 @@ if [[ "$MODE" == --notarise ]]; then
 fi
 
 if [[ "$MODE" == --beta ]]; then
+  if [[ "$(/usr/bin/plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" != uk.co.sammcnab.Pokelet ]]; then
+    printf 'The beta DMG requires the Pokelet release bundle identifier.\n' >&2
+    exit 1
+  fi
+  ARCHITECTURES="$(xcrun lipo -archs "$APP/Contents/MacOS/Pokelet" | tr ' ' '\n' | sort)"
+  if [[ "$ARCHITECTURES" != $'arm64\nx86_64' ]]; then
+    printf 'The beta DMG requires a universal arm64 and x86_64 app.\n' >&2
+    exit 1
+  fi
   for arch in arm64 x86_64; do
     /usr/bin/codesign --display --arch "$arch" --verbose=4 "$APP" 2>&1 | /usr/bin/awk '
       $0 == "Signature=adhoc" { adhoc = 1 }
@@ -108,14 +122,26 @@ if [[ "$MODE" == --beta ]]; then
   done
 fi
 
-mkdir "$STAGE/layout" "$MOUNT"
-/usr/bin/ditto "$APP" "$STAGE/layout/Pokelet.app"
-ln -s /Applications "$STAGE/layout/Applications"
+# Clone the Finder-authored filesystem so the background bookmark and volume icon
+# stay attached to the original volume and file. Packaging needs no Finder session.
+mkdir "$MOUNT"
+WRITABLE="$STAGE/writable.dmg"
+/usr/bin/hdiutil convert -quiet -format UDRW -o "$WRITABLE" "$ROOT/packaging/dmg/InstallerTemplate.dmg"
+/usr/bin/hdiutil attach -quiet -nobrowse -noautoopen -mountpoint "$MOUNT" "$WRITABLE"
+attached=true
+# The empty folder supplies Finder's icon position. Replace it so its metadata
+# cannot carry over into the signed bundle.
+rmdir "$MOUNT/Pokelet.app"
+/usr/bin/ditto "$APP" "$MOUNT/Pokelet.app"
+rm -rf "$MOUNT/.fseventsd"
+/usr/bin/hdiutil detach -quiet "$MOUNT"
+attached=false
+
 VERSION="$(/usr/bin/plutil -extract CFBundleShortVersionString raw "$APP/Contents/Info.plist")"
 SUFFIX=""
 if [[ "$MODE" == --beta ]]; then SUFFIX="-unnotarised"; fi
 DMG="$STAGE/Pokelet-$VERSION$SUFFIX.dmg"
-/usr/bin/hdiutil create -quiet -volname Pokelet -fs HFS+ -format UDZO -srcfolder "$STAGE/layout" "$DMG"
+/usr/bin/hdiutil convert -quiet -format UDZO -o "$DMG" "$WRITABLE"
 
 if [[ "$MODE" == --notarise ]]; then
   BUNDLE_ID="$(/usr/bin/plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")"
@@ -151,7 +177,20 @@ fi
 /usr/bin/hdiutil attach -quiet -readonly -nobrowse -noautoopen -mountpoint "$MOUNT" "$DMG"
 attached=true
 test "$(readlink "$MOUNT/Applications")" = /Applications
+test -d "$MOUNT/Applications"
+test -s "$MOUNT/.DS_Store"
+test -s "$MOUNT/.VolumeIcon.icns"
+test -s "$MOUNT/.background/background.tiff"
+shopt -s dotglob nullglob
+for item in "$MOUNT"/* "$MOUNT"/.background/*; do
+  case "${item#"$MOUNT"/}" in
+    Applications|Pokelet.app|.DS_Store|.VolumeIcon.icns|.background|.background/background.tiff) ;;
+    *) printf 'Unexpected mounted image item: %s\n' "${item##*/}" >&2; exit 1 ;;
+  esac
+done
+shopt -u dotglob nullglob
 cmp "$APP/Contents/MacOS/Pokelet" "$MOUNT/Pokelet.app/Contents/MacOS/Pokelet"
+diff -qr "$APP" "$MOUNT/Pokelet.app"
 "$ROOT/script/test_native.sh" "$MOUNT/Pokelet.app"
 if [[ "$MODE" == --notarise ]]; then
   /usr/sbin/spctl --assess --type execute --verbose=2 "$MOUNT/Pokelet.app"
