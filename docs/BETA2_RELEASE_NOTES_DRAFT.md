@@ -1,6 +1,6 @@
 # Pokelet 1.2.0 Beta 2 - release notes draft
 
-**Status:** Prepared, **not published**. Publish only after the owner approves the exact tag, release asset, source commit and SHA-256 checksum.
+**Status:** Prepared, **not published**. Publish only after the owner approves the exact tag, release asset, source commit, SHA-256 checksum and detached signature.
 
 **Planned Git tag:** `v1.2.0-beta.1`
 **Application:** Pokelet `1.2.0`, build `3`
@@ -22,9 +22,9 @@ Existing character, colour, sound, and saved shortcut preferences remain intact.
 
 ## Installation and important disclosures
 
-1. After publication, download the DMG **and its matching SHA-256 file** from this exact GitHub prerelease and verify the checksum.
+1. After publication, download the DMG, `.sha256` and `.minisig` from this exact GitHub prerelease. Follow the [release verification guide](VERIFYING_RELEASES.md) to check both the checksum and signature.
 2. Open the DMG, drag Pokelet to Applications, and eject the disk image.
-3. This free beta is **ad hoc signed, not Developer ID signed or Apple-notarised**. macOS may prevent first launch. Only if you trust the source and verify the checksum, use Apple's **System Settings → Privacy & Security → Open Anyway** option where offered. Do not disable Gatekeeper globally; stop for damage or malware warnings.
+3. This free beta is **ad hoc signed, not Developer ID signed or Apple-notarised**. macOS may prevent first launch. Only if you trust the source and both checks succeed, use Apple's **System Settings → Privacy & Security → Open Anyway** option where offered. Do not disable Gatekeeper globally; stop for damage or malware warnings.
 4. Open Pokelet from Applications and enable the pointer from the menu bar or Studio.
 
 Presentation Mode's click-suppression control is **experimental and disabled in public Release builds**. Ordinary pointer use requires neither Accessibility nor Input Monitoring. Interactive-only sound behaviour relies on Accessibility information and is partially tested; if it is unavailable, choose Every click instead.
@@ -41,8 +41,8 @@ See the [privacy policy](../PRIVACY.md), [security reporting policy](../SECURITY
 
 ## Must complete before posting these notes
 
-- [ ] Confirm the final app source SHA and intended tag SHA, and explain any packaging/source differences.
+- [ ] Compare the intended tag SHA against the recorded build and packaging source in the [release checklist](RELEASE_CHECKLIST.md).
 - [ ] Verify the final **uploaded** DMG is the accepted Pokelet 1.2.0 (3) premium installer.
-- [ ] Verify its published filename, SHA-256 value and accompanying checksum file.
+- [ ] Verify its published filename, SHA-256 value, checksum sidecar and detached Minisign signature.
 - [ ] Replace general download instructions with the confirmed GitHub release asset link after upload.
 - [ ] Obtain the owner's explicit release approval and only then publish the prerelease.

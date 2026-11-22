@@ -11,6 +11,11 @@ forms = {
 files = Dir.children(templates).sort
 abort 'Expected exactly two issue forms and config.yml' unless files == (forms.keys + ['config.yml']).sort
 
+feedback = File.read(File.join(root, 'Pokelet', 'Models', 'GitHubFeedback.swift'))
+readme = File.read(File.join(root, 'README.md'))
+contributing = File.read(File.join(root, 'CONTRIBUTING.md'))
+abort 'Missing issue chooser link from README' unless readme.include?('/issues/new/choose')
+
 forms.each do |filename, policy|
   form = YAML.safe_load(File.read(File.join(templates, filename)))
   abort "#{filename}: missing name or description" if %w[name description].any? { |key| form[key].to_s.empty? }
@@ -27,9 +32,8 @@ forms.each do |filename, policy|
   required = fields.select { |field| field.dig('validations', 'required') == true }
   abort "#{filename}: missing required fields" unless required.map { |field| field.fetch('id') } == policy.fetch(:required)
 
-  feedback = File.read(File.join(root, 'Pokelet', 'Models', 'GitHubFeedback.swift'))
-  readme = File.read(File.join(root, 'README.md'))
-  abort "#{filename}: missing app or README link" unless feedback.include?(filename) && readme.include?("template=#{filename}")
+  abort "#{filename}: missing app or contributing link" unless feedback.include?(filename) &&
+                                                              contributing.include?("template=#{filename}")
 
   next unless filename == 'bug.yml'
 

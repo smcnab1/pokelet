@@ -4,10 +4,20 @@ Pokelet is a small, native macOS project. Focused fixes, clear bug reports and p
 
 Before starting a substantial feature, open a [feature request](https://github.com/smcnab1/pokelet/issues/new?template=feature.yml) to agree its scope. Use the [bug report](https://github.com/smcnab1/pokelet/issues/new?template=bug.yml) form for defects. Include the app and macOS versions, Mac architecture, display setup and pointer mode where relevant. Report vulnerabilities [privately](SECURITY.md), not through a public issue.
 
+## Build from source
+
+Install Xcode 16 or later with the macOS SDK and select its command-line tools. Open `Pokelet.xcodeproj` and use **Product → Run** with the **Pokelet** scheme. To build without launching the app:
+
+```sh
+./script/build_and_run.sh --build
+```
+
+Run `./script/package_release.sh` to produce an ad hoc-signed universal app, ZIP and checksum in `dist/candidate/`. See the [release checklist](docs/RELEASE_CHECKLIST.md) for distribution checks.
+
 ## Propose a change
 
 1. Create a branch from `main` and keep the pull request focused.
-2. Use Xcode 16 or later to build the `Pokelet` scheme.
+2. Build the `Pokelet` scheme when changing or testing application code.
 3. Run the relevant checks before requesting review:
 
    ```sh

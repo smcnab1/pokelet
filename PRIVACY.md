@@ -13,6 +13,10 @@ Pokelet runs locally. It has no account, telemetry, background updater or networ
 
 Preferences live in macOS’s local preferences store. You can reset them in **Settings → General → Reset Settings…** and remove any grants in **System Settings → Privacy & Security**. Screen recording permissions belong to the recorder you choose.
 
+## Release availability
+
+Presenter Arm, **Interactive clicks only** and the in-app feedback tools described above are in the unpublished Beta 2. Ordinary pointer use in Beta 1 and Beta 2 requires neither Accessibility nor Input Monitoring.
+
 ## Website
 
 The landing page remembers cursor preferences in your browser. It asks GitHub’s public API for release metadata to resolve the download link and caches the answer briefly in your browser tab. Click sounds start muted each time you load the page.
