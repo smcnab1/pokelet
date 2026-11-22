@@ -89,3 +89,9 @@ Packaging writes an app, ZIP and checksum under `dist/candidate/`. It does not p
 Pokelet is independent of Pokey and not affiliated with its developer. It adapts MIT-licensed Quiet Pointer code and uses original Pokelet artwork and sounds.
 
 [MIT licence](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Changelog](CHANGELOG.md) · [OpenSSF evidence and progress](docs/OPENSSF_ASSESSMENT.md)
+
+## Website
+
+The landing page remembers its cursor preferences in your browser. It asks GitHub's public API for release metadata to resolve the download link and caches the response briefly in your browser tab. Click sounds start muted when you load the page.
+
+See the [website development guide](docs/WEBSITE.md) to preview the landing page locally and run its browser checks. The website self-hosts the [Geist](https://github.com/vercel/geist-font) font under the [SIL Open Font License](docs/site/assets/geist-OFL.txt).

@@ -1,82 +1,231 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en-GB">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#faf8f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1622" media="(prefers-color-scheme: dark)">
   <title>Pokelet · Free animated cursor for macOS</title>
-  <meta name="description" content="Pokelet is a free, open-source animated cursor app for macOS. Add a cartoon pointing hand, cat paw, foam finger or comic arrow with playful click animations.">
+  <meta name="description" content="Pokelet is a free, open-source animated cursor app for macOS. Try four original cartoon characters, then customise their colours, click reactions and sounds on your Mac.">
   <link rel="canonical" href="https://smcnab1.github.io/pokelet/">
+  <link rel="icon" href="assets/pokelet-icon.png" type="image/png" sizes="64x64">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Pokelet">
   <meta property="og:title" content="Pokelet · Free animated cursor for macOS">
-  <meta property="og:description" content="Four animated cartoon pointers, custom colours and click effects for macOS.">
+  <meta property="og:description" content="Give your Mac cursor a little character. Try four animated pointers right in your browser.">
   <meta property="og:url" content="https://smcnab1.github.io/pokelet/">
-  <meta property="og:image" content="https://smcnab1.github.io/pokelet/assets/pokelet-pointer-character-colours.png">
-  <meta property="og:image:alt" content="Pokelet's four cursor characters in their original colours and in black">
+  <meta property="og:image" content="https://smcnab1.github.io/pokelet/assets/pokelet-social.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Pokelet’s four original cursor characters against a lilac dotted backdrop beside the words Your cursor has character.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preload" href="assets/geist.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
+  <link rel="modulepreload" href="cursor.js">
+  <link rel="modulepreload" href="releases.js">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Pokelet",
+      "url": "https://smcnab1.github.io/pokelet/",
+      "description": "A free, open-source animated cursor companion for macOS.",
+      "operatingSystem": "macOS 14 or later",
+      "applicationCategory": "DesktopEnhancementApplication",
+      "downloadUrl": "https://github.com/smcnab1/pokelet/releases",
+      "offers": {"@type": "Offer", "price": 0, "priceCurrency": "USD"},
+      "license": "https://github.com/smcnab1/pokelet/blob/main/LICENSE",
+      "image": "https://smcnab1.github.io/pokelet/assets/pokelet-social.jpg"
+    }
+  </script>
+  <script type="module" src="site.js"></script>
 </head>
-<body>
-  <header class="wrap top">
-    <a class="brand" href="#top">Pokelet</a>
-    <nav aria-label="Main">
-      <a href="#features">Features</a>
-      <a href="#install">Install</a>
-      <a href="#questions">FAQ</a>
-      <a href="https://github.com/smcnab1/pokelet">GitHub</a>
-    </nav>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top">
+        <img src="assets/pokelet-icon.png" width="32" height="32" alt="">
+        Pokelet
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" hidden>
+        <span class="menu-icon" aria-hidden="true"></span> Menu
+      </button>
+      <nav id="primary-nav" class="primary-nav" aria-label="Main">
+        <a href="#features">Features</a>
+        <a href="#install">Installation</a>
+        <a href="#questions">FAQ</a>
+        <a class="nav-github" href="https://github.com/smcnab1/pokelet">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+      <details class="cursor-picker" hidden>
+        <summary>
+          <img src="assets/characters/finger-original-cursor.png" width="26" height="26" alt="">
+          <svg class="native-marker" viewBox="0 0 26 26" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="m7 4 14 11-7 .5-3.5 5z"/></svg>
+          <span class="picker-label">Change cursor</span>
+        </summary>
+          <div class="cursor-options" id="cursor-options">
+            <fieldset>
+              <legend>Character</legend>
+              <div class="character-options">
+                <label class="character-choice"><input type="radio" name="character" value="finger" checked>
+                  <span><img src="assets/characters/finger-original.webp" loading="lazy" width="50" height="50" alt="">The Finger</span>
+                </label>
+                <label class="character-choice"><input type="radio" name="character" value="catPaw">
+                  <span><img src="assets/characters/catPaw-original.webp" loading="lazy" width="50" height="50" alt="">Cat Paw</span>
+                </label>
+                <label class="character-choice"><input type="radio" name="character" value="foamFinger">
+                  <span><img src="assets/characters/foamFinger-original.webp" loading="lazy" width="50" height="50" alt="">Foam Finger</span>
+                </label>
+                <label class="character-choice"><input type="radio" name="character" value="comicArrow">
+                  <span><img src="assets/characters/comicArrow-original.webp" loading="lazy" width="50" height="50" alt="">Comic Arrow</span>
+                </label>
+              </div>
+            </fieldset>
+            <div class="control-pair">
+              <div>
+                <label for="palette">Colour</label>
+                <select id="palette" name="palette">
+                  <option value="original">Original</option>
+                  <option value="white">White</option>
+                  <option value="black">Black</option>
+                </select>
+              </div>
+              <div>
+                <label for="response">Click response</label>
+                <select id="response" name="response">
+                  <option value="0">Barely There</option>
+                  <option value="1">Polite</option>
+                  <option value="2" selected>Playful</option>
+                  <option value="3">Dramatic</option>
+                  <option value="4">Unhinged</option>
+                </select>
+              </div>
+            </div>
+            <div class="control-bottom">
+              <label class="sound-toggle"><input type="checkbox" name="sound"> Sound</label>
+              <button class="reset-button" type="button" aria-pressed="false">Use normal cursor</button>
+            </div>
+          </div>
+      </details>
+      <a class="button button-small header-download" data-download="Download" href="https://github.com/smcnab1/pokelet/releases"><span class="download-label">Downloads</span></a>
+    </div>
   </header>
-  <main class="wrap" id="top">
-    <section class="hero" aria-labelledby="heading">
-      <h1 id="heading">A cartoon companion for your Mac cursor.</h1>
-      <p>Point with a finger, a cat paw, a foam finger or a comic arrow. Each click makes your character poke. Click faster for a bigger reaction.</p>
-      <div class="actions">
-        <a class="button" href="https://github.com/smcnab1/pokelet/releases/download/v1.1.0-beta.1/Pokelet-1.1.0-unnotarised.dmg">Download free beta DMG</a>
-        <a href="https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1">Release notes and checksum</a>
+
+  <main id="main" tabindex="-1">
+    <section class="wrap hero" id="try" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <h1 id="hero-title">Your cursor <span>has character.</span></h1>
+        <p class="intro">Four animated cursors for your Mac. Pick one and try it as you browse.</p>
+        <div class="actions">
+          <a class="button" data-download="Download Pokelet" href="https://github.com/smcnab1/pokelet/releases">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 15v5h14v-5"/></svg>
+            <span class="download-label">Get Pokelet</span>
+          </a>
+          <button class="text-action hero-picker" type="button" aria-controls="cursor-options" aria-expanded="false" hidden>Try a different cursor <span aria-hidden="true">↗</span></button>
+        </div>
+        <p class="hero-note">Free and open source <span aria-hidden="true">·</span> macOS 14 or later</p>
       </div>
-      <small>macOS 14 or later · Apple silicon and Intel · Ad hoc signed and unnotarised</small>
-    </section>
 
-    <figure>
-      <img src="assets/pokelet-pointer-character-colours.png" width="960" height="456" alt="Four Pokelet characters in their original colours above the same four characters with true-black bodies">
-      <figcaption>The Finger, Cat Paw, Foam Finger and Comic Arrow. Rendered from Pokelet’s artwork.</figcaption>
-    </figure>
-
-    <details class="demo">
-      <summary>Watch a click animation demo</summary>
-      <img src="assets/pokelet-cursor-demo.gif" width="720" height="557" loading="lazy" alt="A cartoon Finger follows the native cursor and pokes as clicks arrive in the browser test page">
-    </details>
-
-    <section id="features">
-      <h2>Make it yours</h2>
-      <div class="features">
-        <article><h3>Pick a character</h3><p>Choose Original, White, Black or a custom colour. Set the size and add a contrasting outline.</p></article>
-        <article><h3>Set the click response</h3><p>Try five animation levels, show the character only on clicks, or reduce motion. Click sounds are optional.</p></article>
-        <article><h3>Keep the familiar cursor</h3><p>Companion mode puts the character alongside the native arrow or text cursor while you work.</p></article>
+      <div class="hero-art">
+        <div class="character-sheet">
+          <button class="hero-piece hero-finger" data-character="finger" type="button" aria-label="Try The Finger" aria-pressed="true" disabled>
+            <img class="hero-character" fetchpriority="high" src="assets/characters/finger-original.webp" width="312" height="312" alt="">
+          </button>
+          <button class="hero-piece hero-cat" data-character="catPaw" type="button" aria-label="Try Cat Paw" aria-pressed="false" disabled>
+            <img class="hero-character" src="assets/characters/catPaw-original.webp" width="312" height="312" alt="">
+          </button>
+          <button class="hero-piece hero-foam" data-character="foamFinger" type="button" aria-label="Try Foam Finger" aria-pressed="false" disabled>
+            <img class="hero-character" src="assets/characters/foamFinger-original.webp" width="312" height="312" alt="">
+          </button>
+          <button class="hero-piece hero-arrow" data-character="comicArrow" type="button" aria-label="Try Comic Arrow" aria-pressed="false" disabled>
+            <img class="hero-character" src="assets/characters/comicArrow-original.webp" width="312" height="312" alt="">
+          </button>
+          <span class="hero-rays" aria-hidden="true"><i></i><i></i><i></i></span>
+        </div>
       </div>
     </section>
 
-    <section id="install">
-      <h2>Install the beta</h2>
-      <ol>
-        <li>Open the DMG, drag <strong>Pokelet</strong> into <strong>Applications</strong>, and eject the disk image.</li>
-        <li>Open Pokelet from <strong>Applications</strong>. Apple has not notarised this build, so macOS may block the first launch.</li>
-        <li>Click the hand icon in the menu bar and choose <strong>Enable Pointer</strong>.</li>
-      </ol>
-      <p>If macOS cannot verify the developer, proceed only if you trust the source and the checksum matches. In <strong>System Settings → Privacy &amp; Security</strong>, choose <strong>Open Anyway</strong> if offered and confirm. Stop if macOS reports damage or malware. <a href="https://support.apple.com/102445">Apple’s guidance on opening apps</a></p>
-      <p><a href="https://github.com/smcnab1/pokelet#build-from-source">Build from source</a> · <a href="https://github.com/smcnab1/pokelet#uninstall">Uninstall Pokelet</a></p>
+    <section class="feature-band" id="features" aria-labelledby="features-title">
+      <div class="wrap feature-layout">
+        <div class="feature-copy">
+          <h2 id="features-title">A cursor that feels like you.</h2>
+          <dl class="feature-list">
+            <div><dt>Make it yours</dt><dd>Choose a character, adjust its size and add a custom colour or a contrasting outline.</dd></div>
+            <div><dt>Set the click response</dt><dd>Dial up the reaction, show the character only on clicks, or add an optional click sound.</dd></div>
+            <div><dt>Keep the Mac cursor you know</dt><dd>Companion mode sits beside the macOS pointer. Switch it on and off from the menu bar or with a shortcut.</dd></div>
+          </dl>
+        </div>
+        <figure class="settings-figure">
+          <img src="assets/pointer-settings.webp" width="1300" height="1114" loading="lazy" decoding="async" alt="Pokelet’s native Pointer settings with character previews, a colour picker, size and outline controls">
+          <figcaption>Pointer settings in Beta 1</figcaption>
+        </figure>
+      </div>
     </section>
 
-    <section id="questions">
-      <h2>Common questions</h2>
-      <details><summary>Which Macs can run it?</summary><p>The universal build targets macOS 14 and later on Apple silicon and Intel.</p></details>
-      <details><summary>Will it show up in a screen recording?</summary><p>Select the entire display so your recording app can include the overlay. Single-window capture generally excludes it. Desktop testing verified the overlay in a recording of one built-in Retina display.</p></details>
-      <details><summary>Does it need permissions?</summary><p>The public beta needs neither Accessibility nor Input Monitoring. Click suppression is disabled. Your screen recorder handles its own macOS permissions.</p></details>
-      <details><summary>Is it an alternative to Pokey?</summary><p>Pokelet is a free, independent alternative to Pokey, with its own cartoon characters and an MIT licence.</p></details>
+    <section class="wrap install-section" id="install" aria-labelledby="install-title">
+      <div class="download-panel">
+        <img src="assets/pokelet-icon.png" width="64" height="64" loading="lazy" alt="">
+        <h2 id="install-title">Put a little character on your Mac.</h2>
+        <p>macOS 14 or later · Apple silicon and Intel</p>
+        <a class="button" data-download="Download DMG" href="https://github.com/smcnab1/pokelet/releases">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 15v5h14v-5"/></svg>
+          <span class="download-label">View downloads</span>
+        </a>
+        <a class="release-link" data-release-notes href="https://github.com/smcnab1/pokelet/releases"><span>Latest Release Notes</span> <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="install-guide">
+        <h3>Install Pokelet</h3>
+        <ol class="steps">
+          <li><span class="step-number" aria-hidden="true">1</span><strong>Move Pokelet to Applications.</strong><p>Open the downloaded DMG, drag <strong>Pokelet</strong> into <strong>Applications</strong>, then eject the disk image.</p></li>
+          <li><span class="step-number" aria-hidden="true">2</span><strong>Open Pokelet.</strong><p>Launch it from <strong>Applications</strong>. If macOS blocks it, check the signing status and first-launch instructions in the release notes.</p></li>
+          <li><span class="step-number" aria-hidden="true">3</span><strong>Turn on the pointer.</strong><p>Select <strong>Enable Pointer</strong> from the hand icon in the menu bar. You can find or change the keyboard shortcut in <strong>Settings → General</strong>.</p></li>
+        </ol>
+        <details class="install-note">
+          <summary>If macOS blocks the first launch</summary>
+          <p>If macOS cannot verify the developer, proceed only if you trust the source. Check the <a data-release-notes href="https://github.com/smcnab1/pokelet/releases">release notes</a> and verify the checksum if one is provided. In <strong>System Settings → Privacy &amp; Security</strong>, choose <strong>Open Anyway</strong> if offered, then confirm. Stop if macOS reports damage or malware. <a href="https://support.apple.com/102445">Apple’s guidance on opening apps</a></p>
+        </details>
+        <a class="text-action source-link" href="https://github.com/smcnab1/pokelet#build-from-source">Build from source <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="wrap faq-section" id="questions" aria-labelledby="faq-title">
+      <div class="section-heading">
+        <h2 id="faq-title">Common questions.</h2>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is Pokelet free and open source?</summary><p>Yes. Pokelet is a free native macOS app that runs locally without an account. Its source code is available on GitHub under the <a href="https://github.com/smcnab1/pokelet/blob/main/LICENSE">MIT licence</a>.</p></details>
+        <details><summary>Which Macs are supported?</summary><p>Pokelet’s universal build targets macOS 14 Sonoma and later on Apple silicon and Intel. Check the release notes for the requirements of your download. Hands-on testing used an M2 Mac. Intel and older macOS runtime checks are pending. See the <a href="https://github.com/smcnab1/pokelet/blob/main/VERIFICATION.md">verification record</a> for details.</p></details>
+        <details><summary>Can I get my normal cursor back?</summary><p>Yes. Companion mode keeps the native cursor visible. You can switch Pokelet off from the menu bar or use the shortcut shown in <strong>Settings → General</strong>. Cursor replacement works only over the visible content of Pokelet’s active Settings window.</p></details>
+        <details><summary>Will it appear when I share or record my screen?</summary><p>Choose the entire display in your sharing or recording app and check that the overlay appears in its preview. Single-window capture generally excludes it. Whole-display recording was verified on one M2 Mac with an earlier build.</p></details>
+        <details><summary>Does it need special permissions?</summary><p>The public beta needs neither Accessibility nor Input Monitoring. A screen sharing or recording app handles its own macOS permissions.</p></details>
+        <details><summary>Can I turn off sounds and animations?</summary><p>Yes. Sounds are off by default and can be switched off again in <strong>Sounds</strong>. The <strong>Animations</strong> settings let you turn off click animations. Pokelet also follows the macOS Reduce Motion setting.</p></details>
+        <details><summary>How do I uninstall it?</summary><p>To clear preferences, remove imported audio and disable launch at login, first choose <strong>Settings → General → Reset Settings…</strong>. Then choose <strong>Quit Pokelet</strong> from the menu and move Pokelet from <strong>Applications</strong> to the Bin.</p></details>
+        <details><summary>Is Pokelet an alternative to Pokey?</summary><p>Pokelet is an independent, open-source alternative to Pokey, with its own artwork and click sounds.</p></details>
+      </div>
     </section>
   </main>
-  <footer class="wrap">
-    <span>Pokelet · Made for macOS</span>
-    <a href="https://github.com/smcnab1/pokelet/blob/main/PRIVACY.md">Privacy</a>
-    <a href="https://github.com/smcnab1/pokelet/blob/main/LICENSE">MIT licence</a>
+
+  <footer class="wrap site-footer">
+    <a class="brand" href="#top">
+      <img src="assets/pokelet-icon.png" width="32" height="32" loading="lazy" alt="">
+      Pokelet
+    </a>
+    <nav aria-label="Footer">
+      <a href="https://github.com/smcnab1/pokelet">GitHub</a>
+      <a href="https://github.com/smcnab1/pokelet/releases">Releases</a>
+      <a href="https://github.com/smcnab1/pokelet/blob/main/LICENSE">Licence</a>
+      <a href="https://github.com/smcnab1/pokelet/blob/main/PRIVACY.md">Privacy</a>
+      <a href="https://github.com/smcnab1/pokelet/blob/main/THIRD_PARTY_NOTICES.md">Credits</a>
+    </nav>
   </footer>
+  <div class="live-pointer" aria-hidden="true"><img src="assets/characters/finger-original.webp" width="52" height="52" alt=""></div>
+  <div class="impact" aria-hidden="true">
+    <svg viewBox="-26 -26 52 52" width="52" height="52" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path class="impact-rays" d="M0-11v-8m9 23 8 4m-26 0-7 5m5-21-6-4m26 1 6-5"/>
+      <circle class="impact-ring" r="12"/>
+      <path class="impact-paw" fill="currentColor" stroke="none" d="M-19-2c-3-4 1-8 4-7 4-1 8 4 6 7-2 2-8 2-10 0Zm-4-8a2.5 3 0 1 1 0-6 2.5 3 0 0 1 0 6Zm5-4a2.5 3 0 1 1 0-6 2.5 3 0 0 1 0 6Zm6 0a2.5 3 0 1 1 0-6 2.5 3 0 0 1 0 6Zm5 4a2.5 3 0 1 1 0-6 2.5 3 0 0 1 0 6Z"/>
+    </svg>
+  </div>
 </body>
 </html>
