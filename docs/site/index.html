@@ -151,14 +151,17 @@
         <div class="feature-copy">
           <h2 id="features-title">A cursor that feels like you.</h2>
           <dl class="feature-list">
-            <div><dt>Make it yours</dt><dd>Choose a character, adjust its size and add a custom colour or a contrasting outline.</dd></div>
-            <div><dt>Set the click response</dt><dd>Dial up the reaction, show the character only on clicks, or add an optional click sound.</dd></div>
-            <div><dt>Keep the Mac cursor you know</dt><dd>Companion mode sits beside the macOS pointer. Switch it on and off from the menu bar or with a shortcut.</dd></div>
+            <div><dt>Try it in Pokelet Studio</dt><dd>Preview each of the four original characters. Adjust its size, colour and outline, then try the click effects and optional sounds.</dd></div>
+            <div><dt>Choose when your character appears</dt><dd>Companion follows beside the Mac pointer. Click-only reveals your character where you click. Replace in Studio swaps the cursor in supported areas of the active Studio window.</dd></div>
+            <div><dt>Point with Presenter Arm</dt><dd>Try the animated glove in Studio or use it across apps. It extends from the bottom of the display while your Mac pointer stays visible.</dd></div>
           </dl>
         </div>
         <figure class="settings-figure">
-          <img src="assets/pointer-settings.webp" width="1300" height="1114" loading="lazy" decoding="async" alt="Pokelet’s native Pointer settings with character previews, a colour picker, size and outline controls">
-          <figcaption>Pointer settings in Beta 1</figcaption>
+          <picture>
+            <source media="(prefers-color-scheme: dark) and (min-width: 761px)" srcset="assets/pokelet-studio-dark.webp" width="1450" height="926">
+            <img src="assets/pokelet-studio-light.webp" width="1080" height="880" loading="lazy" decoding="async" alt="Pokelet Studio showing the animated Presenter Arm glove in the pointer preview, with Presenter Arm enabled">
+          </picture>
+          <figcaption>Presenter Arm preview in Pokelet Studio</figcaption>
         </figure>
       </div>
     </section>
@@ -178,14 +181,14 @@
         <h3>Install Pokelet</h3>
         <ol class="steps">
           <li><span class="step-number" aria-hidden="true">1</span><strong>Move Pokelet to Applications.</strong><p>Open the downloaded DMG, drag <strong>Pokelet</strong> into <strong>Applications</strong>, then eject the disk image.</p></li>
-          <li><span class="step-number" aria-hidden="true">2</span><strong>Open Pokelet.</strong><p>Launch it from <strong>Applications</strong>. If macOS blocks it, check the signing status and first-launch instructions in the release notes.</p></li>
-          <li><span class="step-number" aria-hidden="true">3</span><strong>Turn on the pointer.</strong><p>Select <strong>Enable Pointer</strong> from the hand icon in the menu bar. You can find or change the keyboard shortcut in <strong>Settings → General</strong>.</p></li>
+          <li><span class="step-number" aria-hidden="true">2</span><strong>Open Pokelet.</strong><p>Launch it from <strong>Applications</strong>. The beta is ad hoc signed and unnotarised, so macOS may block the first launch.</p></li>
+          <li><span class="step-number" aria-hidden="true">3</span><strong>Turn on the pointer.</strong><p>Select <strong>Enable Pointer</strong> from the hand icon in the menu bar. Find or change the shortcut under <strong>General</strong> in Pokelet Studio.</p></li>
         </ol>
         <details class="install-note">
           <summary>If macOS blocks the first launch</summary>
-          <p>If macOS cannot verify the developer, proceed only if you trust the source. Check the <a data-release-notes href="https://github.com/smcnab1/pokelet/releases">release notes</a> and verify the checksum if one is provided. In <strong>System Settings → Privacy &amp; Security</strong>, choose <strong>Open Anyway</strong> if offered, then confirm. Stop if macOS reports damage or malware. <a href="https://support.apple.com/102445">Apple’s guidance on opening apps</a></p>
+          <p>Check the <a data-release-notes href="https://github.com/smcnab1/pokelet/releases">release notes</a>. Proceed only if you trust the source and the <a href="https://github.com/smcnab1/pokelet/blob/main/docs/VERIFYING_RELEASES.md">download verification checks</a> pass. If macOS cannot verify the developer, choose <strong>Open Anyway</strong> in <strong>System Settings → Privacy &amp; Security</strong> if offered. Leave Gatekeeper enabled. Stop if macOS reports damage or malware. <a href="https://support.apple.com/102445">Apple’s guidance on opening apps</a></p>
         </details>
-        <a class="text-action source-link" href="https://github.com/smcnab1/pokelet#build-from-source">Build from source <span aria-hidden="true">↗</span></a>
+        <a class="text-action source-link" href="https://github.com/smcnab1/pokelet/blob/main/CONTRIBUTING.md#build-from-source">Build from source <span aria-hidden="true">↗</span></a>
       </div>
     </section>
 
@@ -196,11 +199,11 @@
       <div class="faq-list">
         <details><summary>Is Pokelet free and open source?</summary><p>Yes. Pokelet is a free native macOS app that runs locally without an account. Its source code is available on GitHub under the <a href="https://github.com/smcnab1/pokelet/blob/main/LICENSE">MIT licence</a>.</p></details>
         <details><summary>Which Macs are supported?</summary><p>Pokelet’s universal build targets macOS 14 Sonoma and later on Apple silicon and Intel. Check the release notes for the requirements of your download. Hands-on testing used an M2 Mac. Intel and older macOS runtime checks are pending. See the <a href="https://github.com/smcnab1/pokelet/blob/main/VERIFICATION.md">verification record</a> for details.</p></details>
-        <details><summary>Can I get my normal cursor back?</summary><p>Yes. Companion mode keeps the native cursor visible. You can switch Pokelet off from the menu bar or use the shortcut shown in <strong>Settings → General</strong>. Cursor replacement works only over the visible content of Pokelet’s active Settings window.</p></details>
+        <details><summary>Can I get my normal cursor back?</summary><p>Yes. Companion mode keeps the native cursor visible. Replace in Studio restores the normal cursor when you leave eligible areas of the active Studio window. Switch Pokelet off from the menu bar or with the shortcut shown under <strong>General</strong> in Studio.</p></details>
         <details><summary>Will it appear when I share or record my screen?</summary><p>Choose the entire display in your sharing or recording app and check that the overlay appears in its preview. Single-window capture generally excludes it. Whole-display recording was verified on one M2 Mac with an earlier build.</p></details>
-        <details><summary>Does it need special permissions?</summary><p>The public beta needs neither Accessibility nor Input Monitoring. A screen sharing or recording app handles its own macOS permissions.</p></details>
-        <details><summary>Can I turn off sounds and animations?</summary><p>Yes. Sounds are off by default and can be switched off again in <strong>Sounds</strong>. The <strong>Animations</strong> settings let you turn off click animations. Pokelet also follows the macOS Reduce Motion setting.</p></details>
-        <details><summary>How do I uninstall it?</summary><p>To clear preferences, remove imported audio and disable launch at login, first choose <strong>Settings → General → Reset Settings…</strong>. Then choose <strong>Quit Pokelet</strong> from the menu and move Pokelet from <strong>Applications</strong> to the Bin.</p></details>
+        <details><summary>Does it need special permissions?</summary><p>Ordinary pointer features work without Accessibility or Input Monitoring. The optional <strong>Interactive clicks only</strong> sound setting uses Accessibility information. It stays silent if macOS cannot identify the control or Accessibility access is unavailable. Choose <strong>Every click</strong> for regular playback.</p></details>
+        <details><summary>Can I turn off sounds and animations?</summary><p>Yes. Sounds start off and can be switched off again in <strong>Sounds</strong>. Turn off click effects in <strong>Animations</strong>. Pokelet also follows the macOS Reduce Motion setting.</p></details>
+        <details><summary>How do I uninstall it?</summary><p>To clear preferences, remove imported audio and disable launch at login, first choose <strong>General → Reset Settings…</strong> in Pokelet Studio. Then choose <strong>Quit Pokelet</strong> from the menu and move Pokelet from <strong>Applications</strong> to the Bin.</p></details>
         <details><summary>Is Pokelet an alternative to Pokey?</summary><p>Pokelet is an independent, open-source alternative to Pokey, with its own artwork and click sounds.</p></details>
       </div>
     </section>

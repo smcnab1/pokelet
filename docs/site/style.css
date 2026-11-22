@@ -360,7 +360,7 @@ p { color: var(--muted); }
 .settings-figure {
   padding: clamp(.5rem, 2vw, 1.55rem) 0 0;
 }
-.settings-figure img { width: 100%; aspect-ratio: 1300 / 1114; border-radius: .72rem; box-shadow: 0 15px 40px rgb(30 14 41 / .17); }
+.settings-figure img { width: 100%; height: auto; border-radius: .72rem; box-shadow: 0 15px 40px rgb(30 14 41 / .17); }
 .settings-figure figcaption { margin-top: 1rem; font-size: .82rem; color: var(--muted); text-align: center; }
 
 .install-section {
