@@ -35,6 +35,8 @@ jobs:
           key: swift-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.xcode }}-${{ hashFiles('Package.swift', 'Pokelet/**/*.swift', 'Tests/**/*.swift') }}
           restore-keys: |
             swift-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.xcode }}-
+      - name: Analyse Swift source with SwiftLint
+        run: ./script/lint_swift.sh
       - name: Check source and test
         run: |
           git diff --check "HEAD^" HEAD

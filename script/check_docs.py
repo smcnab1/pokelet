@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 errors = []
 
 
-class LandingPage(HTMLParser):
+class HTMLReferences(HTMLParser):
     def __init__(self):
         super().__init__()
         self.references = []
@@ -37,11 +37,16 @@ def check(source, reference, ids=()):
 
 
 for source in [*ROOT.glob("*.md"), *(ROOT / "docs").glob("*.md"), *(ROOT / ".github").glob("*.md")]:
-    for reference in re.findall(r"\]\(([^\s)]+)", source.read_text()):
+    markdown = source.read_text()
+    for reference in re.findall(r"\]\(([^\s)]+)", markdown):
+        check(source, reference)
+    embedded = HTMLReferences()
+    embedded.feed(markdown)
+    for reference in embedded.references:
         check(source, reference)
 
 for source in (ROOT / "docs/site").glob("*.html"):
-    page = LandingPage()
+    page = HTMLReferences()
     page.feed(source.read_text())
     for reference in page.references:
         check(source, reference, page.ids)

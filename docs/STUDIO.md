@@ -1,5 +1,7 @@
 # Pokelet Studio
 
+Studio is part of the unpublished Beta 2. See the [usage guide](README.md) for public Beta 1.
+
 The existing Settings window put the character gallery inside a narrow preferences column and gave the live preview its own page. Studio makes the current character the primary workspace, with the appearance controls beside it on wider windows and below it on compact windows.
 
 | Area | Design |
@@ -12,6 +14,14 @@ The existing Settings window put the character gallery inside a narrow preferenc
 | Safety | Studio talks to the existing app model. Permission prompts and Presentation Mode keep their existing availability rules. The Presentation page places recovery instructions before the start action. |
 
 The app targets macOS 14 and later.
+
+## Pointer modes
+
+| Mode | What you see |
+| --- | --- |
+| **Companion** | The character follows beside the native Mac cursor and reacts to clicks. |
+| **Click-only** | The character appears at the click position and fades out. |
+| **Replace in Studio** | The character replaces the native cursor in eligible areas of the active Studio window. The Mac cursor returns outside those areas. |
 
 ## Presenter Arm
 
