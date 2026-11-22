@@ -1,27 +1,23 @@
 # Pokelet documentation
 
-[Download Beta 1](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) · [Verify and install](VERIFYING_RELEASES.md) · [Report an issue](https://github.com/smcnab1/pokelet/issues/new/choose)
+[Download Beta 2](https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1) · [Verify and install](VERIFYING_RELEASES.md) · [Report an issue](https://github.com/smcnab1/pokelet/issues/new/choose)
 
 ## Use Pokelet
 
-Open the hand icon in the menu bar and select **Enable Pointer**. Beta 1 uses **Control–Option–P** by default. Change the shortcut in **Settings → General**.
+Open the hand icon in the menu bar and select **Enable Pointer**. Select **Open Pokelet Studio** from the same menu to set up the pointer.
 
-| Setting | What it does |
+| Where to go | What you can do |
 | --- | --- |
-| **Pointer** | Choose Finger, Cat Paw, Foam Finger or Comic Arrow. Set the size and use the original colour, white, black or a custom colour. Companion follows beside the Mac cursor. Replacement is limited to eligible areas in Pokelet’s Settings window. |
-| **Animations** | Adjust the click intensity or choose click-only behaviour so the character appears only when you click. Pokelet follows macOS Reduce Motion. |
-| **Sounds** | Enable a built-in sound or import a short local audio clip. Sounds start muted. |
-| **General** | Change the shortcut, restore the pointer’s last state on launch or enable **Launch at login**. |
+| **Studio** | Pick Finger, Cat Paw, Foam Finger or Comic Arrow. Adjust the size and colour, try the live preview, or enable **Presenter Arm**. |
+| **Animations** | Adjust click intensity or enable **Click-only mode**. Pokelet follows macOS Reduce Motion. |
+| **Sounds** | Pick a built-in sound or import a short audio clip. Sounds start off. If **Interactive clicks only** stays silent, check Accessibility access or choose **Every click**. |
+| **General** | Change the shortcut, restore the last pointer state or enable **Launch at login**. |
 
-For a recording or screen share, choose an entire display to include the cursor overlay. Window-only capture usually excludes it. Recording click sounds depends on your recorder’s audio settings.
+Use **Option–Command–P** with fresh or reset settings. Upgrades keep your saved shortcut. Finder uses the same key combination for its path bar, so change it under **General** if it conflicts. See the [Studio guide](STUDIO.md) for Companion, Click-only, Replace in Studio, Presenter Arm and click sound options.
 
-To uninstall, quit Pokelet and move it from Applications to the Bin. Before quitting, use **Settings → General → Reset Settings…** if you want to clear local preferences, imported audio and the login item. Remove any optional grants in **System Settings → Privacy & Security**.
+For a recording or screen share, select the entire display and check the overlay in the recorder’s preview. Recording click sounds depends on your recorder’s audio settings.
 
-## What changes in Beta 2
-
-Beta 2 is unpublished. The [Studio guide](STUDIO.md) covers Companion, Click-only, Replace in Studio, Presenter Arm and Accessibility-dependent click sounds.
-
-The default shortcut for fresh or reset settings changes to **Option–Command–P**. Upgrades keep your saved shortcut. Finder uses the same key combination for its path bar, so review the shortcut in General if it conflicts.
+To uninstall, quit Pokelet and move it from Applications to the Bin. Before quitting, use **General → Reset Settings…** in Pokelet Studio if you want to clear local preferences, imported audio and the login item. Remove any optional grants in **System Settings → Privacy & Security**.
 
 ## Compatibility
 

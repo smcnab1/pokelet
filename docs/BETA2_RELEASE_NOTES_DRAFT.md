@@ -1,48 +1,22 @@
-# Pokelet 1.2.0 Beta 2 - release notes draft
+# Pokelet 1.2.0 Beta 2
 
-**Status:** Prepared, **not published**. Publish only after the owner approves the exact tag, release asset, source commit, SHA-256 checksum and detached signature.
+Pokelet Studio brings the live pointer preview, character picker and settings into one resizable window. Try four original characters, from the pointing finger to the comic arrow, and adjust their colour, size and outline before turning on the pointer.
 
-**Planned Git tag:** `v1.2.0-beta.1`
-**Application:** Pokelet `1.2.0`, build `3`
-**Platform:** macOS 14 or later; universal Apple silicon and Intel binary (native Intel and macOS 14 runtime validation remain incomplete)
+- **Presenter Arm** adds a cartoon glove that reaches up from the bottom of the display while keeping the Mac pointer visible. Try it in Studio or use it across apps.
+- **More precise click effects** follow primary, secondary and rapid clicks. Choose Companion to follow beside the Mac pointer, Click-only to reveal the character at each click, or Replace in Studio to swap the cursor within eligible areas of the active Studio window.
+- **Optional click sounds** can play on every click or only over interactive controls that macOS can identify. Use a built-in sound or import a short audio clip. Interactive-only playback stays silent if the control cannot be identified or Accessibility access is unavailable.
 
-Pokelet is a free, open-source macOS cursor companion with four original animated characters, adjustable appearance, click effects and optional sounds.
+If you’re upgrading, Pokelet keeps your saved settings and shortcut. The default for fresh or reset settings is **Option–Command–P**. Finder may use that shortcut for its path bar.
 
-## What's new
+## Install and verify
 
-- **Pokelet Studio:** A refreshed, resizable workspace with live pointer preview, compact character picker, section shortcuts and an optional larger-text setting.
-- **Presenter Arm:** A white cartoon glove and black sleeve, available as a Studio preview or across apps while keeping the native Mac pointer visible.
-- **More accurate clicks:** Improved primary and secondary click alignment, including rapid clicks. Companion, Click-only and Replace in Studio modes remain distinct.
-- **More flexible audio:** Play sounds on every click or, where Accessibility information is available, only on interactive controls.
-- **Simpler app controls:** More consistent Dock and menu-bar behaviour, and improved reporting links and copyable system information.
+1. From this release’s **Assets**, download `Pokelet-1.2.0-build-3-Premium-Final-Test.dmg` and its matching `.sha256` and `.minisig` files. Follow the [release verification guide](https://github.com/smcnab1/pokelet/blob/main/docs/VERIFYING_RELEASES.md) to check the SHA-256 checksum and verify the Minisign signature against the Pokelet public key.
+2. Open the verified DMG, drag **Pokelet** to **Applications**, then eject the disk image.
+3. Open Pokelet from **Applications**. This beta is **ad hoc signed and unnotarised**, so macOS may block first launch. If you trust the source and both checks passed, use **Open Anyway** in **System Settings → Privacy & Security** when offered. Keep Gatekeeper enabled and stop if macOS reports damage or malware. [Apple’s first-launch guidance](https://support.apple.com/102445)
+4. Select **Enable Pointer** from the hand icon in the menu bar.
 
-## Upgrading
+## Compatibility and known limitations
 
-Existing character, colour, sound, and saved shortcut preferences remain intact. With fresh or reset settings, the default pointer shortcut is **Option–Command–P**. Existing customised shortcuts are preserved. Finder may use the same shortcut for its path bar.
+This is app version **1.2.0 (build 3)**, distributed as a universal build for **macOS 14 Sonoma or later** on Apple silicon and Intel. Native Intel and macOS 14 runtime testing remain outstanding. Multiple-display, VoiceOver and keyboard coverage is limited.
 
-## Installation and important disclosures
-
-1. After publication, download the DMG, `.sha256` and `.minisig` from this exact GitHub prerelease. Follow the [release verification guide](VERIFYING_RELEASES.md) to check both the checksum and signature.
-2. Open the DMG, drag Pokelet to Applications, and eject the disk image.
-3. This free beta is **ad hoc signed, not Developer ID signed or Apple-notarised**. macOS may prevent first launch. Only if you trust the source and both checks succeed, use Apple's **System Settings → Privacy & Security → Open Anyway** option where offered. Do not disable Gatekeeper globally; stop for damage or malware warnings.
-4. Open Pokelet from Applications and enable the pointer from the menu bar or Studio.
-
-Presentation Mode's click-suppression control is **experimental and disabled in public Release builds**. Ordinary pointer use requires neither Accessibility nor Input Monitoring. Interactive-only sound behaviour relies on Accessibility information and is partially tested; if it is unavailable, choose Every click instead.
-
-## Verified acceptance and remaining limits
-
-The owner completed all nine final DMG and desktop acceptance checks on **22 November 2026**, covering installation, first launch, Studio, Dock/menu bar, characters and Presenter Arm, click effects and audio, cursor recovery, and retained preferences.
-
-Previous automated qualification included 46 SwiftPM tests on Apple silicon and under Rosetta, Debug/Release analysis and universal package verification. The exact tag's CI must be checked before publication.
-
-Remaining beta limitations include incomplete native Intel and macOS 14 runtime coverage, limited multiple-display testing, and incomplete full VoiceOver/keyboard-traversal and Accessibility-dependent sound coverage.
-
-See the [privacy policy](../PRIVACY.md), [security reporting policy](../SECURITY.md) and [release checklist](RELEASE_CHECKLIST.md).
-
-## Must complete before posting these notes
-
-- [ ] Compare the intended tag SHA against the recorded build and packaging source in the [release checklist](RELEASE_CHECKLIST.md).
-- [ ] Verify the final **uploaded** DMG is the accepted Pokelet 1.2.0 (3) premium installer.
-- [ ] Verify its published filename, SHA-256 value, checksum sidecar and detached Minisign signature.
-- [ ] Replace general download instructions with the confirmed GitHub release asset link after upload.
-- [ ] Obtain the owner's explicit release approval and only then publish the prerelease.
+Ordinary pointer features require neither Accessibility nor Input Monitoring. Experimental Presentation Mode click suppression is disabled in this build. For recording or screen sharing, choose the entire display and check that the pointer appears in your recorder’s preview.

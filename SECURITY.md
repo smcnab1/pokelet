@@ -14,6 +14,6 @@ Keep credentials outside Git and in their provider's credential store or the mac
 
 ## Distribution and trust
 
-The current public beta is **ad hoc signed and unnotarised**. Download Pokelet from [official GitHub Releases](https://github.com/smcnab1/pokelet/releases) and follow the [verification and first-launch guide](docs/VERIFYING_RELEASES.md). Beta 1 provides a SHA-256 checksum. Future signed releases use Pokelet’s [Minisign public key](security/pokelet-minisign.pub).
+The current public beta is **ad hoc signed and unnotarised**. Download Pokelet from [official GitHub Releases](https://github.com/smcnab1/pokelet/releases) and follow the [verification and first-launch guide](docs/VERIFYING_RELEASES.md). Beta 2 provides a SHA-256 checksum and detached signature. Verify the signature with Pokelet’s [Minisign public key](security/pokelet-minisign.pub). Beta 1 provides a checksum.
 
 The [release checklist](docs/RELEASE_CHECKLIST.md) describes the maintainer’s verification process. See the [privacy policy](PRIVACY.md) for data handling and permissions.
