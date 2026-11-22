@@ -4,7 +4,7 @@
 <p align="center">A free, lightweight, open-source animated cursor companion for macOS.</p>
 
 <p align="center">
-  <a href="https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1"><strong>Download</strong></a> ·
+  <a href="https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1"><strong>Download</strong></a> ·
   <a href="docs/README.md">Documentation</a> ·
   <a href="https://smcnab1.github.io/pokelet/">Website</a> ·
   <a href="https://github.com/smcnab1/pokelet/issues/new/choose">Report an issue</a>
@@ -23,14 +23,12 @@
 ## Make it yours
 
 - Pick one of four original cartoon characters and customise its colour and size.
-- Keep the character beside your Mac cursor or reveal it on clicks. Adjust the click effects and add an optional sound.
+- Try Companion, Click-only and Presenter Arm in [Pokelet Studio](docs/STUDIO.md). Adjust click effects and add an optional sound.
 - Everything runs locally. Pokelet has no accounts, telemetry or background updater.
-
-**In the works:** [Beta 2](CHANGELOG.md) introduces Pokelet Studio and Presenter Arm. The public download is still Beta 1.
 
 ## Install
 
-[Get Pokelet 1.1.0 Beta 1](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1), open the DMG and drag Pokelet to Applications. The current beta is **ad hoc signed and unnotarised**. Follow the [verification and first-launch guide](docs/VERIFYING_RELEASES.md) before opening it.
+[Get Pokelet 1.2.0 Beta 2](https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1), open the DMG and drag Pokelet to Applications. The current beta is **ad hoc signed and unnotarised**. Follow the [verification and first-launch guide](docs/VERIFYING_RELEASES.md) before opening it.
 
 **macOS 14 or later** · Universal build for Apple silicon and Intel. [Compatibility and testing coverage](docs/README.md#compatibility)
 

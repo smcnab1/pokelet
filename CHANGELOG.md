@@ -2,7 +2,7 @@
 
 ## 1.2.0-beta.1
 
-Pokelet 1.2.0 Beta 2, build 3. Release candidate pending publication approval.
+Pokelet 1.2.0 Beta 2, build 3. [Release notes and downloads](https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1)
 
 ### Studio
 

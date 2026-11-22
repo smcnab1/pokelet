@@ -10,7 +10,7 @@ The public landing page is plain HTML, CSS and JavaScript in [docs/site](site). 
 | Hero | A composition of the four native characters on a dotted lilac backdrop. Each character can be selected directly. |
 | Cursor | A compact header selector sets the character, colour, click response and sound. **Use normal cursor** switches the site effects off. |
 | Motion | Short reactions across the page. Editable fields and native controls retain their usual cursors. Touch and keyboard activations use local feedback. Reduced Motion uses opacity feedback. |
-| Product details | Native settings screenshot, automatic downloads, installation guidance and a native FAQ disclosure. |
+| Product details | Native Studio screenshot, automatic downloads, installation guidance and a native FAQ disclosure. |
 
 The browser preview offers Original, White and Black, five response levels and the built-in Soft Tap sound. Its pointer uses a 52 px transparent PNG with a hotspot at (16, 8), derived from the app’s 104-point canvas. The larger artwork uses WebP. The page remembers the cursor selection in local storage when available. Sound starts muted on every load. The native input acceptance page is at [Tests/Interactive/InputTargets.html](../Tests/Interactive/InputTargets.html).
 
@@ -71,4 +71,4 @@ for source in Path(sys.argv[1]).glob("*.png"):
 PY
 ```
 
-The app icon, Soft Tap sound and [Pointer settings screenshot](screenshots/pokelet-settings-pointer-dark.png) also come from the repository. The social preview is a 1,200 × 630 composition of the hero and original character art.
+The app icon and Soft Tap sound also come from the repository. The Studio image uses the [compact light](screenshots/pokelet-studio-presenter-compact-light.png) and [wide dark](screenshots/pokelet-studio-presenter-preview-dark.png) captures of Presenter Arm. The site serves WebP copies at their original aspect ratios. Phones use the compact capture for larger controls and text. The social preview is a 1,200 × 630 composition of the hero and original character art.

@@ -1,6 +1,6 @@
 # Pokelet Studio
 
-Studio is part of the unpublished Beta 2. See the [usage guide](README.md) for public Beta 1.
+Studio is available in Pokelet 1.2.0 Beta 2. See the [usage guide](README.md) to verify, install and start Pokelet.
 
 The existing Settings window put the character gallery inside a narrow preferences column and gave the live preview its own page. Studio makes the current character the primary workspace, with the appearance controls beside it on wider windows and below it on compact windows.
 
