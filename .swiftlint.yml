@@ -1,0 +1,22 @@
+included:
+  - Pokelet
+
+# Focus on failure paths and security-sensitive APIs. Leave formatting to reviews.
+only_rules:
+  - force_try
+  - unowned_variable_capture
+  - custom_rules
+
+custom_rules:
+  weak_crypto_hash:
+    name: Weak cryptographic hash
+    regex: '\b(?:Insecure\s*\.\s*(?:MD5|SHA1)|CC_(?:MD[245]|SHA1)(?:_Init|_Update|_Final)?)\b'
+    match_kinds: [identifier]
+    message: Use a modern cryptographic hash such as SHA-256.
+    severity: error
+  manual_server_trust:
+    name: Manual server trust
+    regex: '\bURLCredential\s*\(\s*trust\s*:'
+    match_kinds: [identifier, argument]
+    message: Use platform trust evaluation. Review and document any custom trust handling.
+    severity: error
