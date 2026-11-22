@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/site/assets/pokelet-icon.png" width="64" height="64" alt="Pokelet app icon"></p>
 <h1 align="center">Pokelet</h1>
 <p align="center"><strong>A little personality for your Mac cursor.</strong></p>
-<p align="center">A free, open-source animated cursor companion for macOS.</p>
+<p align="center">A free, lightweight, open-source animated cursor companion for macOS.</p>
 
 <p align="center">
   <a href="https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1"><strong>Download</strong></a> ·
@@ -12,10 +12,10 @@
 
 <p align="center">
   <a href="https://github.com/smcnab1/pokelet/releases"><img alt="Current beta release" src="https://img.shields.io/github/v/release/smcnab1/pokelet?include_prereleases&amp;label=beta"></a>
-  <a href="https://github.com/smcnab1/pokelet/actions/workflows/macos.yml"><img alt="macOS build and tests" src="https://github.com/smcnab1/pokelet/actions/workflows/macos.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/smcnab1/pokelet/actions/workflows/macos.yml"><img alt="macOS build and tests" src="https://img.shields.io/github/actions/workflow/status/smcnab1/pokelet/macos.yml?branch=main&amp;label=CI"></a>
+  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/github/license/smcnab1/pokelet"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/smcnab1/pokelet"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/smcnab1/pokelet/badge"></a>
   <a href="https://www.bestpractices.dev/projects/16999"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/16999/badge"></a>
-  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/github/license/smcnab1/pokelet"></a>
 </p>
 
 ![Pokelet’s pointing finger, cat paw, foam finger and comic arrow in their original colours and in black](docs/site/assets/pokelet-pointer-character-colours.png)
