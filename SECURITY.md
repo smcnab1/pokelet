@@ -14,6 +14,6 @@ Keep credentials outside Git and in their provider's credential store or the mac
 
 ## Distribution and trust
 
-Pokelet's current public beta is **ad hoc signed and not notarised by Apple**. An ad hoc signature is a package-integrity mechanism, **not proof of the developer's identity**. Obtain downloads from the [official GitHub Releases page](https://github.com/smcnab1/pokelet/releases), compare the published SHA-256 checksum and use only Apple's [per-app Open Anyway procedure](https://support.apple.com/102445) if you trust the source. Do not disable Gatekeeper globally. Stop if macOS reports damage or malware.
+The current public beta is **ad hoc signed and unnotarised**. Download Pokelet from [official GitHub Releases](https://github.com/smcnab1/pokelet/releases) and follow the [verification and first-launch guide](docs/VERIFYING_RELEASES.md). Beta 1 provides a SHA-256 checksum. Future signed releases use Pokelet’s [Minisign public key](security/pokelet-minisign.pub).
 
-The [release checklist](docs/RELEASE_CHECKLIST.md) describes the build and verification process. See the [privacy policy](PRIVACY.md) for data handling and permissions. Presentation Mode's click suppression is excluded from public Release builds.
+The [release checklist](docs/RELEASE_CHECKLIST.md) describes the maintainer’s verification process. See the [privacy policy](PRIVACY.md) for data handling and permissions.
