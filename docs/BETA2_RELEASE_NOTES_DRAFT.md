@@ -2,8 +2,8 @@
 
 **Status:** Prepared, **not published**. Publish only after the owner approves the exact tag, release asset, source commit and SHA-256 checksum.
 
-**Planned Git tag:** `v1.2.0-beta.1`  
-**Application:** Pokelet `1.2.0`, build `3`  
+**Planned Git tag:** `v1.2.0-beta.1`
+**Application:** Pokelet `1.2.0`, build `3`
 **Platform:** macOS 14 or later; universal Apple silicon and Intel binary (native Intel and macOS 14 runtime validation remain incomplete)
 
 Pokelet is a free, open-source macOS cursor companion with four original animated characters, adjustable appearance, click effects and optional sounds.
