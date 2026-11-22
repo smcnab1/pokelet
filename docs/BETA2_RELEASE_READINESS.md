@@ -1,5 +1,7 @@
 # Beta 2 release readiness
 
+> **Update, 22 November 2026:** This is a historical qualification record from 21 November, not the current publication decision. Beta 2 subsequently passed nine owner-run DMG, first-launch, Studio, cursor and recovery checks. The owner approved an **ad hoc-signed, unnotarised experimental beta** without additional VM or Apple Developer membership requirements. The former Developer ID/notarisation gate below has been superseded. Use the [current release checklist](RELEASE_CHECKLIST.md) for publication.
+
 **21 November 2026 · GO for merge review, NO-GO for public publication.** The approved metadata passed local and hosted qualification. A Developer ID-signed, notarised DMG and first-launch acceptance on a disposable system are still required. [Pull request #5](https://github.com/smcnab1/pokelet/pull/5)
 
 | Release input | Value |

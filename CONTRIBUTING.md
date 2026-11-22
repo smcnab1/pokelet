@@ -1,11 +1,27 @@
 # Contributing to Pokelet
 
-Use the [feature request](https://github.com/smcnab1/pokelet/issues/new?template=feature.yml) or [bug report](https://github.com/smcnab1/pokelet/issues/new?template=bug.yml) form. Include the Pokelet version, macOS version, Mac architecture, display setup and the relevant pointer mode. Follow the [security policy](SECURITY.md) for private reports.
+Pokelet is a small, native macOS project. Focused fixes, clear bug reports and practical improvements are welcome.
 
-1. Build the Pokelet scheme using Xcode 16 or later.
-2. Run `swift test`, `./script/test_native.sh` and `python3 script/check_docs.py` and `ruby script/check_issue_forms.rb`.
-3. Open a focused pull request. Describe the behaviour and list the checks you ran. For visual changes, attach safe screenshots that show light and dark appearance.
+Before starting a substantial feature, open a [feature request](https://github.com/smcnab1/pokelet/issues/new?template=feature.yml) to agree its scope. Use the [bug report](https://github.com/smcnab1/pokelet/issues/new?template=bug.yml) form for defects. Include the app and macOS versions, Mac architecture, display setup and pointer mode where relevant. Report vulnerabilities [privately](SECURITY.md), not through a public issue.
 
-The automated tests use mock cursor and input state, offscreen drawing and temporary audio fixtures. Exercise live cursor changes and click suppression only in a controlled test session. The [acceptance plan](docs/INTERACTIVE_ACCEPTANCE.md) includes recovery steps.
+## Propose a change
 
-Pokelet uses Apple frameworks. If you contribute artwork or audio, include its origin and licence. By contributing original code or assets, you agree to license your contributions under the [MIT licence](LICENSE).
+1. Create a branch from `main` and keep the pull request focused.
+2. Use Xcode 16 or later to build the `Pokelet` scheme.
+3. Run the relevant checks before requesting review:
+
+   ```sh
+   swift test -Xswiftc -warnings-as-errors
+   ./script/test_native.sh
+   python3 script/check_docs.py
+   ruby script/check_issue_forms.rb
+   ```
+
+4. Describe the behaviour, risk and actual checks performed in your pull request. If a check was not run, say so. For visible changes, add representative light and dark screenshots where possible.
+5. Wait for review and passing CI before merging. Maintainers determine whether and when to release.
+
+**Testing policy:** Changes adding major functionality or fixing regressions should add or update automated tests where feasible. When automated testing cannot safely cover live cursor, input or Accessibility behaviour, document a focused manual test and recovery route instead of claiming equivalent automated coverage. Recent test and acceptance evidence is linked from [verification](VERIFICATION.md).
+
+The automated suite uses mock cursor and input state, offscreen drawing and temporary audio fixtures. Do not exercise live click suppression outside an approved controlled Debug test. The [interactive acceptance guide](docs/INTERACTIVE_ACCEPTANCE.md) records recovery steps; public Release builds do not enable Presentation Mode.
+
+Pokelet relies on Apple system frameworks and builds with Xcode. For artwork or audio, include the origin, licence and permission to redistribute it. By contributing original code or assets, you agree to make them available under the project's [MIT licence](LICENSE). See the [third-party notices](THIRD_PARTY_NOTICES.md).
