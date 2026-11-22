@@ -4,7 +4,7 @@
 
 Pokelet is a free, open-source native macOS app that gives your pointer a personality. Choose a pointing finger, cat paw, foam finger or comic arrow, customise its appearance, and make every click a little more expressive.
 
-[![Latest beta release](https://img.shields.io/github/v/release/smcnab1/pokelet?include_prereleases&label=beta)](https://github.com/smcnab1/pokelet/releases) [![macOS build and tests](https://github.com/smcnab1/pokelet/actions/workflows/macos.yml/badge.svg?branch=main)](https://github.com/smcnab1/pokelet/actions/workflows/macos.yml) [![MIT licence](https://img.shields.io/github/license/smcnab1/pokelet)](LICENSE)
+[![Latest beta release](https://img.shields.io/github/v/release/smcnab1/pokelet?include_prereleases&label=beta)](https://github.com/smcnab1/pokelet/releases) [![macOS build and tests](https://github.com/smcnab1/pokelet/actions/workflows/macos.yml/badge.svg?branch=main)](https://github.com/smcnab1/pokelet/actions/workflows/macos.yml) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/smcnab1/pokelet/badge)](https://scorecard.dev/viewer/?uri=github.com/smcnab1/pokelet) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16999/badge)](https://www.bestpractices.dev/projects/16999) [![MIT licence](https://img.shields.io/github/license/smcnab1/pokelet)](LICENSE)
 
 **macOS 14 or later · Apple silicon and Intel universal binary · No account or telemetry**
 
@@ -63,6 +63,8 @@ Universal binaries target macOS 14 and later, but runtime testing on native Inte
 For screen recordings, capture an entire display to include the overlay; window-only capture generally excludes it. Audio recording depends on your recording application's capture settings.
 
 Read the [privacy policy](PRIVACY.md) and [security policy](SECURITY.md).
+
+OpenSSF checks and Best Practices are independently maintained assessments. Badges show their current recorded results, not a guarantee of security or proof of Apple notarisation. See the [assessment evidence](docs/OPENSSF_ASSESSMENT.md) and [security policy](SECURITY.md).
 
 ## Settings and removal
 
