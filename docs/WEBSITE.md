@@ -52,8 +52,8 @@ Run the [native artwork exporter](../script/make_site_art.swift) on macOS. The e
 
 ```sh
 art_dir=$(mktemp -d)
-swiftc Pokelet/Models/{Preferences,KeyCodeNames,CursorGeometry}.swift \
-  Pokelet/Cursor/PointerArt.swift script/make_site_art.swift -o "$art_dir/render"
+swiftc Pokelet/Models/{Preferences,KeyCodeNames,CursorGeometry,ClickCadence}.swift \
+  Pokelet/Cursor/{PointerArt,PointerLayer,PresenterArm}.swift script/make_site_art.swift -o "$art_dir/render"
 "$art_dir/render" "$art_dir/png"
 python3 - "$art_dir/png" <<'PY'
 from pathlib import Path
