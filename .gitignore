@@ -2,6 +2,9 @@
 .build/
 build/
 dist/
+*.dmg
+*.dmg.sha256
+!/packaging/dmg/InstallerTemplate.dmg
 DerivedData/
 xcuserdata/
 *.xcuserstate
