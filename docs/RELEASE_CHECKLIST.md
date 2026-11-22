@@ -7,7 +7,7 @@
 ## Qualify the exact source and packaged app
 
 1. Confirm the chosen final source commit, version, build and tag before writing the tag. Record whether any documentation-only or CI changes were committed after the app was packaged.
-2. Require passing CI on the intended source commit. Existing workflow: [macOS build and tests](../.github/workflows/macos.yml). The Swift suite, Debug/Release analysis and universal package checks run in CI; do not claim separate native Intel or macOS 14 runtime tests.
+2. Require passing CI on the intended source commit. The [macOS build](../.github/workflows/macos.yml) runs SwiftLint, the Swift suite, Debug and Release analysis, and universal package checks. Apply the same [SwiftLint check](../script/lint_swift.sh) to any proposed major production release before publishing. Handle confirmed findings under the [security policy](../SECURITY.md). Universal packaging verifies the binary targets and architectures. Native Intel and macOS 14 runtime checks need separate evidence.
 3. Check that the distributed DMG embeds the **approved 1.2.0 (3) app** and its expected `arm64` and `x86_64` slices; verify bundled resources, third-party licences, Release-only flags and native cursor recovery evidence.
 4. Verify `shasum -a 256` for the **actual uploaded DMG** and publish a matching `.sha256` file. An existing locally recorded candidate is not sufficient evidence if packaging or the DMG itself changes.
 5. Record the tagged commit and the provenance of the approved package. If the release tag points to a subsequent documentation/security commit, explicitly confirm the earlier build source is identical for the packaged application; otherwise rebuild and requalify. Do not attest a locally built DMG using unrelated CI output.
