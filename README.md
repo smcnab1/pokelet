@@ -1,76 +1,78 @@
 # Pokelet
 
-A free, open-source animated cursor for macOS. Pick a cartoon pointing hand, a cat paw, a foam finger or a comic arrow. Each click makes the character poke.
+**A cartoon companion for your Mac cursor.**
 
-**macOS 14 or later · Universal build for Apple silicon and Intel**
+Pokelet is a free, open-source native macOS app that gives your pointer a personality. Choose a pointing finger, cat paw, foam finger or comic arrow, customise its appearance, and make every click a little more expressive.
 
-[Download the beta DMG](https://github.com/smcnab1/pokelet/releases/download/v1.1.0-beta.1/Pokelet-1.1.0-unnotarised.dmg) · [Release notes and checksum](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) · [Project website](https://smcnab1.github.io/pokelet/) · [Report an issue](https://github.com/smcnab1/pokelet/issues/new/choose)
+[![Latest beta release](https://img.shields.io/github/v/release/smcnab1/pokelet?include_prereleases&label=beta)](https://github.com/smcnab1/pokelet/releases) [![macOS build and tests](https://github.com/smcnab1/pokelet/actions/workflows/macos.yml/badge.svg?branch=main)](https://github.com/smcnab1/pokelet/actions/workflows/macos.yml) [![MIT licence](https://img.shields.io/github/license/smcnab1/pokelet)](LICENSE)
 
-**Beta download.** The app is ad hoc signed and has not been notarised by Apple. macOS may block it on first launch.
+**macOS 14 or later · Apple silicon and Intel universal binary · No account or telemetry**
 
-![Pokelet’s four cursor characters in their original colours and in black](docs/site/assets/pokelet-pointer-character-colours.png)
+[Download the current beta](https://github.com/smcnab1/pokelet/releases/download/v1.1.0-beta.1/Pokelet-1.1.0-unnotarised.dmg) · [Release notes and SHA-256 checksum](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) · [Website](https://smcnab1.github.io/pokelet/) · [Report an issue](https://github.com/smcnab1/pokelet/issues/new/choose)
+
+> **Public download: Beta 1 (1.1.0).** Beta 2 (1.2.0, build 3) has passed owner acceptance but has **not yet been published**. The download above is deliberately still Beta 1. Public builds are ad hoc signed and not Apple-notarised.
+
+![The four original Pokelet characters and their black variants](docs/site/assets/pokelet-pointer-character-colours.png)
 
 <details>
-<summary>Watch the click animation</summary>
+<summary>Watch the pointer animation</summary>
 
-![The Finger follows the Mac cursor and pokes when you click](docs/site/assets/pokelet-cursor-demo.gif)
+![Pokelet follows the pointer and responds to clicks](docs/site/assets/pokelet-cursor-demo.gif)
 
 </details>
 
-## Get Pokelet
+## What it does
 
-1. Download and open the DMG. Drag **Pokelet** into **Applications**, then eject the disk image.
-2. Open Pokelet from **Applications**. If macOS blocks it because Apple cannot verify the developer, proceed only if you trust the source and the [published checksum](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) matches. In **System Settings → Privacy & Security**, choose **Open Anyway** if macOS offers it, then confirm. If macOS reports damage or malware, stop. [Apple’s guidance](https://support.apple.com/102445)
-3. Click the hand icon in the menu bar and choose **Enable Pointer**, or press **Control–Option–P**.
+- **Four characters:** Finger, Cat Paw, Foam Finger and Comic Arrow, in original, white, black or custom colours, with adjustable size.
+- **Three pointer behaviours:** Companion keeps the native pointer visible beside the character; Click-only shows the character when you click; replacement is limited to eligible areas inside Pokelet's own window.
+- **Click reactions:** Five intensity settings, rapid-click effects and support for macOS Reduce Motion.
+- **Optional sounds:** Built-in sounds or short imported local audio, muted by default.
+- **Local by design:** Preferences and imported audio stay on your Mac. No tracking, accounts, network service or automatic updater.
 
-You can also [build locally with Xcode](#build-from-source) from the [beta source tag](https://github.com/smcnab1/pokelet/tree/v1.1.0-beta.1).
-
-## Make it yours
-
-Open **Settings…** from the Pokelet menu. Current source builds open **Studio**, where you can choose a character, test click reactions and change its appearance. Use **⌘1** through **⌘6** to switch sections. The published beta uses the **Pointer** pane shown below.
-
-- **Pointer** lets you choose a character, colour and size. **Companion** keeps the Mac cursor visible. **Replace in Pokelet Settings** replaces it only within the exposed area of Pokelet’s active Settings window.
-- In current source builds, **Studio → Presenter effects** can show a pointing glove and sleeve from the bottom edge. Try **Presenter Arm** in the preview with the pointer off. Enable the pointer to use it across apps with the Mac cursor visible.
-- **Animations** offers five click intensities, a preview and a click-only option. Pokelet follows macOS Reduce Motion.
-- **Sounds** offers four optional sounds or a local audio import up to 3 seconds and 5 MB. Click sounds start muted. Current source builds can play sounds on every click or on interactive controls when Accessibility access is already available.
-- **General** lets you change the pointer shortcut, restore its previous state on launch or enable **Launch at login**.
+**Coming in Beta 2:** Pokelet Studio, Presenter Arm, improved click alignment, Interactive clicks only sound playback, revised Dock and menu-bar behaviour, and a new default shortcut. These changes are already in the source but are **not** included in the Beta 1 download. See the [changelog](CHANGELOG.md) and [Studio guide](docs/STUDIO.md).
 
 <details>
-<summary>See the published beta’s Pointer and Animations settings</summary>
+<summary>Preview the upcoming Pokelet Studio</summary>
 
-![Pointer Settings showing four black characters against light and dark swatches](docs/screenshots/pokelet-settings-pointer-dark.png)
-
-![Animations Settings showing click preview buttons and intensity controls](docs/screenshots/pokelet-settings-animations-dark.png)
+![Pokelet Studio in the upcoming Beta 2 build](docs/screenshots/pokelet-studio-about-dark.png)
 
 </details>
 
-## Shortcut and Presentation Mode
+## Install the current beta
 
-| Shortcut | Action |
-| --- | --- |
-| **Option–Command–P** | Toggle the pointer in current source builds with fresh or reset settings. |
-| **Control–Option–P** | Default pointer shortcut in the published Beta 1. |
+1. [Download the Beta 1 DMG](https://github.com/smcnab1/pokelet/releases/download/v1.1.0-beta.1/Pokelet-1.1.0-unnotarised.dmg) and its [checksum file](https://github.com/smcnab1/pokelet/releases/download/v1.1.0-beta.1/Pokelet-1.1.0-unnotarised.dmg.sha256). In Downloads, verify them using:
 
-Find or change your current shortcut in **Settings → General**. Pokelet registers it globally. Finder also uses Option–Command–P to show or hide the path bar, so the default can take precedence while Pokelet is running. [Apple’s keyboard shortcuts](https://support.apple.com/en-gb/102650)
+   ```sh
+   shasum -a 256 -c Pokelet-1.1.0-unnotarised.dmg.sha256
+   ```
 
-The public beta has click suppression disabled. Presentation Mode is available in local Debug builds for [controlled acceptance](docs/INTERACTIVE_ACCEPTANCE.md). In those sessions, use **Escape**, **Control–Option–T** or the menu bar pause symbol to restore clicks. [Desktop results and remaining checks](VERIFICATION.md#desktop-acceptance)
+2. Open the DMG, drag **Pokelet** into **Applications**, then eject the disk image.
+3. Open Pokelet from Applications. Because it is not Apple-notarised, macOS may prevent the first launch. If you trust the source and the checksum matches, go to **System Settings → Privacy & Security → Open Anyway** if offered, then confirm. **Never disable Gatekeeper globally. Stop if macOS reports malware or damage.** [Apple's guidance](https://support.apple.com/102445).
+4. Choose **Enable Pointer** from Pokelet's hand-shaped menu-bar icon. The Beta 1 default keyboard shortcut is **Control–Option–P**.
 
-## Permissions and privacy
+For **upcoming Beta 2** builds with new or reset settings, the default shortcut becomes **Option–Command–P**. Existing users retain their saved shortcuts after upgrading. The current shortcut is shown in the app's General settings. Finder also uses Option–Command–P for the path bar, so Pokelet's shortcut can take precedence while it runs.
 
-Everyday pointer use listens for mouse activity passively. The public beta requires neither Accessibility nor Input Monitoring. Preferences and imported sounds stay on your Mac. Pokelet has no account, analytics, telemetry or background updater. [Privacy policy](PRIVACY.md)
+## Permissions, limitations and safety
 
-## Known limitations
+The current public beta works with passive pointer observation and does not require Accessibility or Input Monitoring for ordinary use. In Beta 2, **Interactive clicks only** sounds use Accessibility information if access is available; without it, the app pauses that sound mode and offers Every click. No control text is stored or sent anywhere.
 
-- Select **Entire Screen** or **Full Display** in your recording app to include Pokelet’s overlay. An individual window capture usually excludes it. Click audio needs system-audio capture in your recorder.
-- The universal binary targets macOS 14 and later. Live desktop testing used one M2 Mac with a built-in Retina display. Intel and older macOS runtime checks are pending. [Verification record](VERIFICATION.md)
+**Presentation Mode's click suppression is experimental and unavailable in public Release builds.** Its separate Debug acceptance process is documented in the [interactive acceptance guide](docs/INTERACTIVE_ACCEPTANCE.md).
 
-## Uninstall
+Universal binaries target macOS 14 and later, but runtime testing on native Intel hardware and macOS 14 is incomplete. Multi-display, full VoiceOver and keyboard traversal, and some Accessibility-dependent interactions also have limited coverage. [Read the verification record](VERIFICATION.md).
 
-In **Settings → General**, choose **Reset Settings…** if you want to clear preferences, remove imported audio and disable launch at login. Choose **Quit Pokelet** in the menu bar, then move the installed app from **Applications** to the Bin. Remove any grants you made under **System Settings → Privacy & Security → Accessibility** or **Input Monitoring**.
+For screen recordings, capture an entire display to include the overlay; window-only capture generally excludes it. Audio recording depends on your recording application's capture settings.
+
+Read the [privacy policy](PRIVACY.md) and [security policy](SECURITY.md).
+
+## Settings and removal
+
+Open Settings from the menu bar to choose your character, appearance, animations, audio and shortcut. The current source code includes the new [Studio interface](docs/STUDIO.md), which will ship in Beta 2.
+
+To uninstall, optionally use **Reset Settings…** in General to clear imported audio, preferences and launch-at-login registration. Quit Pokelet, move it from Applications to the Bin and remove any optional grants in macOS Privacy & Security.
 
 ## Build from source
 
-Install Xcode 16 or later with the macOS SDK and select its command-line tools. Open `Pokelet.xcodeproj` and choose **Product → Run** with the **Pokelet** scheme. For a build without launching the app, use:
+Install Xcode 16 or later with the macOS SDK and command-line tools. Open `Pokelet.xcodeproj`, select the `Pokelet` scheme and choose **Product → Run**. For command-line tests and a local, ad hoc-signed universal candidate:
 
 ```sh
 ./script/build_and_run.sh --build
@@ -78,16 +80,18 @@ swift test -Xswiftc -warnings-as-errors
 ./script/package_release.sh
 ```
 
-The packaging command creates an ad hoc-signed universal app, ZIP and checksum in `dist/candidate/`. These are local development artefacts. [Release packaging and verification](docs/RELEASE_CHECKLIST.md)
+Packaging writes an app, ZIP and checksum under `dist/candidate/`. It does not publish a release. See the [release checklist](docs/RELEASE_CHECKLIST.md).
 
-## Feedback and contributing
+## Contribute and acknowledgements
 
-- [Report a bug](https://github.com/smcnab1/pokelet/issues/new?template=bug.yml). Include steps to reproduce, what you expected and what happened. In current source builds, **About → Report a problem** opens the form with editable system information. **Copy system information** is also available.
-- [Request a feature](https://github.com/smcnab1/pokelet/issues/new?template=feature.yml). Tell us what you want to do and why it would help.
-- [Report a security issue privately](https://github.com/smcnab1/pokelet/security/advisories/new). See the [security policy](SECURITY.md) for maintainer contact guidance.
+[Report a bug](https://github.com/smcnab1/pokelet/issues/new?template=bug.yml) · [Suggest a feature](https://github.com/smcnab1/pokelet/issues/new?template=feature.yml) · [Contribute](CONTRIBUTING.md) · [Report a vulnerability privately](SECURITY.md)
 
-Read the [contributing guide](CONTRIBUTING.md) before submitting a change. Pokelet is an independent alternative to Pokey and has no affiliation with it. Pokelet adapts MIT-licensed code from Quiet Pointer and uses original Pokelet artwork and sounds.
+Pokelet is independent of Pokey and not affiliated with its developer. It adapts MIT-licensed Quiet Pointer code and uses original Pokelet artwork and sounds.
 
-See the [website development guide](docs/WEBSITE.md) to preview the landing page locally and run the browser checks.
+[MIT licence](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Changelog](CHANGELOG.md) · [OpenSSF evidence and progress](docs/OPENSSF_ASSESSMENT.md)
 
-[MIT licence](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Changelog](CHANGELOG.md) · [Security reporting](SECURITY.md)
+## Website
+
+The landing page remembers its cursor preferences in your browser. It asks GitHub's public API for release metadata to resolve the download link and caches the response briefly in your browser tab. Click sounds start muted when you load the page.
+
+See the [website development guide](docs/WEBSITE.md) to preview the landing page locally and run its browser checks. The website self-hosts the [Geist](https://github.com/vercel/geist-font) font under the [SIL Open Font License](docs/site/assets/geist-OFL.txt).

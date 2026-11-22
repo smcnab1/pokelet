@@ -1,5 +1,7 @@
 # Beta 2 acceptance
 
+> **Update, 22 November 2026:** The NO-GO below describes the earlier isolated candidate. The owner subsequently completed and accepted nine final DMG, launch, Studio, pointer and recovery checks. The current [release checklist](RELEASE_CHECKLIST.md) allows publication as an explicitly unnotarised experimental beta **after final approval**; the compatibility gaps remain documented.
+
 **21 November 2026 · NO-GO for public release.** The isolated candidate passed the macOS desktop pointer matrix, cursor recovery and local package checks. Trusted distribution, release version approval and the compatibility and accessibility checks below remain open.
 
 See the [release preparation follow-up](BETA2_RELEASE_READINESS.md) for the packaging rehearsal, issue form compatibility and current publication gates.

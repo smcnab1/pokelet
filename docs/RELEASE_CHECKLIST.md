@@ -1,38 +1,41 @@
 # Public release checklist
 
-## Verify the source candidate
+**Current decision (22 November 2026):** Release an explicitly experimental, **ad hoc-signed, unnotarised** Beta 2 without purchasing Apple Developer Program membership. The owner has accepted nine manual installation and runtime checks. A Developer ID and notarisation are **not** preconditions for this particular beta. Do not silently restore the superseded notarisation gate.
 
-- Obtain approval for the version, build and tag. Commit the approved version and build in the Xcode project, then record the release commit SHA and toolchain.
-- Run the macOS workflow on that exact commit. It runs tests, builds and analyses Debug, builds and analyses universal Release, and verifies the ZIP and DMG layout. This workflow uses ad hoc signing and runs without Apple credentials.
-- Confirm the `arm64` and `x86_64` slices target macOS 14.0. Confirm the extracted app signature, bundled licences and sounds, archive integrity and SHA-256 checksum. The package check rejects debug entitlements and acceptance flags in either slice.
-- Record results in [VERIFICATION.md](../VERIFICATION.md). Release builds keep Presentation Mode disabled. [Live Presentation Mode input testing](INTERACTIVE_ACCEPTANCE.md) uses Debug and requires desktop owner approval.
+**Planned identity:** Pokelet **1.2.0 Beta 2**, app version `1.2.0`, build `3`, planned tag `v1.2.0-beta.1`. The tag is not yet published. See the [changelog](../CHANGELOG.md), the historical [readiness report](BETA2_RELEASE_READINESS.md), and the [OpenSSF assessment](OPENSSF_ASSESSMENT.md).
 
-## Rehearse with an ad hoc DMG
+## Qualify the exact source and packaged app
 
-From a clean checkout, run `./script/package_dmg.sh --beta` for a local, ad hoc-signed DMG and SHA-256 checksum in `dist/beta/`. Verification mounts the image read-only and checks the Applications shortcut, app resources and signature. `./script/package_dmg.sh --check-layout dist/candidate/Pokelet.app` uses a temporary image. These checks establish package integrity. Use the trusted DMG and an isolated desktop for launch and upgrade acceptance.
+1. Confirm the chosen final source commit, version, build and tag before writing the tag. Record whether any documentation-only or CI changes were committed after the app was packaged.
+2. Require passing CI on the intended source commit. Existing workflow: [macOS build and tests](../.github/workflows/macos.yml). The Swift suite, Debug/Release analysis and universal package checks run in CI; do not claim separate native Intel or macOS 14 runtime tests.
+3. Check that the distributed DMG embeds the **approved 1.2.0 (3) app** and its expected `arm64` and `x86_64` slices; verify bundled resources, third-party licences, Release-only flags and native cursor recovery evidence.
+4. Verify `shasum -a 256` for the **actual uploaded DMG** and publish a matching `.sha256` file. An existing locally recorded candidate is not sufficient evidence if packaging or the DMG itself changes.
+5. Record the tagged commit and the provenance of the approved package. If the release tag points to a subsequent documentation/security commit, explicitly confirm the earlier build source is identical for the packaged application; otherwise rebuild and requalify. Do not attest a locally built DMG using unrelated CI output.
+6. Confirm the owner's nine accepted Beta 2 manual results dated 22 November 2026 in the release notes. Do not require a second extensive cursor matrix, additional macOS user or VM without a newly discovered defect.
 
-The [public Beta 1](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) used an ad hoc DMG. Follow its published checksum and [Apple’s per-app guidance](https://support.apple.com/102445) for any approved historical-installation test on a disposable system.
+## Distribution and installation disclosures
 
-## Build the trusted DMG
+- The beta's ad hoc code signature is **not publisher authentication**. No Apple notarisation is claimed.
+- Link to [Apple's per-app Open Anyway instructions](https://support.apple.com/102445). Users should only proceed if they trust the source and have verified the checksum; **never advise disabling Gatekeeper globally**. A macOS warning about damage or malware is a stop condition.
+- Public Release builds exclude experimental Presentation Mode click suppression. Ordinary pointer features do not require Accessibility or Input Monitoring. Interactive-only sound behaviour may need an already-granted Accessibility permission and remains partially tested.
+- Disclose incomplete native Intel, macOS 14, multi-display, VoiceOver and full keyboard-traversal testing. Universal build compatibility is not the same as verified runtime coverage.
+- Keep local preferences and audio private; there is no account, usage telemetry or background updater.
 
-Use a Mac with Xcode and confirm the Apple Developer Program team with its Account Holder. For a new **Developer ID Application** identity, create a certificate signing request in Keychain Access on the signing Mac. The Account Holder can select **Developer ID Application** in Certificates, Identifiers & Profiles, upload that request and download the certificate. Install the certificate in the keychain that holds the matching private key. For an existing team identity, import its securely transferred certificate-and-private-key export into the signing Mac's keychain. [Apple’s certificate instructions](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/)
+## Owner-approved Beta 2 publication
 
-Reuse an existing `notarytool` profile for the same team if available. To configure a new profile after approval, run `xcrun notarytool store-credentials "PokeletNotary" --apple-id "<Apple Account>" --team-id "<Team ID>"` and enter the app-specific password at the prompt. A team-authorised App Store Connect API key is also supported. Keep credentials and private keys in approved storage. [Apple’s credential instructions](https://developer.apple.com/documentation/technotes/tn3147-migrating-to-the-latest-notarization-tool)
+1. Review the PRs, exact commit, CI results, DMG checksum and release notes; request **explicit final publication approval**.
+2. Only after approval, create `v1.2.0-beta.1` on the agreed source commit and publish a **GitHub prerelease** named **Pokelet 1.2.0 Beta 2** with the exact approved DMG and checksum.
+3. Download the public asset and checksum from GitHub Releases and compare them, inspect its filename and verify that the release notes describe the actual build.
+4. Update README feature descriptions, Studio screenshot and installation references to the now-published Beta 2. Update the [website](site/index.html) and let the existing Pages workflow deploy after approval. Do not change public download links before the actual release asset exists.
+5. GitHub's `/releases/latest` may exclude prereleases. Use a **verified exact prerelease asset URL** until a release-link strategy is implemented and hosted-tested.
+6. Smoke-test GitHub release links, the hosted website download, mobile navigation, screenshot resources, SEO metadata and first-launch guidance. Retain technical acceptance evidence outside the README.
 
-Set `POKELET_DEVELOPER_ID` to the certificate fingerprint and `POKELET_NOTARY_PROFILE` to the Keychain profile name. `./script/package_dmg.sh --check-signing` checks the configured keychains and `notarytool` locally. Run the following command from the clean release commit with the approved version and build committed, after approval to submit to Apple.
+## Packaging commands for an unnotarised beta
 
-```sh
-env -u XCODE_XCCONFIG_FILE ./script/package_dmg.sh --notarise
-```
+`./script/package_release.sh` builds and checks a local universal app and ZIP in `dist/candidate/`. `./script/package_dmg.sh --beta` produces an ad hoc-signed beta DMG in `dist/beta/` with a checksum. The premium installer has a separate approved local candidate; do not assume this command reproduces its artwork without checking the exact current script and template. Compare package provenance before distribution.
 
-The script checks access to the Notary service, builds the universal app and verifies Developer ID, hardened runtime and a secure timestamp on both slices. It signs the DMG under a distinct signing identifier, submits it to Apple, then staples and validates the ticket after acceptance. It assesses the disk image and mounted app with Gatekeeper and verifies the Applications shortcut and embedded executable. It writes the verified DMG, its checksum and the private Apple review log to `dist/notarised/`. Review the log before distribution.
+## Optional future Developer ID and notarisation
 
-If waiting, stapling or verification fails after submission, use the retained staging path and submission ID from `submission.plist`. Check the existing submission with `notarytool info` or `notarytool log` before considering a retry. Follow the full verification sequence on the same DMG if recovering an accepted submission.
+For a later trusted distribution, enrol in the Apple Developer Program, obtain a **Developer ID Application** identity, configure a private `notarytool` credential profile, then execute the existing `./script/package_dmg.sh --notarise` flow only after specific approval. Validate the signing identity, hardened runtime, timestamp, notarisation log, stapled ticket and Gatekeeper assessment on the **actual DMG**. Keep private keys out of GitHub and avoid unnecessary CI secrets.
 
-## Publish a notarised release
-
-1. On a separate test Mac or VM, browser-download the stapled DMG and verify quarantine and its checksum. Run the [fresh installation and upgrade exercises](BETA2_RELEASE_READINESS.md#disposable-desktop-acceptance).
-2. After release approval, publish the matching version tag and GitHub prerelease with the verified DMG and checksum. Use [the changelog](../CHANGELOG.md) for the public notes and include the macOS minimum and Presentation Mode status.
-3. Download the public DMG and verify it against the published checksum. Update the README and [landing page](site/index.html) to point to the verified download, then confirm the public website, release and installation links.
-
-Apple’s [distribution guidance](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution) describes signing the app and DMG, notarising the outer container and testing distribution on a separate Mac.
+See [Apple's Developer ID certificate guidance](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/) and [notarisation guidance](https://developer.apple.com/documentation/technotes/tn3147-migrating-to-the-latest-notarization-tool). Apple notarisation would materially improve ordinary macOS installation trust, but is not claimed or required for this free public beta.
