@@ -4,6 +4,20 @@ This file records release changes. Published notes, downloads and verification d
 
 ## Unreleased
 
+## [v1.3.1-beta.1] - 2026-11-23
+
+Build: 5
+Title: Pokelet 1.3.1 Beta 4
+
+### Added
+
+- Check for signed beta updates from Studio → Updates. Pokelet verifies the beta feed, release notes and download before installing an update.
+- Automatic update checks are optional. You choose when to install an available update.
+
+### Changed
+
+- Install Beta 4 manually once from the verified GitHub Release to enable beta updates. Existing settings carry over.
+
 ## [v1.3.0-beta.1] - 2026-11-23
 
 Build: 4
