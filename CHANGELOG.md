@@ -4,6 +4,15 @@ This file records release changes. Published notes, downloads and verification d
 
 ## Unreleased
 
+## [v1.3.1-beta.2] - 2026-11-23
+
+Build: 6
+Title: Pokelet 1.3.1 Beta 5
+
+### Changed
+
+- This build is the first update offered through the signed beta feed. From Beta 4, open Studio → Updates to check for and install Beta 5.
+
 ## [v1.3.1-beta.1] - 2026-11-23
 
 Build: 5
