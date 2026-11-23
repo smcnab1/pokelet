@@ -5,17 +5,54 @@
 
 <p align="center">
   <a href="https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1"><strong>Download</strong></a> ·
-  <a href="docs/README.md">Documentation</a> ·
+  <a href="https://github.com/smcnab1/pokelet/wiki">Documentation</a> ·
+  <a href="https://github.com/smcnab1/pokelet/discussions">Discussions</a> ·
   <a href="https://smcnab1.github.io/pokelet/">Website</a> ·
   <a href="https://github.com/smcnab1/pokelet/issues/new/choose">Report an issue</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/smcnab1/pokelet/releases"><img alt="Current beta release" src="https://img.shields.io/github/v/release/smcnab1/pokelet?include_prereleases&amp;label=beta"></a>
-  <a href="https://github.com/smcnab1/pokelet/actions/workflows/macos.yml"><img alt="macOS build and tests" src="https://img.shields.io/github/actions/workflow/status/smcnab1/pokelet/macos.yml?branch=main&amp;label=CI"></a>
-  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/github/license/smcnab1/pokelet"></a>
-  <a href="https://scorecard.dev/viewer/?uri=github.com/smcnab1/pokelet"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/smcnab1/pokelet/badge"></a>
-  <a href="https://www.bestpractices.dev/projects/16999"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/16999/badge"></a>
+  <a href="https://github.com/smcnab1/pokelet/releases">
+    <picture>
+      <source media="(prefers-color-scheme: dark)"
+        srcset="https://shieldcn.dev/github/tag/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=VERSION&amp;mode=dark">
+      <img alt="Latest Pokelet version"
+        src="https://shieldcn.dev/github/tag/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=VERSION&amp;mode=light">
+    </picture>
+  </a>
+  <a href="https://github.com/smcnab1/pokelet/actions/workflows/macos.yml">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/ci/smcnab1/pokelet.svg?workflow=macos.yml&amp;branch=main&amp;variant=ghost&amp;font=geist-mono&amp;label=BUILD&amp;mode=dark">
+      <img alt="macOS build and tests" src="https://shieldcn.dev/github/ci/smcnab1/pokelet.svg?workflow=macos.yml&amp;branch=main&amp;variant=ghost&amp;font=geist-mono&amp;label=BUILD&amp;mode=light">
+    </picture>
+  </a>
+  <a href="LICENSE">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/license/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=LICENSE&amp;mode=dark">
+      <img alt="MIT licence" src="https://shieldcn.dev/github/license/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=LICENSE&amp;mode=light">
+    </picture>
+  </a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/smcnab1/pokelet">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/scorecard/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=SCORECARD&amp;mode=dark">
+      <img alt="OpenSSF Scorecard" src="https://shieldcn.dev/github/scorecard/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=SCORECARD&amp;mode=light">
+    </picture>
+  </a>
+  <a href="https://www.bestpractices.dev/projects/16999">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/dynamic/json.svg?url=https%3A%2F%2Fwww.bestpractices.dev%2Fprojects%2F16999%2Fbadge.json&amp;query=%24.badge_level&amp;label=OPENSSF&amp;variant=ghost&amp;font=geist-mono&amp;logo=lu:ShieldCheck&amp;mode=dark">
+      <img alt="OpenSSF Best Practices certification" src="https://shieldcn.dev/badge/dynamic/json.svg?url=https%3A%2F%2Fwww.bestpractices.dev%2Fprojects%2F16999%2Fbadge.json&amp;query=%24.badge_level&amp;label=OPENSSF&amp;variant=ghost&amp;font=geist-mono&amp;logo=lu:ShieldCheck&amp;mode=light">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://macnative.io/apps/pokelet?utm_source=macnative-badge&utm_medium=referral" target="_blank" rel="noopener">
+      <img src="https://macnative.io/badge?kind=listed&theme=dark&slug=pokelet&rounded=1" alt="Listed on MacNative" width="180" height="50" />
+  </a>
+  <a href="https://www.producthunt.com/products/pokelet?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-pokelet" target="_blank" rel="noopener noreferrer"aria-label="View Pokelet on Product Hunt">
+              <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1326610&amp;theme=dark&amp;t=1795424503464"alt="Listed on Product Hunt"width="180"height="50"decoding="async">
+            </a>
 </p>
 
 ![Pokelet’s pointing finger, cat paw, foam finger and comic arrow in their original colours and in black](docs/site/assets/pokelet-pointer-character-colours.png)
