@@ -9,14 +9,14 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
             <title>1.3.1</title>
             <pubDate>Mon, 23 Nov 2026 00:00:00 +0000</pubDate>
             <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>5</sparkle:version>
+            <sparkle:version>6</sparkle:version>
             <sparkle:shortVersionString>1.3.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:releaseNotesLink sparkle:edSignature="U9NRCf+KGBBpSwb0SOGzSN65epd++cfXJXEiDa35CoBsXIEEFb3R8DFAtRU7E3k4qMB2nxNc0h3EbQAbmVbzAw==" sparkle:length="611">https://smcnab1.github.io/pokelet/updates/beta/Pokelet-1.3.1-beta.1-build-5.md</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/smcnab1/pokelet/releases/download/v1.3.1-beta.1/Pokelet-1.3.1-beta.1-build-5.zip" length="3082121" type="application/octet-stream" sparkle:edSignature="5zzmlqSmwRm5A3xJXDQAe58rCPSNE34oRqUYA0qny8gpSjIR92o/fxdT2gd6nE9D9zFqC+48S+TZIRvU7w7bDA=="></enclosure>
+            <sparkle:releaseNotesLink sparkle:edSignature="INJPUoeKjA0AO416der7Pjo918Ow8olM6uhFdG7GB4dz6X/wbvrwFSreeDwQ3qkNOELAMgvwtD8g27N6RQAkCQ==" sparkle:length="389">https://smcnab1.github.io/pokelet/updates/beta/Pokelet-1.3.1-beta.2-build-6.md</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/smcnab1/pokelet/releases/download/v1.3.1-beta.2/Pokelet-1.3.1-beta.2-build-6.zip" length="3082185" type="application/octet-stream" sparkle:edSignature="uOY08pvfxRSTt+3FI906vEDozdUytUjecYFfAvsbSA7Bm4Q8jjBR3UHANUMFmNdduxZRJbXnEMW4NUYpOYfbCw=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: LCymvaKpLIJgwRDZCgcdcm+RnakxDGsLeakblwb+wMbUTAF38est8ii7L6cryKuja9HbDkzRHp8cCyFmnh9gAw==
+edSignature: j5YrG44hBWppha4owd9XWkXWRCnCga6Dv7oZA9rzJ1zeCFfLUif8V1zFSxgH3RWJxkUu1VkmbCPXHPyLZlogAA==
 length: 1568
 -->
