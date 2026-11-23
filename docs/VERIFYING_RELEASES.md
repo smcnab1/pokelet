@@ -1,39 +1,36 @@
-# Verify and install Pokelet
+# Verify a Pokelet download
 
-Download Pokelet from [official GitHub Releases](https://github.com/smcnab1/pokelet/releases). [Pokelet 1.2.0 Beta 2](https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1) includes a DMG, a SHA-256 checksum and a detached Minisign signature.
+Use [official GitHub Releases](https://github.com/smcnab1/pokelet/releases). The selected release’s notes identify its installer, available verification files and signing/notarisation status. The [Wiki](https://github.com/smcnab1/pokelet/wiki/Verifying-Downloads) links here for the version-controlled verification procedure.
 
-## Check the download
+## Check the bytes
 
-1. Download the DMG and its matching `.sha256` file from the same release. Save both in Downloads and keep their filenames unchanged.
-2. In Terminal, run the following for Beta 2. For another release, use the exact filename you downloaded.
+Download the DMG and its matching `.sha256` file from the same release. Keep their names unchanged and save them together. Set `dmg` to the exact installer filename shown under that release’s Assets:
+
+```sh
+cd "$HOME/Downloads"
+dmg='EXACT-RELEASE-ASSET.dmg' # replace with the filename you downloaded
+shasum -a 256 -c "$dmg.sha256"
+```
+
+Continue only if the expected installer reports `OK`. A missing file or mismatch is a stop condition. A checksum identifies file contents; a checksum from the download page alone does not authenticate the publisher.
+
+## Check the publisher signature
+
+For a release providing a detached Minisign signature, download its matching `.minisig` file into the same folder. Do not skip a missing or failed signature when the release promises one. Older checksum-only releases cannot provide this authentication.
+
+1. Install [Minisign](https://jedisct1.github.io/minisign/), for example with `brew install minisign` if you already use Homebrew.
+2. Obtain the [Pokelet public key](../security/pokelet-minisign.pub) from the official repository using **Download raw file**. Prefer a previously trusted copy and investigate any unexpected change; obtaining both key and installer from a compromised source would not establish trust.
+3. In the same Terminal session, with `dmg` set as above and the key saved as `pokelet-minisign.pub`, run:
 
    ```sh
-   cd "$HOME/Downloads"
-   shasum -a 256 -c Pokelet-1.2.0-build-3-Premium-Final-Test.dmg.sha256
-   ```
-
-   Look for `Pokelet-1.2.0-build-3-Premium-Final-Test.dmg: OK`. A mismatch means you should stop and download the assets again.
-3. For Beta 2, download the matching `.minisig` asset to the same folder and complete the signature check below. Stop if the signature is missing. [Beta 1](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) provides checksum verification only.
-
-## Verify a signed release
-
-1. Install [Minisign](https://jedisct1.github.io/minisign/). If you already use Homebrew, run `brew install minisign`.
-2. From the official repository, open the [Pokelet public key](../security/pokelet-minisign.pub) and use **Download raw file** to save it as `pokelet-minisign.pub` in Downloads. If you already have a trusted copy, use that copy and investigate any unexpected key change.
-3. Set `dmg` to the exact filename on the release page. This example uses the Beta 2 installer filename.
-
-   ```sh
-   cd "$HOME/Downloads"
-   dmg='Pokelet-1.2.0-build-3-Premium-Final-Test.dmg'
    shasum -a 256 -c "$dmg.sha256" &&
      minisign -Vm "$dmg" -p pokelet-minisign.pub
    ```
 
-   Continue only if both checks succeed. Minisign should display `Signature and comment signature verified`.
+Both checks must succeed. Minisign should report `Signature and comment signature verified`. It confirms that the bytes match a signature from the corresponding private key, provided you trust the public key. It does not establish Apple Developer ID signing or notarisation.
 
-SHA-256 identifies the file contents. A checksum from the download page alone cannot authenticate the publisher. Minisign confirms the bytes match a signature made by the holder of the corresponding private key, provided you obtained the public key through a trusted channel. The app’s ad hoc code signature provides integrity without an Apple Developer ID identity. Apple notarisation is a separate process.
+## Install safely
 
-## Install and open
+Follow the [Wiki installation guide](https://github.com/smcnab1/pokelet/wiki/Installation) and the selected release’s first-launch instructions. An ad hoc app signature provides integrity without an Apple publisher identity. For unnotarised releases, use [Apple’s per-app guidance](https://support.apple.com/102445) only if you trust the source and verification passed. Keep Gatekeeper enabled; stop if macOS reports damage or malware.
 
-1. Open the verified DMG, drag **Pokelet** to **Applications** and eject the disk image.
-2. Open Pokelet from **Applications**. Beta 2 is ad hoc signed and unnotarised. If macOS blocks it because it cannot verify the developer, continue only if you trust the source and the verification checks passed. In **System Settings → Privacy & Security**, select **Open Anyway** if offered, then confirm. Leave Gatekeeper enabled. Stop if macOS reports damage or malware. [Apple’s first-launch guidance](https://support.apple.com/102445)
-3. Select **Enable Pointer** from the hand icon in the menu bar. Read the [usage guide](README.md) for settings and shortcuts.
+For verification failures or unexpected key changes, use the [private security reporting route](../SECURITY.md). For installation questions, use [Discussions Q&A](https://github.com/smcnab1/pokelet/discussions/categories/q-a).

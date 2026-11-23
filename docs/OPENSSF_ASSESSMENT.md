@@ -1,5 +1,7 @@
 # OpenSSF assessment
 
+> Historical assessment. Statements, results and gaps below reflect the dated review, not a live release status. [Original assessment](https://github.com/smcnab1/pokelet/blob/6bb59a7c2b6c61a390e0079ed5fdd2d58ca521ae/docs/OPENSSF_ASSESSMENT.md) · [Current user documentation](https://github.com/smcnab1/pokelet/wiki) · [Release history](https://github.com/smcnab1/pokelet/releases). The public questionnaire still cites several historical paths; retained pointer pages lead to their immutable evidence.
+
 **Evidence reviewed on 22 November 2026.** The [public record for Pokelet 16999](https://www.bestpractices.dev/projects/16999.json) records **Passing**. [Scorecard reported 5.8/10](https://scorecard.dev/viewer/?uri=github.com/smcnab1/pokelet) from its [22 November scan](https://github.com/smcnab1/pokelet/actions/runs/45024169644), which preceded the Passing award and successful Swift CodeQL scan. Scorecard measures repository signals separately from the badge and Baseline assessments.
 
 This assessment used the publicly downloadable Beta 1 assets. [Beta 2](https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1) adds detached Minisign signatures. See the [verification guide](VERIFYING_RELEASES.md).
