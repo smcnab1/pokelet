@@ -48,11 +48,17 @@
 
 <p align="center">
   <a href="https://macnative.io/apps/pokelet?utm_source=macnative-badge&utm_medium=referral" target="_blank" rel="noopener">
-      <img src="https://macnative.io/badge?kind=listed&theme=dark&slug=pokelet&rounded=1" alt="Listed on MacNative" width="180" height="50" />
+      <img src="https://macnative.io/badge?kind=listed&theme=dark&slug=pokelet&rounded=1" alt="Listed on MacNative" width="150" height="40" />
   </a>
   <a href="https://www.producthunt.com/products/pokelet?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-pokelet" target="_blank" rel="noopener noreferrer" aria-label="View Pokelet on Product Hunt">
-              <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1326610&amp;theme=dark&amp;t=1795424503464" alt="Listed on Product Hunt" width="180" height="50" decoding="async">
+              <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1326610&amp;theme=dark&amp;t=1795424503464" alt="Listed on Product Hunt" width="150" height="40" decoding="async">
             </a>
+<a href="https://alternativeto.net/software/pokelet/about/?utm_source=badge&utm_medium=referral" target="_blank">
+  <img src="https://alternativeto.net/static/badges/badge-compact-dark.svg"
+       alt="Pokelet | AlternativeTo"
+       width="150" height="40"
+       style="width: 150px; height: 40px;" />
+</a>
 </p>
 
 <p align="center">
