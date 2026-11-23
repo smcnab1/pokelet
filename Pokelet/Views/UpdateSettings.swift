@@ -10,7 +10,7 @@ struct UpdateSettings: View {
         if let pendingVersion = updates.pendingVersion { return "Pokelet \(pendingVersion) is available." }
         if updates.sessionInProgress { return "An update check or installation is in progress." }
         if let result = updates.result { return result.message }
-        return "Pokelet checks for stable releases."
+        return updates.checksBetaFeed ? "Pokelet checks for beta releases." : "Pokelet checks for stable releases."
     }
 
     var body: some View {

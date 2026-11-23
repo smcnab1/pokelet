@@ -31,7 +31,7 @@ final class UpdateService: NSObject, ObservableObject {
         }
     }
 
-    #if DEBUG
+    #if DEBUG || POKELET_UPDATE_ACCEPTANCE
     static let acceptanceBundleID = "uk.co.sammcnab.Pokelet.UpdateAcceptance"
     #endif
     #if DEBUG || POKELET_SIGNED_UPDATES
@@ -66,6 +66,14 @@ final class UpdateService: NSObject, ObservableObject {
         history = defaults.map(ReleaseHistory.init(defaults:))
         hasLegacyPreferences = defaults?.data(forKey: PreferenceStore.key) != nil
         super.init()
+    }
+
+    var checksBetaFeed: Bool {
+        #if DEBUG || POKELET_SIGNED_UPDATES
+        feed == Self.betaFeed
+        #else
+        false
+        #endif
     }
 
     func start() {
@@ -120,6 +128,13 @@ final class UpdateService: NSObject, ObservableObject {
 // Sparkle's standard user driver invokes these callbacks on the main thread.
 extension UpdateService: SPUUpdaterDelegate, @preconcurrency SPUStandardUserDriverDelegate {
     func feedURLString(for updater: SPUUpdater) -> String? { feed }
+
+    func allowedChannels(for updater: SPUUpdater) -> Set<String> {
+        checksBetaFeed ? ["beta"] : []
+    }
+
+    private static let stableFeed = "https://smcnab1.github.io/pokelet/updates/appcast.xml"
+    private static let betaFeed = "https://smcnab1.github.io/pokelet/updates/beta/appcast.xml"
 
     // Keep Sparkle's native prompt in reserve until the user chooses to see it.
     var supportsGentleScheduledUpdateReminders: Bool { true }
@@ -186,14 +201,14 @@ extension UpdateService: SPUUpdaterDelegate, @preconcurrency SPUStandardUserDriv
               value("SUVerifyUpdateBeforeExtraction") as? Bool == true,
               value("SUSignedFeedFailureExpirationInterval") as? Int == 0,
               url.user == nil, url.password == nil, url.query == nil, url.fragment == nil else { return nil }
-        #if DEBUG
+        #if DEBUG || POKELET_UPDATE_ACCEPTANCE
         if bundle.bundleIdentifier == acceptanceBundleID, url.scheme == "http", url.host == "127.0.0.1",
            url.port != nil, url.path == "/appcast.xml" {
             return rawFeed
         }
-        #else
+        #elseif POKELET_SIGNED_UPDATES
         if bundle.bundleIdentifier == "uk.co.sammcnab.Pokelet",
-           rawFeed == "https://smcnab1.github.io/pokelet/updates/appcast.xml" { return rawFeed }
+           rawFeed == stableFeed || rawFeed == betaFeed { return rawFeed }
         #endif
         return nil
     }

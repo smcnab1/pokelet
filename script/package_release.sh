@@ -3,13 +3,23 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 sign_with_developer_id=false
-if [[ "${1:-}" == --developer-id ]]; then
-  sign_with_developer_id=true
-  shift
+ad_hoc_updates=false
+case "${1:-}" in
+  --developer-id) sign_with_developer_id=true; shift ;;
+  --ad-hoc-updates) ad_hoc_updates=true; shift ;;
+esac
+channel=stable
+if [[ "${1:-}" == --channel ]]; then
+  channel="${2:-}"
+  if [[ "$channel" != beta && "$channel" != stable ]]; then
+    printf 'Choose --channel beta or --channel stable.\n' >&2
+    exit 2
+  fi
+  shift 2
 fi
 OUT="${1:-$ROOT/dist/candidate}"
-if [[ $# -gt 1 ]]; then
-  printf 'Usage: %s [--developer-id] [output-directory]\n' "$0" >&2
+if [[ $# -gt 1 || "$OUT" == --* ]]; then
+  printf 'Usage: %s [--developer-id | --ad-hoc-updates] [--channel stable|beta] [output-directory]\n' "$0" >&2
   exit 2
 fi
 if [[ -e "$OUT" || -L "$OUT" ]]; then
@@ -25,6 +35,7 @@ IDENTITY="${POKELET_DEVELOPER_ID:-}"
 update_key=""
 update_feed=""
 update_compilation=""
+entitlements=""
 if [[ "$sign_with_developer_id" == true ]]; then
   if [[ ! "$IDENTITY" =~ ^[[:xdigit:]]{40}$ ]]; then
     printf 'Set POKELET_DEVELOPER_ID to the approved local certificate fingerprint.\n' >&2
@@ -35,9 +46,14 @@ if [[ "$sign_with_developer_id" == true ]]; then
     END { exit !found }
   ' || { printf 'No matching Developer ID Application identity.\n' >&2; exit 2; }
 fi
-if [[ -n "$UPDATE_TOOLS" || -n "$UPDATE_ACCOUNT" ]]; then
-  if [[ "$sign_with_developer_id" != true || -z "$UPDATE_TOOLS" || -z "$UPDATE_ACCOUNT" ]]; then
-    printf 'Updates require --developer-id, the pinned Sparkle tools and a Keychain account.\n' >&2
+if [[ "$ad_hoc_updates" == true || "$channel" == beta || -n "$UPDATE_TOOLS" || -n "$UPDATE_ACCOUNT" ]]; then
+  if [[ ( "$sign_with_developer_id" != true && "$ad_hoc_updates" != true ) || -z "$UPDATE_TOOLS" ||
+        "$UPDATE_ACCOUNT" != "pokelet-$channel" ]]; then
+    printf 'Updates require an explicit signing mode, pinned Sparkle tools and the pokelet-%s Keychain account.\n' "$channel" >&2
+    exit 2
+  fi
+  if [[ "${POKELET_SPARKLE_BACKUP_CONFIRMED:-}" != "$UPDATE_ACCOUNT" ]]; then
+    printf 'Confirm the secure offline backup by setting POKELET_SPARKLE_BACKUP_CONFIRMED to %s.\n' "$UPDATE_ACCOUNT" >&2
     exit 2
   fi
   update_key="$("$UPDATE_TOOLS/generate_keys" --account "$UPDATE_ACCOUNT" -p)"
@@ -45,22 +61,28 @@ if [[ -n "$UPDATE_TOOLS" || -n "$UPDATE_ACCOUNT" ]]; then
     printf 'Sparkle did not return a valid public key.\n' >&2
     exit 2
   fi
-  update_feed="https://smcnab1.github.io/pokelet/updates/appcast.xml"
+  update_feed="https://smcnab1.github.io/pokelet/updates"
+  if [[ "$channel" == beta ]]; then update_feed+=/beta; fi
+  update_feed+=/appcast.xml
   update_compilation=POKELET_SIGNED_UPDATES
+  if [[ "$ad_hoc_updates" == true ]]; then
+    entitlements="$ROOT/packaging/AdHocUpdates.entitlements"
+  fi
 fi
 
 # Build locally. The opt-in Developer ID signing path obtains Apple's secure timestamps.
 xcodebuild -quiet -onlyUsePackageVersionsFromResolvedFile -project "$ROOT/Pokelet.xcodeproj" -scheme Pokelet -configuration Release \
-  -destination 'generic/platform=macOS' -derivedDataPath "$ROOT/build/release" \
+  -destination 'generic/platform=macOS' -derivedDataPath "$STAGE/derived" \
+  -clonedSourcePackagesDirPath "$ROOT/build/release/SourcePackages" \
   'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-  CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
+  CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO CODE_SIGN_ENTITLEMENTS="$entitlements" \
   POKELET_UPDATE_FEED_URL="$update_feed" POKELET_UPDATE_PUBLIC_KEY="$update_key" \
   POKELET_UPDATE_COMPILATION="$update_compilation" build
 
 mkdir "$STAGE/candidate" "$STAGE/extracted"
 APP="$STAGE/candidate/Pokelet.app"
 ZIP="$STAGE/candidate/Pokelet.zip"
-/usr/bin/ditto "$ROOT/build/release/Build/Products/Release/Pokelet.app" "$APP"
+/usr/bin/ditto "$STAGE/derived/Build/Products/Release/Pokelet.app" "$APP"
 if [[ "$sign_with_developer_id" == true ]]; then
   # Sign the versioned framework from the inside out so Hardened Runtime keeps library validation enabled.
   framework="$APP/Contents/Frameworks/Sparkle.framework"
@@ -85,7 +107,7 @@ if [[ -n "$update_key" ]]; then
     otool -arch "$arch" -L "$BINARY" | awk '/Sparkle[.]framework/ { found = 1 } END { exit !found }'
   done
 else
-  # An ad hoc hardened process cannot load the Sparkle dylib without a matching team.
+  # Manual-download builds must not load Sparkle.
   otool -arch all -L "$BINARY" | awk '/Sparkle[.]framework/ { found = 1 } END { exit found }'
 fi
 ARCHITECTURES="$(xcrun lipo -archs "$BINARY" | tr ' ' '\n' | sort)"
@@ -96,29 +118,40 @@ fi
 printf 'Verified universal binary: arm64 and x86_64.\n'
 for arch in arm64 x86_64; do
   xcrun strings -a -arch "$arch" "$BINARY" | awk '
-    /--(presentation-acceptance|studio-acceptance|acceptance-profile)/ { found = 1 }
+    /--(presentation-acceptance|studio-acceptance|acceptance-profile)|Pokelet[.]UpdateAcceptance/ { found = 1 }
     END { exit found }
-  ' || { printf 'Release binary includes a Debug acceptance launch flag on %s.\n' "$arch" >&2; exit 1; }
+  ' || { printf 'Release binary includes an acceptance test marker on %s.\n' "$arch" >&2; exit 1; }
   xcrun vtool -arch "$arch" -show-build "$BINARY" | awk '
     $1 == "platform" && $2 == "MACOS" { macos = 1 }
     $1 == "minos" && $2 == "14.0" { target = 1 }
     END { exit !(macos && target) }
   '
-  /usr/bin/codesign --display --arch "$arch" --entitlements - --xml "$EXTRACTED" > "$STAGE/entitlements.plist"
+  signing="$(/usr/bin/codesign --display --verbose=4 --arch "$arch" --entitlements - --xml "$EXTRACTED" \
+    2>&1 > "$STAGE/entitlements.plist")"
+  if ! awk '/^CodeDirectory .*flags=.*[(,]runtime[,)]/ { found = 1 } END { exit !found }' <<< "$signing"; then
+    printf 'Expected Hardened Runtime on %s.\n' "$arch" >&2
+    exit 1
+  fi
+  LIBRARY_VALIDATION_DISABLED=""
   if [[ -s "$STAGE/entitlements.plist" ]]; then
     /usr/bin/plutil -lint "$STAGE/entitlements.plist"
     DEBUGGABLE="$(/usr/bin/plutil -extract 'com\.apple\.security\.get-task-allow' raw \
       "$STAGE/entitlements.plist" 2>/dev/null || true)"
     LIBRARY_VALIDATION_DISABLED="$(/usr/bin/plutil -extract 'com\.apple\.security\.cs\.disable-library-validation' raw \
       "$STAGE/entitlements.plist" 2>/dev/null || true)"
-    if [[ "$LIBRARY_VALIDATION_DISABLED" == true ]]; then
-      printf 'Release build disables library validation on %s.\n' "$arch" >&2
-      exit 1
-    fi
     if [[ "$DEBUGGABLE" == true ]]; then
       printf 'Release build has the get-task-allow entitlement on %s.\n' "$arch" >&2
       exit 1
     fi
+  fi
+  if [[ "$ad_hoc_updates" == true ]]; then
+    if [[ "$LIBRARY_VALIDATION_DISABLED" != true || "$signing" != *Signature=adhoc* ]]; then
+      printf 'Expected the ad hoc updater entitlement and signature on %s.\n' "$arch" >&2
+      exit 1
+    fi
+  elif [[ "$LIBRARY_VALIDATION_DISABLED" == true ]]; then
+    printf 'Unexpected library validation exception on %s.\n' "$arch" >&2
+    exit 1
   fi
 done
 

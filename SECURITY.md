@@ -16,7 +16,7 @@ Keep credentials outside Git and in their provider's credential store or the mac
 
 Download Pokelet from [official GitHub Releases](https://github.com/smcnab1/pokelet/releases) and follow the [verification guide](docs/VERIFYING_RELEASES.md). Each release states its signing and notarisation status and provides its available verification files. A checksum alone does not authenticate the publisher. Verify detached signatures with Pokelet’s [Minisign public key](security/pokelet-minisign.pub), preferably a previously trusted copy. Minisign publisher verification and Apple Developer ID/notarisation are separate checks.
 
-In update-enabled builds, Sparkle checks a stable HTTPS feed and verifies the appcast, release notes and update archive using the EdDSA key built into Pokelet. The update feed and keys are configured only for explicitly approved signed builds. The [update release procedure](docs/RELEASE_CHECKLIST.md#signed-sparkle-updates) covers verification and key custody.
+In update-enabled builds, Sparkle uses a channel-specific HTTPS feed and an embedded EdDSA public key to verify the appcast, release notes and archive before installation. The free update-enabled build keeps Hardened Runtime with library validation disabled for the Pokelet executable. This relaxes its checks on libraries loaded into the process so it can load Sparkle without an Apple Team ID. Apple publisher verification and notarisation are unavailable for ad hoc builds. The [update release procedure](docs/RELEASE_CHECKLIST.md#signed-sparkle-updates) covers verification and key custody.
 
 ## Supported versions
 

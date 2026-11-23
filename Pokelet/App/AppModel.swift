@@ -57,7 +57,11 @@ final class AppModel: ObservableObject {
         isAcceptanceProfile = isStudioAcceptance || acceptance
         #else
         let defaults = UserDefaults.standard
+        #if POKELET_UPDATE_ACCEPTANCE
+        let supportDirectory = "Pokelet Update Acceptance"
+        #else
         let supportDirectory = "Pokelet"
+        #endif
         isStudioAcceptance = false
         presentationAvailable = false
         isAcceptanceProfile = false
