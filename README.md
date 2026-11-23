@@ -55,7 +55,11 @@
             </a>
 </p>
 
+<p align="center">
+
 ![Pokelet’s pointing finger, cat paw, foam finger and comic arrow in their original colours and in black](docs/site/assets/pokelet-pointer-character-colours.png)
+
+</p>
 
 ## Make it yours
 
