@@ -5,7 +5,8 @@ import Foundation
 @main
 enum BundleSmoke {
     static func main() throws {
-        let resources = URL(fileURLWithPath: CommandLine.arguments[1]).appendingPathComponent("Contents/Resources")
+        let app = URL(fileURLWithPath: CommandLine.arguments[1])
+        let resources = app.appendingPathComponent("Contents/Resources")
         for sound in ["tap", "pop", "wood", "squeak"] {
             let url = resources.appendingPathComponent(sound + ".wav")
             let file = try AVAudioFile(forReading: url)
@@ -21,7 +22,15 @@ enum BundleSmoke {
             throw CheckError.missingIcon
         }
         print("Bundle audio decoded and app icon present.")
+
+        let changelog = try String(contentsOf: resources.appendingPathComponent("CHANGELOG.md"), encoding: .utf8)
+        guard let bundle = Bundle(url: app), let note = ReleaseNote.parse(changelog).first,
+              bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String == note.version,
+              bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String == String(note.build) else {
+            throw CheckError.missingCurrentReleaseNotes
+        }
+        print("Bundled release notes match \(note.tag), build \(note.build).")
     }
 
-    enum CheckError: Error { case badAudio(String), missingIcon }
+    enum CheckError: Error { case badAudio(String), missingIcon, missingCurrentReleaseNotes }
 }

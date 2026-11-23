@@ -51,6 +51,7 @@ Check the staged file list against the approved asset list. Mount the DMG read-o
 ## 4. Prepare notes and obtain approval
 
 - Describe changes, upgrade behaviour, requirements, exact assets, verification instructions, signing/notarisation status and known limitations. Include any publicly known vulnerability identifiers fixed by the release.
+- Use the same change bullets in GitHub Releases and What’s New. Export them from the changelog with `swiftc Pokelet/Models/ReleaseNotes.swift script/export_release_notes.swift -o /tmp/pokelet-release-notes`, then `/tmp/pokelet-release-notes CHANGELOG.md TAG BUILD`. Add installation and verification details to the GitHub release body.
 - Disclose outstanding Intel, minimum-macOS, display or accessibility checks. Keep automated, owner-reported and directly observed evidence distinct.
 - Link [installation guidance](https://github.com/smcnab1/pokelet/wiki/Installation), the [verification guide](VERIFYING_RELEASES.md), [privacy](../PRIVACY.md) and [feedback](https://github.com/smcnab1/pokelet/issues/new/choose).
 - For an unnotarised build, link [Apple’s per-app first-launch guidance](https://support.apple.com/102445). Never advise disabling Gatekeeper. Damage, malware or failed verification is a stop condition.
@@ -69,6 +70,8 @@ Merging changes under `docs/site` or the Pages workflow deploys the website from
 ## Signed Sparkle updates
 
 Normal local and CI releases use the current ad hoc signing path. They include offline version history and direct users to GitHub Releases for manual updates. The updater is compiled into Debug for isolated acceptance and into Release when deliberately packaging a signed update candidate. Hardened ad hoc Release cannot load Sparkle on the tested macOS host because library validation rejects the framework. The manual-download build keeps Hardened Runtime and library validation intact. The first update-enabled build must be installed manually from the verified release.
+
+Use the dedicated Pokelet key for signed feeds and ZIPs containing a Pokelet app bundle. Sparkle’s [package installer advisory](https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-gcjm-h3jh-p2vc) concerns `.pkg` and `.mpkg` updates. Check upstream advisories again before activating the feed.
 
 ### Prepare
 

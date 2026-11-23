@@ -4,10 +4,19 @@ This file records release changes. Published notes, downloads and verification d
 
 ## Unreleased
 
+## [v1.3.0-beta.1] - 2026-11-23
+
+Build: 4
+Title: Pokelet 1.3.0 Beta 3
+
 ### Added
 
-- Added Updates to Pokelet Studio, with manual and optional automatic checks in builds configured for signed updates.
-- Added offline What's New and version history in Studio.
+- The Updates pane shows your installed version and build and links to GitHub Releases for manual downloads. Public beta builds use manual updates.
+- What’s New and version history are available offline in Studio. When you upgrade, Studio offers to show the notes for the new version.
+
+### Changed
+
+- Studio opens with more room for the preview and controls, including when Larger Studio text is enabled.
 
 ## [v1.2.0-beta.1] - 2026-11-22
 

@@ -6,7 +6,7 @@ struct UpdateSettings: View {
     let showWhatsNew: () -> Void
 
     private var status: String {
-        if !updates.isAvailable { return "Signed updates aren’t configured for this build." }
+        if !updates.isAvailable { return "This build uses manual updates." }
         if let pendingVersion = updates.pendingVersion { return "Pokelet \(pendingVersion) is available." }
         if updates.sessionInProgress { return "An update check or installation is in progress." }
         if let result = updates.result { return result.message }
@@ -26,17 +26,16 @@ struct UpdateSettings: View {
                         .studioFont(.callout)
                         .foregroundStyle(StudioTheme.secondary)
                 }
-                Button(updates.pendingVersion == nil ? "Check for Updates…" : "View Update…", action: updates.checkForUpdates)
-                    .buttonStyle(.bordered)
-                    .disabled(!updates.canCheck || presentation)
-                if presentation {
-                    StudioNote("End Presentation Mode before opening the update window.")
-                }
-                StudioSwitch("Automatically check for updates", isOn: Binding(
-                    get: { updates.automaticallyChecks }, set: updates.setAutomaticChecks
-                ))
-                .disabled(!updates.isAvailable)
                 if updates.isAvailable {
+                    Button(updates.pendingVersion == nil ? "Check for Updates…" : "View Update…", action: updates.checkForUpdates)
+                        .buttonStyle(.bordered)
+                        .disabled(!updates.canCheck || presentation)
+                    if presentation {
+                        StudioNote("End Presentation Mode before opening the update window.")
+                    }
+                    StudioSwitch("Automatically check for updates", isOn: Binding(
+                        get: { updates.automaticallyChecks }, set: updates.setAutomaticChecks
+                    ))
                     StudioNote("Pokelet checks in the background and waits for you to open and install an available update.")
                 }
                 if !updates.isAvailable || warning {

@@ -72,7 +72,8 @@
 - **Four characters.** Choose from the pointing finger, cat paw, foam finger or comic arrow, then adjust the colour and size.
 - **Pointer options.** Use Companion or Click-only, try Presenter Arm, or replace the cursor within eligible areas of the active Studio window.
 - **Playful interactions.** Customise click effects and add an optional sound in Pokelet Studio.
-- **Your Mac, your data.** No account, telemetry or background updater. Pokelet runs locally.
+- **Updates and version history.** See your installed version in Studio and read **What’s New** offline.
+- **Your Mac, your data.** Pokelet runs locally without an account or telemetry.
 
 ## Get started
 
@@ -82,7 +83,7 @@
 
 **The universal build targets macOS 14 or later** on Apple silicon and Intel Macs.
 
-For setup, settings and troubleshooting, visit the [Pokelet Wiki](https://github.com/smcnab1/pokelet/wiki). Check [GitHub Releases](https://github.com/smcnab1/pokelet/releases) for the current version, release notes and any build-specific requirements.
+Get manual updates from [GitHub Releases](https://github.com/smcnab1/pokelet/releases). Builds configured for signed updates can check for stable releases in Studio, with optional background checks. For setup and troubleshooting, visit the [Pokelet Wiki](https://github.com/smcnab1/pokelet/wiki).
 
 ### Build from source
 

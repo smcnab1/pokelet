@@ -28,5 +28,6 @@ done
 printf 'Verified embedded Sparkle framework, helpers, licences and both architectures.\n'
 cmp "$ROOT/LICENSE" "$APP/Contents/Resources/Pokelet-MIT.txt"
 cmp "$ROOT/Pokelet/Resources/QuietPointer-MIT.txt" "$APP/Contents/Resources/QuietPointer-MIT.txt"
-xcrun swiftc -parse-as-library -o "$TEMP/BundleSmoke" "$ROOT/Tests/Native/BundleSmoke.swift"
+xcrun swiftc -parse-as-library -o "$TEMP/BundleSmoke" \
+  "$ROOT/Tests/Native/BundleSmoke.swift" "$ROOT/Pokelet/Models/ReleaseNotes.swift"
 "$TEMP/BundleSmoke" "$APP"
