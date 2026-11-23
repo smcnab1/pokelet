@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuItemValidation, NSWindowDelegate {
     private let model = AppModel()
+    private lazy var updates = UpdateService(defaults: updateHistoryDefaults)
     private let menu = NSMenu()
     private var status: NSStatusItem?
     private var statusVisibility: NSKeyValueObservation?
@@ -14,6 +15,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
     private var systemSleeping = false
     private var screenSleeping = false
     private var sessionInactive = false
+
+    private var updateHistoryDefaults: UserDefaults? {
+        #if DEBUG
+        if Bundle.main.bundleIdentifier == UpdateService.acceptanceBundleID { return .standard }
+        #endif
+        return model.isAcceptanceProfile ? nil : .standard
+    }
+
+    private var studioFrameName: String {
+        #if DEBUG
+        if Bundle.main.bundleIdentifier == UpdateService.acceptanceBundleID { return "PokeletUpdateAcceptance" }
+        #endif
+        if model.isStudioAcceptance { return "PokeletStudioAcceptance" }
+        return model.isAcceptanceProfile ? "PokeletSettingsAcceptance" : "PokeletSettings"
+    }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         let mainMenu = NSMenu()
@@ -75,7 +91,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
         observe(NSWorkspace.screensDidWakeNotification, center: workspace) { $0.setScreenSleeping(false) }
         observe(NSWorkspace.sessionDidResignActiveNotification, center: workspace) { $0.setSessionInactive(true) }
         observe(NSWorkspace.sessionDidBecomeActiveNotification, center: workspace) { $0.setSessionInactive(false) }
-        if model.isStudioAcceptance || ProcessInfo.processInfo.arguments.contains("--settings") { openStudio() }
+        updates.start()
+        if ProcessInfo.processInfo.arguments.contains("--settings") ||
+            (model.isStudioAcceptance && !ProcessInfo.processInfo.arguments.contains("--background")) { openStudio() }
     }
 
     func applicationOpenUntitledFile(_ sender: NSApplication) -> Bool {
@@ -107,6 +125,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         add("Open Pokelet Studio", to: menu, action: #selector(openStudio), key: ",")
+        if updates.isAvailable {
+            add(updates.pendingVersion == nil ? "Check for Updates…" : "Update Available…",
+                to: menu, action: #selector(checkForUpdates))
+        } else {
+            add("Updates…", to: menu, action: #selector(openUpdateSettings))
+        }
         menu.addItem(.separator())
         if model.mode.presentation {
             let active = NSMenuItem(title: "Clicks paused · Esc or ⌃⌥T to exit", action: nil, keyEquivalent: "")
@@ -219,12 +243,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
     @objc private func endPresentation() { model.endPresentation(nil) }
     @objc private func changeStyle(_ sender: NSMenuItem) { model.update(\.style, PointerStyle.allCases[sender.tag]) }
     @objc private func changeIntensity(_ sender: NSMenuItem) { model.update(\.intensity, Intensity.allCases[sender.tag]) }
+    @objc private func checkForUpdates() { updates.checkForUpdates() }
+    @objc private func openUpdateSettings() {
+        model.settingsPage = .updates
+        openStudio()
+    }
+
     @objc private func quit() { NSApp.terminate(nil) }
     @objc private func closeStudio() { studioWindow?.performClose(nil) }
     @objc private func minimiseStudio() { studioWindow?.miniaturize(nil) }
 
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         switch menuItem.action {
+        case #selector(checkForUpdates): updates.canCheck && !model.mode.presentation
         case #selector(closeStudio): studioWindow != nil
         case #selector(minimiseStudio): studioWindow?.isMiniaturized == false
         default: true
@@ -238,8 +269,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
 
     @objc private func openStudio() {
         if studioWindow == nil {
-            let visibleSize = NSScreen.main?.visibleFrame.size ?? CGSize(width: 936, height: 598)
-            let initialSize = CGSize(width: min(936, visibleSize.width), height: min(598, visibleSize.height))
+            let preferredSize = SettingsView.defaultWindowSize(largerText: model.prefs.largerStudioText == true)
+            let visibleSize = NSScreen.main?.visibleFrame.size ?? preferredSize
+            let initialSize = CGSize(width: min(preferredSize.width, visibleSize.width),
+                                     height: min(preferredSize.height, visibleSize.height))
             let window = NSWindow(contentRect: CGRect(origin: .zero, size: initialSize),
                                   styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                                   backing: .buffered, defer: false)
@@ -250,14 +283,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
             window.contentMinSize = CGSize(width: 540, height: 440)
             window.isReleasedWhenClosed = false
             window.delegate = self
-            let hosting = NSHostingController(rootView: SettingsView(model: model))
+            let hosting = NSHostingController(rootView: SettingsView(model: model, updates: updates))
             hosting.sizingOptions = []
             window.contentViewController = hosting
             window.setContentSize(initialSize)
-            let frameName = model.isStudioAcceptance ? "PokeletStudioAcceptance"
-                : model.isAcceptanceProfile ? "PokeletSettingsAcceptance" : "PokeletSettings"
-            window.setFrameAutosaveName(frameName)
-            if !window.setFrameUsingName(frameName) { window.center() }
+            window.setFrameAutosaveName(studioFrameName)
+            if !window.setFrameUsingName(studioFrameName) { window.center() }
             studioWindow = window
             model.setReplacementWindow(window)
         }

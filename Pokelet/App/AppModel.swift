@@ -42,12 +42,17 @@ final class AppModel: ObservableObject {
         let acceptance = arguments.contains("--acceptance-profile")
         var defaults = acceptance ? UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.Acceptance")! : .standard
         var supportDirectory = acceptance ? "Pokelet Acceptance" : "Pokelet"
-        isStudioAcceptance = arguments.contains("--studio-acceptance") ||
+        let updateAcceptance = Bundle.main.bundleIdentifier == UpdateService.acceptanceBundleID
+        isStudioAcceptance = updateAcceptance || arguments.contains("--studio-acceptance") ||
             Bundle.main.bundleIdentifier == "uk.co.sammcnab.Pokelet.StudioAcceptance"
         presentationAvailable = !isStudioAcceptance && acceptance && arguments.contains("--presentation-acceptance")
         if isStudioAcceptance {
             defaults = UserDefaults(suiteName: "uk.co.sammcnab.Pokelet.StudioAcceptance.Preferences")!
             supportDirectory = "Pokelet Studio Acceptance"
+        }
+        if updateAcceptance {
+            defaults = .standard
+            supportDirectory = "Pokelet Update Acceptance"
         }
         isAcceptanceProfile = isStudioAcceptance || acceptance
         #else

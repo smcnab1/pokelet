@@ -6,7 +6,20 @@ enum SettingsPage: String, CaseIterable {
     case sounds = "Sounds"
     case presentation = "Presentation"
     case general = "General"
+    case updates = "Updates"
     case about = "About"
+
+    var shortcut: Int {
+        switch self {
+        case .pointer: 1
+        case .animations: 2
+        case .sounds: 3
+        case .presentation: 4
+        case .general: 5
+        case .about: 6
+        case .updates: 7
+        }
+    }
 
     var symbol: String {
         switch self {
@@ -15,14 +28,21 @@ enum SettingsPage: String, CaseIterable {
         case .sounds: "speaker.wave.2"
         case .presentation: "play.rectangle"
         case .general: "gearshape"
+        case .updates: "arrow.clockwise"
         case .about: "info.circle"
         }
     }
 }
 
 struct SettingsView: View {
+    static func defaultWindowSize(largerText: Bool) -> CGSize {
+        CGSize(width: 936, height: largerText ? 736 : 680)
+    }
+
     @ObservedObject var model: AppModel
+    @ObservedObject var updates: UpdateService
     @State private var showQuickStart = false
+    @State private var showWhatsNew = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var largerText: Bool { model.prefs.largerStudioText == true }
@@ -46,6 +66,12 @@ struct SettingsView: View {
                 }
                 .frame(maxHeight: .infinity, alignment: .topLeading)
             }
+            .sheet(isPresented: $showWhatsNew, onDismiss: updates.markWhatsNewSeen) {
+                WhatsNewView(version: updates.version, current: updates.currentRelease, history: updates.releases,
+                             windowHeight: size.height)
+                    .environment(\.studioLargerText, largerText)
+                    .tint(StudioTheme.accent)
+            }
         }
         .ignoresSafeArea(.container, edges: .top)
         .background(StudioTheme.window.ignoresSafeArea())
@@ -61,6 +87,12 @@ struct SettingsView: View {
                 .studioFont(.callout, weight: .semibold)
                 .foregroundStyle(StudioTheme.secondary)
             Spacer(minLength: 8)
+            if updates.offersWhatsNew, model.settingsPage != .updates {
+                Button("What’s New") { showWhatsNew = true }
+                    .studioFont(.callout)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+            }
             Button {
                 showQuickStart = true
             } label: {
@@ -105,6 +137,9 @@ struct SettingsView: View {
                 case .sounds: SoundSettings(model: model, wide: wide)
                 case .presentation: PresentationSettings(model: model, wide: wide)
                 case .general: GeneralSettings(model: model, wide: wide)
+                case .updates: UpdateSettings(updates: updates, presentation: model.mode.presentation) {
+                    showWhatsNew = true
+                }
                 case .about: AboutSettings(wide: wide, diagnostics: FeedbackDiagnostics(
                     prefs: model.prefs, presentation: model.mode.presentation
                 ))
@@ -154,7 +189,7 @@ private struct StudioNavigation: View {
     var body: some View {
         let layout = vertical ? AnyLayout(VStackLayout(spacing: 3)) : AnyLayout(HStackLayout(spacing: 3))
         layout {
-            ForEach(Array(SettingsPage.allCases.enumerated()), id: \.element) { index, page in
+            ForEach(SettingsPage.allCases, id: \.self) { page in
                 Button {
                     withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.16)) { selection = page }
                 } label: {
@@ -185,8 +220,8 @@ private struct StudioNavigation: View {
                     }
                 }
                 .buttonStyle(StudioButtonStyle(radius: 12))
-                .keyboardShortcut(KeyEquivalent(Character(String(index + 1))))
-                .help("\(page.rawValue) (⌘\(index + 1))")
+                .keyboardShortcut(KeyEquivalent(Character(String(page.shortcut))))
+                .help("\(page.rawValue) (⌘\(page.shortcut))")
                 .accessibilityLabel(page.rawValue)
                 .accessibilityAddTraits(selection == page ? .isSelected : [])
                 .accessibilityIdentifier("studio.navigation.\(page.rawValue)")

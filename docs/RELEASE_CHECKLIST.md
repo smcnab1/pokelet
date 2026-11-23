@@ -1,6 +1,6 @@
 # Release checklist
 
-Use this process for each proposed release. Record the candidate identity and results in the PR or release evidence, rather than editing this checklist for every version. [GitHub Releases](https://github.com/smcnab1/pokelet/releases) holds published notes and assets.
+Use this process for each proposed release. Record the candidate identity and results in the PR or release evidence, rather than editing this checklist for every version. [GitHub Releases](https://github.com/smcnab1/pokelet/releases) holds published notes and assets. The [changelog](../CHANGELOG.md) is the source for the release changes.
 
 ## 1. Identify and qualify the candidate
 
@@ -51,6 +51,7 @@ Check the staged file list against the approved asset list. Mount the DMG read-o
 ## 4. Prepare notes and obtain approval
 
 - Describe changes, upgrade behaviour, requirements, exact assets, verification instructions, signing/notarisation status and known limitations. Include any publicly known vulnerability identifiers fixed by the release.
+- Use the same change bullets in GitHub Releases and What’s New. Export them from the changelog with `swiftc Pokelet/Models/ReleaseNotes.swift script/export_release_notes.swift -o /tmp/pokelet-release-notes`, then `/tmp/pokelet-release-notes CHANGELOG.md TAG BUILD`. Add installation and verification details to the GitHub release body.
 - Disclose outstanding Intel, minimum-macOS, display or accessibility checks. Keep automated, owner-reported and directly observed evidence distinct.
 - Link [installation guidance](https://github.com/smcnab1/pokelet/wiki/Installation), the [verification guide](VERIFYING_RELEASES.md), [privacy](../PRIVACY.md) and [feedback](https://github.com/smcnab1/pokelet/issues/new/choose).
 - For an unnotarised build, link [Apple’s per-app first-launch guidance](https://support.apple.com/102445). Never advise disabling Gatekeeper. Damage, malware or failed verification is a stop condition.
@@ -65,6 +66,40 @@ Check the staged file list against the approved asset list. Mount the DMG read-o
 5. Check the public website resolves the intended release and DMG, including prereleases. Release discovery is automatic; README, Wiki navigation and website labels should not need version edits. Retain a link to the release listing as fallback.
 
 Merging changes under `docs/site` or the Pages workflow deploys the website from `main`; obtain the required approval separately. Publishing a release also changes the existing website’s dynamically selected download.
+
+## Signed Sparkle updates
+
+Normal local and CI releases use the current ad hoc signing path. They include offline version history and direct users to GitHub Releases for manual updates. The updater is compiled into Debug for isolated acceptance and into Release when deliberately packaging a signed update candidate. Hardened ad hoc Release cannot load Sparkle on the tested macOS host because library validation rejects the framework. The manual-download build keeps Hardened Runtime and library validation intact. The first update-enabled build must be installed manually from the verified release.
+
+Use the dedicated Pokelet key for signed feeds and ZIPs containing a Pokelet app bundle. Sparkle’s [package installer advisory](https://github.com/sparkle-project/Sparkle/security/advisories/GHSA-gcjm-h3jh-p2vc) concerns `.pkg` and `.mpkg` updates. Check upstream advisories again before activating the feed.
+
+### Prepare
+
+1. Decide whether to activate updates for a stable release. The maintainer must supply a **Developer ID Application** identity and a notary profile for the opt-in distribution path. Keep using the existing ad hoc manual-download path if you want to release without those credentials.
+2. Download the [pinned Sparkle command-line tools](https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1) and verify the SHA-256 of `Sparkle-2.10.1.tar.xz` against the upstream release digest `1a856d2a9edb8e628de88121d7be04cf0e2167f8641650b78fca00b14244cf27`. Run `generate_keys --account pokelet-stable` on the maintainer’s signing Mac. Back up the private key securely and offline. Do not add it to Git, Pages or Actions. The package script reads the public key from the named Keychain entry. The Minisign signing key remains separate.
+3. Set the approved marketing version, then increase the integer build across all releases, including betas. Move the applicable notes from **Unreleased** to the top dated changelog entry. Use a heading such as `## [v1.3.0] - YYYY-MM-DD`, then `Build:`, `Title:` and non-empty `### Added`, `### Changed`, `### Fixed` or `### Security` sections with single-line bullets as applicable. Future versions can skip earlier releases. The app matches notes by bundle version and build. Existing users with saved settings can see the offer on their first upgrade from a build that predates release history tracking.
+4. Run the package and verification commands below against clean approved source. The same bundle identifier and signing team apply to the app and embedded Sparkle code. Separately submit the candidate ZIP for notarisation with `xcrun notarytool submit … --keychain-profile … --wait`. Check that the submission was accepted. Staple the resulting ticket to the candidate **app** with `xcrun stapler staple`, then verify it with `xcrun stapler validate` and the macOS distribution check. The ZIP prepared before stapling is the notarisation input. Create the public update ZIP from the stapled app.
+5. Run the staging tool. It uses Sparkle to generate and verify the appcast, Markdown notes and ZIP, and writes their checksums. It checks the stable tag, bundle, build, signatures, archive URLs and release-note URLs. Use the same exported release notes in the GitHub release body, then add the assets, verification and compatibility details there. Build the DMG from the same stapled app using `./script/package_dmg.sh --notarise dist/update-installer dist/update-candidate/Pokelet.app` and the approved notary profile. Follow the existing checksum and Minisign procedure for the final DMG.
+
+```sh
+export POKELET_SPARKLE_TOOLS=/absolute/path/to/Sparkle/bin
+export POKELET_SPARKLE_KEYCHAIN_ACCOUNT=pokelet-stable
+export POKELET_DEVELOPER_ID=APPROVED_CERTIFICATE_FINGERPRINT
+./script/package_release.sh --developer-id dist/update-candidate
+# Notarise the candidate ZIP and staple the candidate app before staging.
+python3 script/prepare_sparkle_release.py \
+  --app dist/update-candidate/Pokelet.app --tag v1.3.0 \
+  --sparkle-tools "$POKELET_SPARKLE_TOOLS" \
+  --keychain-account "$POKELET_SPARKLE_KEYCHAIN_ACCOUNT" \
+  --output dist/sparkle-v1.3.0
+```
+
+### Qualify and publish
+
+- Test a manually installed initial build and an upgrade to a higher build in a disposable macOS environment. Cover a dockless background check, signed installation and relaunch, bad signatures, no update, offline recovery, suppression of prereleases, saved preferences and restoration of the system pointer. Also verify the official installer from a quarantined download. The Debug acceptance bundle identifier is `uk.co.sammcnab.Pokelet.UpdateAcceptance`. Only that Debug bundle accepts `http://127.0.0.1:<port>/appcast.xml`. Build two versions with that identifier, `POKELET_UPDATE_FEED_URL` and a disposable `POKELET_UPDATE_PUBLIC_KEY`, then stage a signed ZIP and appcast with the matching test key. Keep the test feed and key isolated from release inputs.
+- Keep prereleases available through manual GitHub downloads. The public updater uses Sparkle’s default stable channel. The staging tool rejects prerelease tags. After owner approval, publish the stable GitHub Release archive at the exact versioned URL and compare the re-downloaded bytes with `SHA256SUMS`.
+- In a separately approved Pages change, publish only the signed `appcast.xml` and versioned Markdown notes under `docs/site/updates/`. Retain older notes for clients that already fetched an earlier appcast. Check the public HTTPS feed at `https://smcnab1.github.io/pokelet/updates/appcast.xml` and every enclosure and notes URL against locally verified bytes. Re-sign through Sparkle if the feed or notes change; edits invalidate the signature. Full ZIPs support direct, skipped-version updates across the supported platform range.
+- Sparkle requires signatures before extraction and validates signed feeds and release notes. Feed-signature expiry recovery is disabled. If the private key is lost, keep the invalid feed offline and plan an explicitly approved recovery or verified manual reinstall. Consult [Sparkle’s key rotation rules](https://sparkle-project.org/documentation/#rotating-signing-keys) before changing the built-in key.
 
 ## Historical records
 

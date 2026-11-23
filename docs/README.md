@@ -18,4 +18,4 @@ The [GitHub Wiki](https://github.com/smcnab1/pokelet/wiki) is the primary user g
 | Website | [Maintenance and browser checks](WEBSITE.md) |
 | Evidence | [Historical OpenSSF assessment](OPENSSF_ASSESSMENT.md) · [Repository finalisation audit](REPOSITORY_AUDIT.md) |
 
-Release-specific notes belong in [GitHub Releases](https://github.com/smcnab1/pokelet/releases). Historical acceptance reports remain accessible through the immutable references in the audit; their results do not establish coverage of later builds.
+Release changes start in the [changelog](../CHANGELOG.md). Published downloads and verification instructions are on [GitHub Releases](https://github.com/smcnab1/pokelet/releases). Historical acceptance reports remain accessible through the immutable references in the audit; their results do not establish coverage of later builds.

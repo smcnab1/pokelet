@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-}"
 APP=""
+APP_SUPPLIED=false
 IDENTITY="${POKELET_DEVELOPER_ID:-}"
 PROFILE="${POKELET_NOTARY_PROFILE:-}"
 
@@ -41,8 +42,12 @@ case "$MODE" in
         APP="$(cd "$3" && pwd -P)"
       fi
     else
-      [[ $# -le 2 ]] || exit 2
+      [[ $# -le 3 ]] || exit 2
       OUT="${2:-$ROOT/dist/notarised}"
+      if [[ $# -eq 3 ]]; then
+        APP="$(cd "$3" && pwd -P)"
+        APP_SUPPLIED=true
+      fi
     fi
     if [[ -e "$OUT" || -L "$OUT" ]]; then
       printf 'Choose a new output directory. Existing output was preserved.\n' >&2
@@ -55,7 +60,7 @@ case "$MODE" in
     mkdir -p "$(dirname "$OUT")"
     ;;
   *)
-    printf 'Usage: %s --check-signing | --check-layout path/to/Pokelet.app | --beta [output-directory [path/to/Pokelet.app]] | --notarise [output-directory]\n' "$0" >&2
+    printf 'Usage: %s --check-signing | --check-layout path/to/Pokelet.app | --beta [output-directory [path/to/Pokelet.app]] | --notarise [output-directory [path/to/stapled/Pokelet.app]]\n' "$0" >&2
     exit 2
     ;;
 esac
@@ -87,13 +92,19 @@ cleanup() {
 trap cleanup EXIT
 
 if [[ -z "$APP" ]]; then
-  "$ROOT/script/package_release.sh" "$STAGE/candidate"
+  if [[ "$MODE" == --notarise ]]; then
+    "$ROOT/script/package_release.sh" --developer-id "$STAGE/candidate"
+  else
+    "$ROOT/script/package_release.sh" "$STAGE/candidate"
+  fi
   APP="$STAGE/candidate/Pokelet.app"
 fi
 
 if [[ "$MODE" == --notarise ]]; then
-  /usr/bin/codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
-  /usr/bin/codesign --verify --deep --strict "$APP"
+  if [[ "$APP_SUPPLIED" == true ]]; then
+    xcrun stapler validate "$APP"
+  fi
+  /usr/bin/codesign --verify --deep --strict -R "=certificate leaf = H\"$IDENTITY\"" "$APP"
   for arch in arm64 x86_64; do
     /usr/bin/codesign --display --arch "$arch" --verbose=4 "$APP" 2>&1 | /usr/bin/awk '
       /^Authority=Developer ID Application: / { developer = 1 }
@@ -189,9 +200,17 @@ for item in "$MOUNT"/* "$MOUNT"/.background/*; do
   esac
 done
 shopt -u dotglob nullglob
-diff -qr "$APP" "$MOUNT/Pokelet.app"
+# Compare nested framework symlinks as links, without traversing their aliases.
+bundle_diff="$(/usr/bin/rsync -nrlpci --delete "$APP/" "$MOUNT/Pokelet.app/")"
+if [[ -n "$bundle_diff" ]]; then
+  printf 'Mounted bundle differs from the approved app:\n%s\n' "$bundle_diff" >&2
+  exit 1
+fi
 "$ROOT/script/test_native.sh" "$MOUNT/Pokelet.app"
 if [[ "$MODE" == --notarise ]]; then
+  if [[ "$APP_SUPPLIED" == true ]]; then
+    xcrun stapler validate "$MOUNT/Pokelet.app"
+  fi
   /usr/sbin/spctl --assess --type execute --verbose=2 "$MOUNT/Pokelet.app"
 fi
 /usr/bin/hdiutil detach -quiet "$MOUNT"

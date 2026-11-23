@@ -28,7 +28,10 @@ struct PointerStudio: View {
     }
 
     private var stageHeight: CGFloat {
-        if wide { return max(260, windowHeight - 236) }
+        if wide {
+            let offset: CGFloat = largerText ? 258 : 245
+            return min(380, max(260, windowHeight - offset))
+        }
         let offset: CGFloat = largerText ? 295 : 283
         return max(145, min(294, windowHeight - offset))
     }

@@ -1,4 +1,5 @@
 import AppKit
+import Sparkle
 import SwiftUI
 
 @main
@@ -15,8 +16,30 @@ enum StudioLayoutSmoke {
         releaseModel.startPresentation()
         precondition(!releaseModel.mode.presentation && !releaseModel.mode.pointer)
         print("Release ignored the Debug profiles and kept Presentation Mode disabled.")
+        let comparator = SUStandardVersionComparator.default
+        precondition(comparator.compareVersion("10", toVersion: "9") == .orderedDescending)
+        precondition(comparator.compareVersion("3", toVersion: "3") == .orderedSame)
+        precondition(comparator.compareVersion("2", toVersion: "3") == .orderedAscending)
+        precondition(SettingsPage.about.shortcut == 6 && SettingsPage.updates.shortcut == 7)
+
+        let updates = UpdateService(defaults: nil)
+        updates.start()
+        precondition(!updates.isAvailable && !updates.canCheck && !updates.automaticallyChecks,
+                     "A bundle without an update feed must remain usable with updates disabled.")
         for scheme in [ColorScheme.light, .dark] {
             for larger in [false, true] {
+                let pane = size(of: UpdateSettings(updates: updates, presentation: false, showWhatsNew: {}),
+                                scheme: scheme, larger: larger, width: 508)
+                precondition(pane.width == 508, "Updates overflowed the minimum Studio width.")
+                let notes = size(of: WhatsNewView(version: "1.2.0", current: nil, history: [], windowHeight: 440),
+                                 scheme: scheme, larger: larger)
+                precondition(notes.width <= 508 && notes.height <= 400, "What's New cannot fit in minimum Studio.")
+                let window = SettingsView.defaultWindowSize(largerText: larger)
+                let pointer = size(of: PointerStudio(model: releaseModel, wide: true, windowHeight: window.height),
+                                   scheme: scheme, larger: larger, width: window.width - 102)
+                precondition(pointer.height + 74 <= window.height,
+                             "Default Studio size must fit the main pane. Pointer content is \(pointer.height).")
+
                 let blackBox = StudioLabel("Project", symbol: "chevron.left.forwardslash.chevron.right")
                 let compact = StudioLabel("Project", symbol: "book.closed")
                 let website = StudioLabel("Project", symbol: "globe")
