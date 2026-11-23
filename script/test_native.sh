@@ -15,14 +15,17 @@ else
 fi
 
 /usr/bin/plutil -lint "$APP/Contents/Info.plist"
-/usr/bin/codesign --verify --deep --strict "$APP"
+/usr/bin/codesign --verify --deep --strict --all-architectures "$APP"
 cmp "$ROOT/CHANGELOG.md" "$APP/Contents/Resources/CHANGELOG.md"
 cmp "$ROOT/Pokelet/Resources/Sparkle-LICENSE.txt" "$APP/Contents/Resources/Sparkle-LICENSE.txt"
 FRAMEWORK="$APP/Contents/Frameworks/Sparkle.framework"
 LOCK="$ROOT/Pokelet.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
 [[ "$(/usr/bin/plutil -extract CFBundleShortVersionString raw "$FRAMEWORK/Resources/Info.plist")" == \
    "$(/usr/bin/plutil -extract pins.0.state.version raw "$LOCK")" ]]
-for executable in "$FRAMEWORK/Sparkle" "$FRAMEWORK/Autoupdate" "$FRAMEWORK/Updater.app/Contents/MacOS/Updater"; do
+SPARKLE="$FRAMEWORK/Versions/Current"
+for component in "$FRAMEWORK" "$SPARKLE/Autoupdate" "$SPARKLE/Updater.app" "$SPARKLE"/XPCServices/*.xpc; do
+  /usr/bin/codesign --verify --strict --all-architectures "$component"
+  executable="$(/usr/bin/codesign --display "$component" 2>&1 | sed -n 's/^Executable=//p')"
   [[ "$(xcrun lipo -archs "$executable" | tr ' ' '\n' | sort)" == $'arm64\nx86_64' ]]
 done
 printf 'Verified embedded Sparkle framework, helpers, licences and both architectures.\n'

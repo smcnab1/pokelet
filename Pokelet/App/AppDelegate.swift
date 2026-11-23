@@ -24,7 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
     }
 
     private var studioFrameName: String {
-        #if DEBUG
+        #if DEBUG || POKELET_UPDATE_ACCEPTANCE
         if Bundle.main.bundleIdentifier == UpdateService.acceptanceBundleID { return "PokeletUpdateAcceptance" }
         #endif
         if model.isStudioAcceptance { return "PokeletStudioAcceptance" }
