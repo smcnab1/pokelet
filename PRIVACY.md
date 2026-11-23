@@ -1,6 +1,6 @@
 # Privacy
 
-Pokelet runs locally. It has no account, telemetry, background updater or network service.
+Pokelet runs locally. It has no account or telemetry. Builds configured for software updates can contact GitHub for releases.
 
 | Feature | Data and permission |
 | --- | --- |
@@ -9,9 +9,10 @@ Pokelet runs locally. It has no account, telemetry, background updater or networ
 | Click sounds | Pokelet keeps a local copy of any audio file you select, plus its filename. Reset Settings removes the copy. If you select **Interactive clicks only** and Accessibility access is already available, Pokelet checks the clicked element’s role, enabled state and available actions. These checks do not read control text or contents, and results are discarded after the click. |
 | Launch at login | macOS manages the registration through Login Items. |
 | Presentation Mode | Disabled in public Release builds. In local Debug acceptance sessions, an active event tap observes mouse gestures and checks key-down events for Escape. Other keys pass through. Event contents are neither written to disk nor transmitted. Accessibility is required. The option to request Input Monitoring appears only if macOS withholds events needed to verify Escape. |
+| Software updates | In builds configured for signed updates, a manual check or an automatic check you opt into requests the appcast from GitHub Pages. Sparkle can also fetch release notes and download an update when you choose to install it. GitHub receives standard web request data such as your IP address and Sparkle’s user agent, which includes the Pokelet and Sparkle versions. Sparkle’s optional system profile is disabled. Update preferences and the last check time are stored on this Mac. |
 | GitHub feedback | **Report a problem** hands your browser a GitHub form link with the app version and build, macOS version, Mac architecture and pointer mode. The information is editable before you submit the issue yourself. **Copy system information** writes the same summary to the clipboard on request. The feature request link carries no diagnostics. |
 
-Preferences live in macOS’s local preferences store. You can reset them in **Settings → General → Reset Settings…** and remove any grants in **System Settings → Privacy & Security**. Screen recording permissions belong to the recorder you choose.
+Preferences live in macOS’s local preferences store. You can reset them in **Settings → General → Reset Settings…**. Automatic update checks are managed separately under **Studio → Updates**. Remove any grants in **System Settings → Privacy & Security**. Screen recording permissions belong to the recorder you choose.
 
 ## Permissions
 

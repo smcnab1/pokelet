@@ -14,7 +14,7 @@ Run this sequence only after the desktop owner approves it. Start with a disposa
 
 | Order | Exercise | Expected observation |
 | --- | --- | --- |
-| 1 | Start disabled; navigate all six Settings panes at minimum and wider sizes. Try keyboard navigation, VoiceOver, light and dark appearance, custom tint, and both preview buttons. | No permission prompts on open. Controls fit and have usable labels. Changing or playing a preview does not animate the live pointer. |
+| 1 | Start disabled; navigate all seven Settings panes at minimum and wider sizes. Try keyboard navigation, VoiceOver, light and dark appearance, custom tint, and both preview buttons. | No permission prompts on open. Controls fit and have usable labels. Changing or playing a preview does not animate the live pointer. |
 | 2 | Use Companion mode in Finder and a clean browser window. Switch foreground apps. Click, right-click, double-click, drag, select text and try modifier-clicks. | The native cursor stays visible. The animated character follows beside it. Target actions and focus behave normally. |
 | 3 | Try replacement inside active Pokelet Settings. Move outside the window, open a menu and switch apps. Repeat rapid toggles, disable and quit. | The animation’s contact point aligns inside the eligible window. The macOS cursor resumes outside it and on disable or quit. |
 | 4 | Exercise each character in Original, White, Black and Custom. Test both backgrounds, small and large sizes, all five intensities, rapid clicks, character switching, click-only and both Reduce Motion controls. | Style, motion, outlines, visibility and selection remain consistent. |

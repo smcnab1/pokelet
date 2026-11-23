@@ -6,6 +6,10 @@ Pokelet adapts the overlay window, mouse tracking and display link, click cadenc
 
 The [upstream MIT notice](Pokelet/Resources/QuietPointer-MIT.txt) is carried verbatim in source and in the app’s resources. Pokelet’s original changes and assets are covered by the [Pokelet MIT licence](LICENSE), also included in the bundle.
 
+## Sparkle
+
+Pokelet uses [Sparkle 2.10.1](https://github.com/sparkle-project/Sparkle/releases/tag/2.10.1) for signed software updates. The app includes Sparkle’s [licence and bundled third-party notices](Pokelet/Resources/Sparkle-LICENSE.txt).
+
 ## Artwork and audio
 
 | Asset | Origin |
@@ -15,7 +19,7 @@ The [upstream MIT notice](Pokelet/Resources/QuietPointer-MIT.txt) is carried ver
 | Tap, pop, wood and squeak | Original waveforms synthesised by [make_audio.py](script/make_audio.py). |
 | Documentation gallery | Output of [make_gallery.swift](script/make_gallery.swift) using the app’s vector paths. |
 
-The app depends on system frameworks and uses SF Symbols supplied by macOS. It ships no external package, font, stock audio or third-party artwork. [Vorssaint’s public Settings images](https://github.com/vorssaint/vorssaint-utils/tree/main/docs/assets/readme) informed the use of a compact sidebar and grouped controls. No Vorssaint source or assets are included.
+The app depends on system frameworks and uses SF Symbols supplied by macOS. It ships no external font, stock audio or third-party artwork. [Vorssaint’s public Settings images](https://github.com/vorssaint/vorssaint-utils/tree/main/docs/assets/readme) informed the use of a compact sidebar and grouped controls. No Vorssaint source or assets are included.
 
 ## Website font
 
