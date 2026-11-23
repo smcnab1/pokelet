@@ -4,34 +4,92 @@
 <p align="center">A free, lightweight, open-source animated cursor companion for macOS.</p>
 
 <p align="center">
-  <a href="https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1"><strong>Download</strong></a> ·
-  <a href="docs/README.md">Documentation</a> ·
+  <a href="https://github.com/smcnab1/pokelet/releases"><strong>Download</strong></a> ·
+  <a href="https://github.com/smcnab1/pokelet/wiki">Documentation</a> ·
+  <a href="https://github.com/smcnab1/pokelet/discussions">Discussions</a> ·
   <a href="https://smcnab1.github.io/pokelet/">Website</a> ·
   <a href="https://github.com/smcnab1/pokelet/issues/new/choose">Report an issue</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/smcnab1/pokelet/releases"><img alt="Current beta release" src="https://img.shields.io/github/v/release/smcnab1/pokelet?include_prereleases&amp;label=beta"></a>
-  <a href="https://github.com/smcnab1/pokelet/actions/workflows/macos.yml"><img alt="macOS build and tests" src="https://img.shields.io/github/actions/workflow/status/smcnab1/pokelet/macos.yml?branch=main&amp;label=CI"></a>
-  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/github/license/smcnab1/pokelet"></a>
-  <a href="https://scorecard.dev/viewer/?uri=github.com/smcnab1/pokelet"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/smcnab1/pokelet/badge"></a>
-  <a href="https://www.bestpractices.dev/projects/16999"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/16999/badge"></a>
+  <a href="https://github.com/smcnab1/pokelet/releases">
+    <picture>
+      <source media="(prefers-color-scheme: dark)"
+        srcset="https://img.shields.io/github/v/release/smcnab1/pokelet?include_prereleases&amp;sort=date&amp;label=version">
+      <img alt="Latest Pokelet version"
+        src="https://img.shields.io/github/v/release/smcnab1/pokelet?include_prereleases&amp;sort=date&amp;label=version">
+    </picture>
+  </a>
+  <a href="https://github.com/smcnab1/pokelet/actions/workflows/macos.yml">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/ci/smcnab1/pokelet.svg?workflow=macos.yml&amp;branch=main&amp;variant=ghost&amp;font=geist-mono&amp;label=BUILD&amp;mode=dark">
+      <img alt="macOS build and tests" src="https://shieldcn.dev/github/ci/smcnab1/pokelet.svg?workflow=macos.yml&amp;branch=main&amp;variant=ghost&amp;font=geist-mono&amp;label=BUILD&amp;mode=light">
+    </picture>
+  </a>
+  <a href="LICENSE">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/license/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=LICENSE&amp;mode=dark">
+      <img alt="MIT licence" src="https://shieldcn.dev/github/license/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=LICENSE&amp;mode=light">
+    </picture>
+  </a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/smcnab1/pokelet">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/scorecard/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=SCORECARD&amp;mode=dark">
+      <img alt="OpenSSF Scorecard" src="https://shieldcn.dev/github/scorecard/smcnab1/pokelet.svg?variant=ghost&amp;font=geist-mono&amp;label=SCORECARD&amp;mode=light">
+    </picture>
+  </a>
+  <a href="https://www.bestpractices.dev/projects/16999">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/dynamic/json.svg?url=https%3A%2F%2Fwww.bestpractices.dev%2Fprojects%2F16999%2Fbadge.json&amp;query=%24.badge_level&amp;label=OPENSSF&amp;variant=ghost&amp;font=geist-mono&amp;logo=lu:ShieldCheck&amp;mode=dark">
+      <img alt="OpenSSF Best Practices" src="https://shieldcn.dev/badge/dynamic/json.svg?url=https%3A%2F%2Fwww.bestpractices.dev%2Fprojects%2F16999%2Fbadge.json&amp;query=%24.badge_level&amp;label=OPENSSF&amp;variant=ghost&amp;font=geist-mono&amp;logo=lu:ShieldCheck&amp;mode=light">
+    </picture>
+  </a>
 </p>
+
+<p align="center">
+  <a href="https://macnative.io/apps/pokelet?utm_source=macnative-badge&utm_medium=referral" target="_blank" rel="noopener">
+      <img src="https://macnative.io/badge?kind=listed&theme=dark&slug=pokelet&rounded=1" alt="Listed on MacNative" width="150" height="40" />
+  </a>
+  <a href="https://www.producthunt.com/products/pokelet?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-pokelet" target="_blank" rel="noopener noreferrer" aria-label="View Pokelet on Product Hunt">
+              <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1326610&amp;theme=dark&amp;t=1795424503464" alt="Listed on Product Hunt" width="150" height="40" decoding="async">
+            </a>
+<a href="https://alternativeto.net/software/pokelet/about/?utm_source=badge&utm_medium=referral" target="_blank">
+  <img src="https://alternativeto.net/static/badges/badge-compact-dark.svg"
+       alt="Pokelet | AlternativeTo"
+       width="150" height="40"
+       style="width: 150px; height: 40px;" />
+</a>
+</p>
+
+<p align="center">
 
 ![Pokelet’s pointing finger, cat paw, foam finger and comic arrow in their original colours and in black](docs/site/assets/pokelet-pointer-character-colours.png)
 
+</p>
+
 ## Make it yours
 
-- Pick one of four original cartoon characters and customise its colour and size.
-- Try Companion, Click-only and Presenter Arm in [Pokelet Studio](docs/STUDIO.md). Adjust click effects and add an optional sound.
-- Everything runs locally. Pokelet has no accounts, telemetry or background updater.
+- **Four characters.** Choose from the pointing finger, cat paw, foam finger or comic arrow, then adjust the colour and size.
+- **Pointer options.** Use Companion or Click-only, try Presenter Arm, or replace the cursor within eligible areas of the active Studio window.
+- **Playful interactions.** Customise click effects and add an optional sound in Pokelet Studio.
+- **Your Mac, your data.** No account, telemetry or background updater. Pokelet runs locally.
 
-## Install
+## Get started
 
-[Get Pokelet 1.2.0 Beta 2](https://github.com/smcnab1/pokelet/releases/tag/v1.2.0-beta.1), open the DMG and drag Pokelet to Applications. The current beta is **ad hoc signed and unnotarised**. Follow the [verification and first-launch guide](docs/VERIFYING_RELEASES.md) before opening it.
+1. [Download Pokelet](https://github.com/smcnab1/pokelet/releases) and follow the [release verification guide](docs/VERIFYING_RELEASES.md).
+2. Open the verified DMG and drag **Pokelet** into **Applications**.
+3. Open the app, following the selected release’s signing and first-launch instructions.
 
-**macOS 14 or later** · Universal build for Apple silicon and Intel. [Compatibility and testing coverage](docs/README.md#compatibility)
+**The universal build targets macOS 14 or later** on Apple silicon and Intel Macs.
 
-## Documentation
+For setup, settings and troubleshooting, visit the [Pokelet Wiki](https://github.com/smcnab1/pokelet/wiki). Check [GitHub Releases](https://github.com/smcnab1/pokelet/releases) for the current version, release notes and any build-specific requirements.
 
-[Installation and usage](docs/README.md) · [Privacy and permissions](PRIVACY.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Licence](LICENSE) · [Acknowledgements](THIRD_PARTY_NOTICES.md)
+### Build from source
+
+Find the Xcode requirements and commands in the [contributing guide](CONTRIBUTING.md#build-from-source).
+
+## Community and project information
+
+[Discussions](https://github.com/smcnab1/pokelet/discussions) for questions and ideas · [Issues](https://github.com/smcnab1/pokelet/issues/new/choose) for bugs · [Contributing](CONTRIBUTING.md) for development
+
+[Privacy](PRIVACY.md) · [Security](SECURITY.md) · [Licence](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)

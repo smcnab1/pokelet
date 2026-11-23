@@ -1,83 +1,73 @@
-# Public release checklist
+# Release checklist
 
-**Current decision (22 November 2026):** Release an explicitly experimental, **ad hoc-signed, unnotarised** Beta 2 without purchasing Apple Developer Program membership. The owner has accepted nine manual installation and runtime checks. A Developer ID and notarisation are **not** preconditions for this particular beta. Do not silently restore the superseded notarisation gate.
+Use this process for each proposed release. Record the candidate identity and results in the PR or release evidence, rather than editing this checklist for every version. [GitHub Releases](https://github.com/smcnab1/pokelet/releases) holds published notes and assets.
 
-**Release identity:** Pokelet **1.2.0 Beta 2**, app version `1.2.0`, build `3`, tag `v1.2.0-beta.1`. See the [changelog](../CHANGELOG.md), the historical [readiness report](BETA2_RELEASE_READINESS.md) and the [OpenSSF assessment](OPENSSF_ASSESSMENT.md).
+## 1. Identify and qualify the candidate
 
-## Qualify the exact source and packaged app
+- Record the full source SHA, app version, build number, proposed unused tag, stable/prerelease status, package build source and packaging-input source.
+- Require passing [macOS CI](../.github/workflows/macos.yml) for the intended source. Run the same [SwiftLint scan](../script/lint_swift.sh) for every proposed major production release. Resolve confirmed findings under the [security policy](../SECURITY.md).
+- Build a universal candidate into a new directory with `./script/package_release.sh /path/to/new-candidate`. Inspect both architectures, bundle metadata, resources, licences, Release flags and signatures. Do not overwrite accepted packages or evidence.
+- Run relevant [native and browser checks](../VERIFICATION.md), then record controlled desktop acceptance, actual hardware and any skipped checks. A universal build is not native Intel or minimum-macOS runtime acceptance.
+- If the proposed tag follows the package build commit, compare the app, Xcode project, resources and packaging inputs. Document why the package still represents that source; resolve material differences before release.
 
-1. Confirm the chosen final source commit, version, build and tag before writing the tag. Record whether any documentation-only or CI changes were committed after the app was packaged.
-2. Require passing CI on the intended source commit. The [macOS build](../.github/workflows/macos.yml) runs SwiftLint, the Swift suite, Debug and Release analysis, and universal package checks. Apply the same [SwiftLint check](../script/lint_swift.sh) to any proposed major production release before publishing. Handle confirmed findings under the [security policy](../SECURITY.md). Universal packaging verifies the binary targets and architectures. Native Intel and macOS 14 runtime checks need separate evidence.
-3. Check that the distributed DMG embeds the **approved 1.2.0 (3) app** and its expected `arm64` and `x86_64` slices; verify bundled resources, third-party licences, Release-only flags and native cursor recovery evidence.
-4. Record the proposed tag commit and the provenance of the approved package. If the tag points to a later commit, compare its app, Xcode project, bundled resources and packaging inputs to the build commit. Resolve any material mismatch before publication.
-5. Refer to the [owner-confirmed Beta 2 acceptance record](BETA2_ACCEPTANCE.md) dated 22 November 2026. Repeat the relevant manual check if a new defect changes the evidence.
+## 2. Choose and disclose the distribution route
 
-## Verify the accepted installer
+| Route | Local preparation | Required disclosure and evidence |
+| --- | --- | --- |
+| Ad hoc, unnotarised | `./script/package_dmg.sh --beta /path/to/new-output /path/to/Pokelet.app` | State that the app has no Apple Developer ID identity or notarisation. Obtain explicit approval of this distribution route and its limitations. |
+| Developer ID and notarisation | Start with `./script/package_dmg.sh --check-signing`. Use the existing `--notarise` flow only with explicit approval and private credentials configured. | Verify the identity, hardened runtime, timestamp, notarisation log, stapled ticket and Gatekeeper result on the actual distributed DMG. |
 
-Beta 2’s approved installer is `Pokelet-1.2.0-build-3-Premium-Final-Test.dmg`. Its SHA-256 is `083546c4ad764a57332a8ec1757974631ebaf17b5a78f96a6c3b027c372193aa`. The recorded local build used app source from [`6ce0f30`](https://github.com/smcnab1/pokelet/commit/6ce0f3039e2c770ad743e0850039446f98c50e21) and packaging inputs from [`b86c060`](https://github.com/smcnab1/pokelet/commit/b86c0608958094e2190f24733b84fce08fcaeb80). The packaging branch tip `812c315` has the same tracked tree as `b86c060`. The later third-party notice addition covers the website font. Keep the accepted filename because the signed Minisign comment names it.
+See [DMG packaging](../packaging/dmg/README.md). Preserve the tracked installer template, background source and Finder layout. Filesystem metadata can change the DMG digest between builds: do not claim bit-for-bit reproducibility.
 
-The three public assets go in `dist/release-staging/v1.2.0-beta.1/`. Keep test evidence in `build/` and the signing key outside the repository. From the repository root, verify the staged assets with Bash:
+## 3. Verify the exact assets
 
-```bash
-tag=v1.2.0-beta.1
-dmg=Pokelet-1.2.0-build-3-Premium-Final-Test.dmg
-digest=083546c4ad764a57332a8ec1757974631ebaf17b5a78f96a6c3b027c372193aa
-public_key="$PWD/security/pokelet-minisign.pub"
-stage="$PWD/dist/release-staging/$tag"
+Record the final installer filename and SHA-256. Generate its checksum and detached signature with the existing [signing script](../script/sign_release.sh), using the private key outside the repository and entering its passphrase only at the trusted Terminal prompt. Never replace a published signature or rename an accepted installer: its signed comment may name the file.
 
-verify_assets() (
-  set -u -o pipefail
-  cd "$1" || exit 1
-  shopt -s dotglob nullglob
-  files=(*)
-  test "${#files[@]}" -eq 3 || exit 1
-  for asset in "$dmg" "$dmg.sha256" "$dmg.minisig"; do
-    test -f "$asset" && test ! -L "$asset" || exit 1
-  done
-  printf '%s  %s\n' "$digest" "$dmg" | cmp - "$dmg.sha256" || exit 1
-  shasum -a 256 -c "$dmg.sha256" || exit 1
-  minisign -Vm "$dmg" -p "$public_key"
-)
+For a new candidate, signing requires its already-approved digest and a matching checksum sidecar:
 
-verify_assets "$stage"
+```sh
+./script/sign_release.sh /path/to/approved.dmg APPROVED_SHA256 /private/path/to/minisign.key
 ```
 
-The public key is sufficient for these checks. For a future unsigned candidate, use the local [signing script](../script/sign_release.sh) from a trusted Terminal and enter the passphrase only at the Minisign prompt.
+To verify without signing, use Bash and set `stage` and `dmg` to the approved asset directory and exact filename:
 
-## Distribution and installation disclosures
+```bash
+public_key="$PWD/security/pokelet-minisign.pub"
+stage='/absolute/path/to/approved-assets'
+dmg='EXACT-RELEASE-ASSET.dmg' # replace with the approved filename
+(
+  set -euo pipefail
+  cd "$stage"
+  test -f "$dmg" && test ! -L "$dmg"
+  test -f "$dmg.sha256" && test ! -L "$dmg.sha256"
+  test -f "$dmg.minisig" && test ! -L "$dmg.minisig"
+  shasum -a 256 -c "$dmg.sha256"
+  minisign -Vm "$dmg" -p "$public_key"
+)
+```
 
-- The beta's ad hoc code signature is **not publisher authentication**. No Apple notarisation is claimed.
-- Link to [Apple's per-app Open Anyway instructions](https://support.apple.com/102445). Users should only proceed if they trust the source and verification has succeeded; **never advise disabling Gatekeeper globally**. A macOS warning about damage or malware is a stop condition.
-- Public Release builds exclude experimental Presentation Mode click suppression. Ordinary pointer features do not require Accessibility or Input Monitoring. Interactive-only sound behaviour may need an already-granted Accessibility permission and remains partially tested.
-- Disclose incomplete native Intel, macOS 14, multi-display, VoiceOver and full keyboard-traversal testing. Universal build compatibility is not the same as verified runtime coverage.
-- Keep local preferences and audio private; there is no account, usage telemetry or background updater.
+Check the staged file list against the approved asset list. Mount the DMG read-only and inspect the contained bundle, Applications shortcut, resources and signatures. Installation, audible output and live cursor recovery need separate observed results. [User verification instructions](VERIFYING_RELEASES.md)
 
-## Owner-approved Beta 2 publication
+## 4. Prepare notes and obtain approval
 
-1. Fetch `origin`, confirm the approved full SHA is current `origin/main` and its CI is green. Compare the app and packaging tree to `b86c060`, check the tag and release are unused, and run `verify_assets "$stage"`. Review the [release notes](BETA2_RELEASE_NOTES_DRAFT.md) and obtain **explicit owner approval** of the SHA, tag, assets and notes.
-2. After approval, create the annotated tag at the approved full SHA with `git tag -a "$tag" "$approved_sha" -m "Pokelet 1.2.0 Beta 2"`. Push only that tag with `git push origin "refs/tags/$tag"` and verify the remote's peeled tag points to the approved SHA. Stop on any collision or failure.
-3. Create a draft prerelease with all three verified assets. Use the prepared release branch for the notes. Stop if the draft or an upload fails. Inspect any existing draft and recover explicitly before continuing.
+- Describe changes, upgrade behaviour, requirements, exact assets, verification instructions, signing/notarisation status and known limitations. Include any publicly known vulnerability identifiers fixed by the release.
+- Disclose outstanding Intel, minimum-macOS, display or accessibility checks. Keep automated, owner-reported and directly observed evidence distinct.
+- Link [installation guidance](https://github.com/smcnab1/pokelet/wiki/Installation), the [verification guide](VERIFYING_RELEASES.md), [privacy](../PRIVACY.md) and [feedback](https://github.com/smcnab1/pokelet/issues/new/choose).
+- For an unnotarised build, link [Apple’s per-app first-launch guidance](https://support.apple.com/102445). Never advise disabling Gatekeeper. Damage, malware or failed verification is a stop condition.
+- Obtain explicit owner approval of the source SHA, tag, exact assets/digests, notes and distribution route **before tagging, publishing or deploying**. Approval of a past release is not approval of the next one.
 
-   ```bash
-   verify_assets "$stage" &&
-     gh release create "$tag" --verify-tag --draft --prerelease \
-       --title "Pokelet 1.2.0 Beta 2" --notes-file docs/BETA2_RELEASE_NOTES_DRAFT.md \
-       "$stage/$dmg" "$stage/$dmg.sha256" "$stage/$dmg.minisig"
-   ```
+## 5. Publish only after approval
 
-4. Confirm the draft has exactly the three expected assets. Download them to a new directory with `gh release download "$tag" --pattern "$dmg*" --dir "$draft_download"` and run `verify_assets "$draft_download"`. Only after both checks pass, publish with `gh release edit "$tag" --draft=false --prerelease`. Use a second new directory to download and verify the published assets.
-5. After successful public verification, merge the prepared website and docs PR. Pages deploys from `main`. Confirm the hosted download resolves to Beta 2 via the release listing API, then check the Studio image, mobile navigation, first-launch guidance, README links and public badges.
+1. Refresh `origin/main`, confirm the approved commit and CI, and stop if the proposed tag or release already exists. Do not move existing tags or replace published assets.
+2. Create and push only the approved tag. Verify its remote target. Create a draft release with the agreed prerelease status and approved files. Stop on any collision or upload failure; inspect the existing state before recovery.
+3. Download draft assets into a new directory. Compare the file list and digests with the approved manifest, then repeat checksum and signature verification on the downloaded bytes.
+4. Publish only within the explicit approval. Download published assets into another new directory and repeat the checks. Record release URL, source SHA and verified digests.
+5. Check the public website resolves the intended release and DMG, including prereleases. Release discovery is automatic; README, Wiki navigation and website labels should not need version edits. Retain a link to the release listing as fallback.
 
-## Packaging commands for an unnotarised beta
+Merging changes under `docs/site` or the Pages workflow deploys the website from `main`; obtain the required approval separately. Publishing a release also changes the existing website’s dynamically selected download.
 
-`./script/package_release.sh` builds and checks a local universal app and ZIP in `dist/candidate/`. `./script/package_dmg.sh --beta` produces an ad hoc-signed beta DMG in `dist/beta/` with a checksum. The premium installer has a separate approved local candidate; do not assume this command reproduces its artwork without checking the exact current script and template. Compare package provenance before distribution.
+## Historical records
 
-## Optional future Developer ID and notarisation
+The [Beta 2 acceptance](BETA2_ACCEPTANCE.md), [readiness](BETA2_RELEASE_READINESS.md) and [original release checklist](https://github.com/smcnab1/pokelet/blob/6bb59a7c2b6c61a390e0079ed5fdd2d58ca521ae/docs/RELEASE_CHECKLIST.md) preserve the earlier one-off decision and package provenance. They are evidence for that release only.
 
-For a later trusted distribution, enrol in the Apple Developer Program, obtain a **Developer ID Application** identity, configure a private `notarytool` credential profile, then execute the existing `./script/package_dmg.sh --notarise` flow only after specific approval. Validate the signing identity, hardened runtime, timestamp, notarisation log, stapled ticket and Gatekeeper assessment on the **actual DMG**. Keep private keys out of GitHub and avoid unnecessary CI secrets.
-
-See [Apple's Developer ID certificate guidance](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/) and [notarisation guidance](https://developer.apple.com/documentation/technotes/tn3147-migrating-to-the-latest-notarization-tool). Apple notarisation would materially improve ordinary macOS installation trust, but is not claimed or required for this free public beta.
-
-## Future build provenance
-
-GitHub artifact attestations could bind a future premium DMG’s digest to the source commit and workflow that actually produced it. Consider that only when a trusted workflow builds and packages the exact DMG distributed to users. CI validates the source and packaging for this beta, while the accepted installer was built locally. Use the detached Minisign signature for its publisher verification. [GitHub’s artifact attestation guidance](https://docs.github.com/en/actions/concepts/security/artifact-attestations)
+Future workflow attestations should describe the exact distributed bytes and the workflow that produced them. CI validation of source alone does not attest a locally built installer. [GitHub artifact attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations)

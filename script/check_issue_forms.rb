@@ -47,4 +47,8 @@ end
 config = YAML.safe_load(File.read(File.join(templates, 'config.yml')))
 abort 'Blank issues should remain disabled' unless config.fetch('blank_issues_enabled') == false
 abort 'Missing security policy from chooser' unless config.fetch('contact_links').any? { |link| link.fetch('url').end_with?('/security/policy') }
+abort 'Missing Discussions from chooser' unless config.fetch('contact_links').any? do |link|
+  link.fetch('url') == 'https://github.com/smcnab1/pokelet/discussions' &&
+    !link.fetch('name').empty? && !link.fetch('about').empty?
+end
 puts 'GitHub issue forms, field mapping, labels and feedback links passed.'

@@ -1,77 +1,30 @@
-# Pokelet verification
+# Verification coverage and limitations
 
-The [Beta 2 acceptance report](docs/BETA2_ACCEPTANCE.md) records the final local candidate, rendered alignment measurements and release blockers. The [earlier Studio trials](docs/LIVE_ACCEPTANCE.md) preserve the desktop evidence from preceding builds.
+This page describes the available checks. A command listed here is not evidence that a particular release passed: record the exact source commit, package digest, host and observed result when qualifying a candidate.
 
-The [Beta 2 release-readiness report](docs/BETA2_RELEASE_READINESS.md) records the follow-up qualification of the proposed 1.2.0 (3) package, the disposable upgrade rehearsal and approvals still required.
-
-## Public beta v1.1.0-beta.1
-
-The [GitHub prerelease](https://github.com/smcnab1/pokelet/releases/tag/v1.1.0-beta.1) uses source commit `8baf2c994811429ca366e8d0352cf6e104150813`. The app is version 1.1.0, build 2, with ad hoc signatures and a macOS 14.0 deployment target on both `arm64` and `x86_64`. The release includes a SHA-256 checksum. The mounted DMG passed the Applications shortcut, executable, signature, icon, licence and audio checks. [Exact-commit CI](https://github.com/smcnab1/pokelet/actions/runs/44760173269)
-
-The beta disables click suppression in Release builds. Interactive results below came from an earlier local candidate. Live installation of the public DMG, runtime checks on Intel and older macOS, and the remaining Presentation Mode recovery checks still need desktop acceptance.
-
-## Public source launch
-
-On 20 November 2026, the 1.1.0 build 2 source candidate passed all 24 automated tests, a Debug build and static analysis, and universal Release packaging on Apple M2. The extracted ZIP verified against its SHA-256 checksum. Both slices target macOS 14.0. The packaging check rejects Xcode’s injected debug entitlement in either slice.
-
-The temporary DMG mounted read-only with the Applications shortcut and the exact app executable from the verified candidate. The mounted bundle passed signature, licence, icon and audio checks. Signing was ad hoc. The Mac had an Apple Development identity. Developer ID Application signing, notarisation, stapling and Gatekeeper testing of a trusted download remain pending.
-
-The launch review used headless checks and retained the [previous desktop evidence](#desktop-acceptance). Live expiry, permission revocation, held-button recovery and keyboard navigation to **End Presentation Mode** still need an approved desktop session. Presentation Mode remains disabled on ordinary launches.
-
-## Local 1.1 candidate
-
-Built and checked on 20 November 2026 on Apple M2, macOS 27.3 (26C5035r), Xcode 27.2 (27B52). The pre-beta bundle identifies itself as 1.1.0, build 2.
-
-| Check | Result |
-| --- | --- |
-| Xcode Debug | Build and static analysis completed with Swift warnings treated as errors. |
-| `swift test -Xswiftc -warnings-as-errors` | 24 passed. Covers preference migration, geometry, cursor ownership and restoration decisions, four characters and eight palette options at 1× and 2×, true-black pixels, animation state, click cadence, presentation gesture pairing and fail-open logic, and isolated audio import. |
-| `./script/package_release.sh` | Universal Release compiled. Both `arm64` and `x86_64` slices target macOS 14.0. Archive integrity, SHA-256 verification, extraction, resource decode and strict code-signature verification passed. |
-| Extracted bundle | App icon present, four WAV files decoded, both MIT notices present and matching source. Ad hoc signature with hardened runtime. Developer ID signing and notarisation are pending. |
-| Repository and documentation | `git diff --check`, ShellCheck, Actionlint and the local documentation link checker passed. Headless checks exercised the landing page at 1160 px in light appearance and 390 px in dark appearance. |
-| Inherited source and assets | Quiet Pointer’s notice matches the upstream pinned commit. The baseline asset generators reproduced the four WAV files and the original 1024 px app icon. |
-| Existing distribution | The 1.0.0 ZIP and app executable retained their original SHA-256 hashes. The new bundle, archive and checksum are in `dist/candidate/`. |
-
-The packaging command stages the archive, validates an extracted copy and refuses to overwrite an existing output directory. Builds can be regenerated from source. ZIP bytes can vary with build metadata, so use the checksum that accompanies each archive.
-
-## Desktop acceptance
-
-20 November 2026. Source changes verified at `e84b28b`. Tests used an Apple M2 with one built-in Retina display, a separate Pokelet preferences profile and an isolated local browser window. Scoped native mouse and keyboard events went through the macOS event stream. The verification records the behaviour observed on that host.
-
-| Check | Observed result |
-| --- | --- |
-| Settings | Opened all six panes with the pointer disabled and no permission prompt. Inspected accessibility labels and dark appearance at a compact window size and 770 × 660 points. Black showed legible body and detail on light and dark swatches for all four characters. White and Custom selection, all five intensity selections, preview controls and palette persistence were exercised. |
-| Ordinary input | The browser received one left-click, one right-click, and a double-click. Dragging selected fixture text. A disposable Finder file could be selected while Companion mode was active. Control–Option–P toggled the pointer while the browser was foregrounded. Click-only mode revealed the character on a click and hid it again after the animation. |
-| Cursor restoration | Captures showed the replacement’s contact point and the native arrow returning after disable. A floating click target initially exposed a bug where an occluded Settings region could still hide the cursor. The fix uses AppKit hit testing. The retest kept the arrow visible over the floating fixture and replaced it over exposed Settings. |
-| Presentation denied | Without a valid Accessibility grant, the app reported Accessibility as required and withheld suppression. The existing grant referenced a different ad hoc build. After the owner authorised replacing it, macOS granted access to the staged binary. No separate Input Monitoring grant was added. |
-| Presentation active | Browser click, context-click and double-click counters stayed unchanged and arrow-key slide navigation continued. Escape also reached the browser. Escape, Control–Option–T, a click on the pause symbol and terminating the exact candidate while suppression was active each restored clicks. A fixed-width status item corrected a menu bar overflow discovered during this check. The Accessibility grant was retained at the owner’s request. |
-| Full-screen and capture | Companion mode followed the pointer in a full-screen Chrome window. A whole-display recording captured the native arrow, animated character and click effects. The [cropped GIF](docs/site/assets/pokelet-cursor-demo.gif) shows only the disposable test page. |
-| Sounds | The Soft Tap preview command returned without an app error while click audio was muted. The app imported a valid WAV, then rejected a malformed WAV and retained the existing custom sound. Audible output and output-device changes remain unverified. |
-
-Ordinary launches still disable Presentation Mode. The 15-minute limit, held-button drain and tap-loss recovery have headless coverage. Live expiry, revocation, held-button recovery and keyboard navigation to the separate **End Presentation Mode** menu action remain open. VoiceOver, native light appearance, Login Items, sleep and wake, multiple monitors, Intel and older macOS runtimes are also open. After testing, the original app was relaunched with Settings open and its pointer off.
-
-## Runtime measurements
-
-The following 1.0.0 measurements predate the candidate. They were taken on an Apple M2, macOS 27.3, at one-second intervals with `top`. They are Pokelet process metrics. WindowServer was outside the measurement.
-
-| Historical 1.0.0 scenario | CPU | Memory |
+| Check | Coverage | Limit |
 | --- | --- | --- |
-| Pointer disabled at fresh launch | 0.0% in six of seven samples, 0.3% once | 12–13 MiB in `top`. A later `ps` RSS snapshot was about 61 MiB. |
-| Pointer enabled and stationary | 0.0% in six of seven samples, 0.1% once | 41 MiB in `top`, about 42 MiB `ps` RSS. |
-| Mixed automated UI and drag stress | 0.0–12.1% | 38–45 MiB in `top`. |
+| `./script/lint_swift.sh` | Hash-verified SwiftLint over app Swift source; selected failure and security rules. | Targeted rules are not a complete security review. |
+| `swift test -Xswiftc -warnings-as-errors` | Preferences and migration, geometry, rendering, cursor recovery decisions, click cadence, gesture pairing, audio import and feedback URLs. | SwiftPM excludes app entry points, views and several native services. |
+| `./script/test_native.sh` | Build or inspect a supplied app; metadata, signature, licences, icon and audio decoding. | Does not establish live pointer behaviour or Apple distribution trust. |
+| `./script/test_studio_layout.sh` | Offscreen native layouts across window sizes, appearances and text sizes. | Does not establish VoiceOver or complete keyboard usability. |
+| `./script/test_pointer_visual.sh /tmp/pokelet-visual-results` | Offscreen pointer contact-point and effect alignment. | Does not prove physical mouse or multi-display behaviour. |
+| `./script/package_release.sh /path/to/new-output` | Universal Release, both macOS 14 targets, ZIP/checksum, extracted resources, signatures and exclusion of Debug acceptance flags. | Build compatibility does not establish Intel or macOS 14 runtime coverage. |
+| `node --test Tests/Browser/releases.test.mjs` | Stable/prerelease ordering, DMG selection and invalid-asset fallback; no browser or network needed. | Full fetch/cache/download behaviour needs the browser suite. |
+| [Website browser suite](docs/WEBSITE.md#run-the-browser-checks) | Chromium, Firefox and WebKit interactions, responsive navigation, accessibility, release API fixtures and failure recovery. | Automated accessibility checks do not replace user testing. |
 
-### Controlled comparison
+The [macOS CI workflow](.github/workflows/macos.yml) runs the Swift, documentation, issue-form, release-selection, layout, build, analysis and packaging checks. Full browser and controlled desktop checks are separate.
 
-Measured on the same M2 at 60 Hz on 20 November 2026. Both builds used the Finger at 76 points in Original with Playful click intensity and sound muted. The isolated browser was foregrounded throughout. The baseline Settings window had been opened to enable the pointer and remained behind the browser during the enabled trials. The candidate ran without a Settings window during measurement, which limits the RSS comparison.
+## Runtime acceptance
 
-Each row uses 30 one-second `top` samples after discarding the first, with a separate `ps` RSS snapshot. Scripted movement targeted the browser’s harmless click target at up to 60 input events per second. Click bursts added up to five clicks per second. The figures cover the Pokelet process.
+Use the [interactive acceptance guide](docs/INTERACTIVE_ACCEPTANCE.md) for owner-approved live checks with a disposable profile and an agreed recovery route. Record passed, failed, skipped and owner-reported checks separately. Public Release builds disable experimental Presentation Mode click suppression.
 
-| Scenario | 1.0.0 CPU median / peak | Candidate CPU median / peak | 1.0.0 RSS | Candidate RSS |
-| --- | --- | --- | --- | --- |
-| Pointer disabled | 0.0% / 0.0% | 0.0% / 0.0% | 62.9 MiB | 61.2 MiB |
-| Enabled, stationary | 0.0% / 0.0% | 0.0% / 0.0% | 89.4 MiB | 64.9 MiB |
-| Pointer-only movement | 5.3% / 5.7% | 5.0% / 5.4% | 89.4 MiB | 62.7 MiB |
-| Movement and click bursts | 5.5% / 6.1% | 5.2% / 5.6% | 70.2 MiB | 62.7 MiB |
-| Sustained drag | 3.8% / 4.0% | 3.6% / 3.9% | 70.1 MiB | 60.3 MiB |
+Do not infer complete coverage for native Intel, macOS 14, multiple displays, VoiceOver, full keyboard traversal, Login Items, sleep/wake, audible output-device changes or quarantined first launch. Each requires explicit evidence for the tested package and environment. Follow each [release’s notes](https://github.com/smcnab1/pokelet/releases) for its actual limitations and signing status.
 
-Continuous tracking accounted for most of the observed CPU in the scripted movement-and-click workload. The historical 12.1% peak came from a different, mixed UI and drag run, so that peak remains unattributed. WindowServer CPU and battery impact were outside this comparison. An earlier candidate session with Settings open recorded a separate RSS snapshot of approximately 102 MiB.
+## Historical evidence
+
+- [Beta 2 acceptance](https://github.com/smcnab1/pokelet/blob/6bb59a7c2b6c61a390e0079ed5fdd2d58ca521ae/docs/BETA2_ACCEPTANCE.md) and [readiness](https://github.com/smcnab1/pokelet/blob/6bb59a7c2b6c61a390e0079ed5fdd2d58ca521ae/docs/BETA2_RELEASE_READINESS.md) retain automated, local, physical and owner-reported outcomes without upgrading their status.
+- [Earlier Studio and desktop trials](https://github.com/smcnab1/pokelet/blob/6bb59a7c2b6c61a390e0079ed5fdd2d58ca521ae/docs/LIVE_ACCEPTANCE.md) and [previous verification record](https://github.com/smcnab1/pokelet/blob/6bb59a7c2b6c61a390e0079ed5fdd2d58ca521ae/VERIFICATION.md) preserve the original screenshots, performance measurements and methods.
+- The [OpenSSF assessment](docs/OPENSSF_ASSESSMENT.md) records 82.0% line coverage of a SwiftPM subset at its review date. Full-app statement and branch coverage remain unestablished.
+
+For a new performance comparison, use the same hardware, build settings, display refresh rate, pointer configuration and window state. Sample matched stationary, movement, click and drag workloads; report sample duration, CPU and RSS separately, and state whether WindowServer and battery use were measured.

@@ -41,10 +41,15 @@ jobs:
         run: |
           git diff --check "HEAD^" HEAD
           python3 script/check_docs.py
+          python3 -m unittest discover -s Tests/Documentation -v
           ruby script/check_issue_forms.rb
           for script in script/*.sh packaging/dmg/*.sh; do bash -n "$script"; done
           swift test -Xswiftc -warnings-as-errors
           ./script/test_studio_layout.sh
+      - name: Check browser release selection without network access
+        run: |
+          node --version
+          node --test Tests/Browser/releases.test.mjs
       - name: Build and analyse Debug
         run: |
           xcodebuild -quiet -project Pokelet.xcodeproj -scheme Pokelet -configuration Debug \
