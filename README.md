@@ -80,9 +80,13 @@
 2. Open the verified DMG and drag **Pokelet** into **Applications**.
 3. Open the app, following the selected release’s signing and first-launch instructions.
 
-**Requires macOS 14 or later.** Supports Apple silicon and Intel Macs.
+**The universal build targets macOS 14 or later** on Apple silicon and Intel Macs.
 
 For setup, settings and troubleshooting, visit the [Pokelet Wiki](https://github.com/smcnab1/pokelet/wiki). Check [GitHub Releases](https://github.com/smcnab1/pokelet/releases) for the current version, release notes and any build-specific requirements.
+
+### Build from source
+
+Find the Xcode requirements and commands in the [contributing guide](CONTRIBUTING.md#build-from-source).
 
 ## Community and project information
 

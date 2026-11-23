@@ -16,7 +16,7 @@ Run `./script/package_release.sh` to produce an ad hoc-signed universal app, ZIP
 
 ## Propose a change
 
-1. Create a branch from `main` and keep the pull request focused.
+1. Create a branch from `main` and submit a focused pull request.
 2. Build the `Pokelet` scheme when changing or testing application code.
 3. Run the relevant checks before requesting review:
 
@@ -30,8 +30,8 @@ Run `./script/package_release.sh` to produce an ad hoc-signed universal app, ZIP
    node --test Tests/Browser/releases.test.mjs
    ```
 
-4. Describe the behaviour, risk and actual checks performed in your pull request. If a check was not run, say so. For visible changes, add representative light and dark screenshots where possible.
-5. Wait for review and passing CI before merging. Maintainers determine whether and when to release.
+4. Describe the behaviour, risk and results in your pull request. List any checks you skipped or could not run, and why. For visible changes, add representative light and dark screenshots where possible.
+5. Check that the required **build** job in [macOS build and tests](.github/workflows/macos.yml) passes. The maintainer reviews the change and the evidence, decides whether to approve and merge it, and handles releases. Independent review depends on reviewer availability.
 
 **Testing policy:** Add or update automated tests for major new functionality and for regression fixes where feasible. Document a focused manual check and recovery route for live cursor, input or Accessibility behaviour that cannot be safely automated. See [verification coverage and limitations](VERIFICATION.md).
 
@@ -41,9 +41,9 @@ Pokelet relies on Apple system frameworks and builds with Xcode. For artwork or 
 
 ## Review and maintenance
 
-[Sam McNab](https://github.com/smcnab1) maintains Pokelet and is responsible for triage, merge and release decisions, and [private security reports](SECURITY.md). Contributors submit changes through pull requests. Use Discussions for help and open-ended conversation, Issues for actionable bugs and scoped feature requests, and pull requests to review implementation. Follow the [code of conduct](CODE_OF_CONDUCT.md).
+[Sam McNab](https://github.com/smcnab1) maintains Pokelet, triages issues and handles [private vulnerability reports](SECURITY.md). Follow the [code of conduct](CODE_OF_CONDUCT.md) when participating in the project.
 
-- Follow the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/) and match the surrounding code. Review failure paths, permissions and user-visible changes. The required macOS CI check runs on pull requests and main updates. Its [SwiftLint rules](.swiftlint.yml) cover selected failure patterns and security-sensitive APIs. Review the rule set and pinned tool version when updating the tool.
+- Follow the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/) and match the surrounding code. Review failure paths, permissions and user-visible changes. The [SwiftLint rules](.swiftlint.yml) cover selected failure patterns and security-sensitive APIs. Review the rule set and pinned tool version when updating the tool.
 - Prefer Apple system frameworks for the app. If a new dependency is needed, document why, its licence, version and update path. SwiftPM lists the app's package dependencies, GitHub Actions use commit pins tracked by Dependabot, and vendored material is listed in the [third-party notices](THIRD_PARTY_NOTICES.md). The [assessment](docs/OPENSSF_ASSESSMENT.md#architecture-and-security-boundaries) identifies the app and website interfaces.
 
 ## Documentation
