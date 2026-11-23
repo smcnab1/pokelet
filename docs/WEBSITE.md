@@ -28,7 +28,9 @@ Visit [the local landing page](http://127.0.0.1:4173/pokelet/). Serving it under
 
 ## Run the browser checks
 
-The test tooling lives outside the production site. With Node.js 22 or later installed:
+The test tooling lives outside the production site. Use Node.js 22 or later.
+
+The release-selection unit tests use only Node's built-in test runner and run in the required macOS CI job. They need no browser installation, npm packages, network or credentials. The full browser suite below remains a separate local check.
 
 ```sh
 qa_dir=$(mktemp -d)
