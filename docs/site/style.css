@@ -267,7 +267,7 @@ p { color: var(--muted); }
 }
 
 .hero-listing-label {
-  color: #aaa0b5;
+  color: var(--muted);
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
