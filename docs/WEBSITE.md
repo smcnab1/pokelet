@@ -1,6 +1,6 @@
 # Pokelet website
 
-The public landing page is plain HTML, CSS and JavaScript in [docs/site](site). The [GitHub Pages workflow](../.github/workflows/pages.yml) uploads that directory directly under `/pokelet/`. All interface assets are local to the site. The download links use public release metadata from GitHub. There is no bundler, backend or production JavaScript dependency.
+The public site uses plain HTML, CSS and JavaScript in [docs/site](site). The [GitHub Pages workflow](../.github/workflows/pages.yml) uploads that directory directly under `/pokelet/` from `main`. Cursor artwork, Studio screenshots, fonts and sounds are local. Directory badges load from their respective providers. The landing page uses public release metadata from GitHub to resolve download links. There is no bundler, backend or production JavaScript dependency.
 
 ## Design and interaction
 
@@ -47,6 +47,35 @@ Set `POKELET_SITE_URL` for a different local server, or `POKELET_CHROME_CHANNEL=
 The site checks the [public GitHub Releases API](https://docs.github.com/en/rest/releases/releases#list-releases). It sorts non-draft releases by publication time, including beta and stable releases, and uses the newest one. The release must have exactly one uploaded, non-empty DMG with a GitHub download URL matching the repository, release tag and asset name. A missing or ambiguous DMG, blocked request or unavailable JavaScript sends visitors to the [releases listing](https://github.com/smcnab1/pokelet/releases).
 
 The current result is cached for five minutes in the browser tab. An open page refreshes at expiry when visible and checks freshness when it returns to view. Publishing a new release needs no website change.
+
+## Google Search Console
+
+Complete these steps after the website changes have been approved and published. The [sitemap](site/sitemap.xml) lists the three public pages at their canonical URLs. Keep the sitemap, canonical tags and internal links in sync when changing a page path.
+
+### Verify the URL-prefix property
+
+1. Sign in to [Google Search Console](https://search.google.com/search-console/) with the Google account that will own the property.
+2. Open the property selector, choose **Add property**, then choose **URL prefix**. Enter `https://smcnab1.github.io/pokelet/` including the trailing slash, and click **Continue**. Select that exact property if it already exists.
+3. Choose **HTML tag** under the verification methods. Compare the tag Google provides with the `google-site-verification` tag in the `<head>` of the live [Pokelet homepage](https://smcnab1.github.io/pokelet/). Use **View Page Source** in a private browser window to check the public HTML. If your account’s tag is missing, add the exact tag provided by Google to `docs/site/index.html` through the usual site PR and approved publication process. Keep tags still used by other owners.
+4. Once the tag is in the live HTML, click **Verify** in Search Console. Check **Settings → Ownership verification** and keep the tag in the published homepage so Google can recheck ownership.
+
+[Google’s ownership verification guide](https://support.google.com/webmasters/answer/9008080)
+
+### Submit the sitemap and request indexing
+
+1. Open [the live sitemap](https://smcnab1.github.io/pokelet/sitemap.xml) in a private window. Confirm it loads and lists the three canonical HTTPS URLs below.
+2. In the verified property, open **Sitemaps**. Under **Add a new sitemap**, enter `sitemap.xml` after the displayed property prefix, then click **Submit**. If the field has no prefix, enter `https://smcnab1.github.io/pokelet/sitemap.xml`. Check **Submitted sitemaps** for **Success** after processing.
+3. In **URL Inspection**, paste each full URL below. Click **Test live URL**. Check that the page can be fetched and indexing is allowed, then click **Request indexing**. If the live test reports a blocking issue, correct it and repeat the test before requesting indexing.
+
+   - `https://smcnab1.github.io/pokelet/`
+   - `https://smcnab1.github.io/pokelet/animated-cursors-for-mac/`
+   - `https://smcnab1.github.io/pokelet/presentation-pointer-for-mac/`
+
+4. Revisit **URL Inspection** after Google processes the requests. Check **Page indexing** and compare the Google-selected canonical with the expected URL. Sitemap submission and indexing requests help discovery. Google decides when and whether to index each page.
+
+[Sitemaps report guide](https://support.google.com/webmasters/answer/7451001) · [URL Inspection guide](https://support.google.com/webmasters/answer/9012289)
+
+Google reads robots rules from `https://smcnab1.github.io/robots.txt`. This project site publishes under `/pokelet/`, so use the Search Console sitemap submission above for discovery. [Google’s robots.txt specification](https://developers.google.com/crawling/docs/robots-txt/robots-txt-spec)
 
 ## Update artwork
 

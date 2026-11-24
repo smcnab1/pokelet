@@ -69,7 +69,7 @@ async function desktop(browser) {
     await mockReleases(page);
     assert.equal((await page.goto(url)).status(), 200);
     await waitForDownload(page, beta.assets[0].browser_download_url);
-    assert.equal(await page.title(), "Pokelet · Free animated cursor for macOS");
+    assert.equal(await page.title(), "Free Animated Cursor for Mac | Pokelet");
     await waitForCursor(page, "finger-original");
     await observeClicks(page);
 

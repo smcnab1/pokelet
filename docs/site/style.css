@@ -524,6 +524,26 @@ details p { max-width: 65ch; padding: 0 1.5rem 1rem .18rem; }
 }
 .site-footer nav { gap: .05rem clamp(.8rem, 2.7vw, 2rem); }
 
+.guide-header .header-inner {
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "brand download";
+}
+.guide { max-width: 54rem; padding-block: var(--section); }
+.guide h1 {
+  max-width: 19ch;
+  font-size: clamp(2.55rem, 6.6vw, 5rem);
+  letter-spacing: -.06em;
+  text-wrap: balance;
+}
+.guide .intro { max-width: 52ch; }
+.guide section { margin-top: clamp(2.5rem, 6vw, 4rem); }
+.guide h2 { font-size: clamp(1.75rem, 3.8vw, 2.65rem); margin-bottom: .9rem; }
+.guide section > p, .guide li, .guide .feature-list dd { max-width: 67ch; }
+.guide section > p + p { margin-top: .8rem; }
+.guide ol { padding-inline-start: 1.6rem; color: var(--muted); }
+.guide li + li { margin-top: .65rem; }
+.guide li::marker { color: var(--accent); font-weight: 710; }
+
 @media (max-width: 60rem) {
   .hero { gap: 1.25rem; }
 }
