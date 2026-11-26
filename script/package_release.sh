@@ -36,6 +36,17 @@ update_key=""
 update_feed=""
 update_compilation=""
 entitlements=""
+analytics_app_id=""
+analytics_namespace=""
+if [[ -z "${CI:-}" ]]; then
+  analytics_app_id="${POKELET_TELEMETRYDECK_APP_ID:-}"
+  analytics_namespace="${POKELET_TELEMETRYDECK_NAMESPACE:-}"
+fi
+if [[ ( -n "$analytics_app_id" && ! "$analytics_app_id" =~ ^[[:xdigit:]]{8}(-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}$ ) ||
+      ( -n "$analytics_namespace" && ( -z "$analytics_app_id" || ! "$analytics_namespace" =~ ^[A-Za-z0-9_-]+$ ) ) ]]; then
+  printf 'Use a TelemetryDeck app UUID and, if assigned, its organisation namespace.\n' >&2
+  exit 2
+fi
 if [[ "$sign_with_developer_id" == true ]]; then
   if [[ ! "$IDENTITY" =~ ^[[:xdigit:]]{40}$ ]]; then
     printf 'Set POKELET_DEVELOPER_ID to the approved local certificate fingerprint.\n' >&2
@@ -77,7 +88,8 @@ xcodebuild -quiet -onlyUsePackageVersionsFromResolvedFile -project "$ROOT/Pokele
   'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
   CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO CODE_SIGN_ENTITLEMENTS="$entitlements" \
   POKELET_UPDATE_FEED_URL="$update_feed" POKELET_UPDATE_PUBLIC_KEY="$update_key" \
-  POKELET_UPDATE_COMPILATION="$update_compilation" build
+  POKELET_UPDATE_COMPILATION="$update_compilation" \
+  POKELET_TELEMETRYDECK_APP_ID="$analytics_app_id" POKELET_TELEMETRYDECK_NAMESPACE="$analytics_namespace" build
 
 mkdir "$STAGE/candidate" "$STAGE/extracted"
 APP="$STAGE/candidate/Pokelet.app"

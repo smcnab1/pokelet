@@ -13,6 +13,7 @@ enum StudioLayoutSmoke {
         let releaseModel = AppModel()
         precondition(!releaseModel.presentationAvailable && !releaseModel.isAcceptanceProfile && !releaseModel.isStudioAcceptance,
                      "A Release build must ignore Debug acceptance flags")
+        precondition(!releaseModel.analytics.isAvailable, "Acceptance profiles must exclude analytics")
         releaseModel.startPresentation()
         precondition(!releaseModel.mode.presentation && !releaseModel.mode.pointer)
         print("Release ignored the Debug profiles and kept Presentation Mode disabled.")
@@ -48,6 +49,10 @@ enum StudioLayoutSmoke {
                 }
                 precondition(sizes.allSatisfy { abs($0.width - sizes[0].width) < 0.1 },
                              "Leading symbols changed the title column")
+
+                let analytics = size(of: PrivacyAnalyticsSettings(analytics: releaseModel.analytics),
+                                     scheme: scheme, larger: larger, width: 508)
+                precondition(analytics.width == 508, "Privacy & Analytics overflowed its proposed width.")
 
                 let diagnostics = FeedbackDiagnostics(prefs: Preferences(), presentation: false)
                 let about = size(of: AboutSettings(wide: false, diagnostics: diagnostics),

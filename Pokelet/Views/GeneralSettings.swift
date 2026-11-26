@@ -71,12 +71,14 @@ struct GeneralSettings: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            Divider()
+            PrivacyAnalyticsSettings(analytics: model.analytics)
         }
         .alert("Reset Pokelet?", isPresented: $confirmReset) {
             Button("Cancel", role: .cancel) {}
             Button("Reset Settings", role: .destructive) { model.reset() }
         } message: {
-            Text("This turns the pointer off, restores the default shortcuts and removes any imported sound.")
+            Text("This turns the pointer off, restores the default shortcuts, turns off usage reporting and removes any imported sound.")
         }
     }
 }

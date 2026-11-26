@@ -11,7 +11,8 @@ let package = Package(
             exclude: ["App", "Assets.xcassets", "Info.plist", "Resources", "Views",
                       "Cursor/CursorOverlayWindow.swift", "Services/CursorController.swift",
                       "Services/HotKeys.swift", "Services/PresentationTap.swift"],
-            sources: ["Models", "Cursor", "Services/SoundPlayer.swift", "Services/InteractiveClickSound.swift"]
+            sources: ["Models", "Cursor", "Services/SoundPlayer.swift", "Services/InteractiveClickSound.swift",
+                      "Services/UsageAnalytics.swift"]
         ),
         .testTarget(name: "PokeletCoreTests", dependencies: ["PokeletCore"])
     ]

@@ -50,7 +50,7 @@ The current result is cached for five minutes in the browser tab. An open page r
 
 ## Google Search Console
 
-Complete these steps after the website changes have been approved and published. The [sitemap](site/sitemap.xml) lists the three public pages at their canonical URLs. Keep the sitemap, canonical tags and internal links in sync when changing a page path.
+Complete these steps after the website changes have been approved and published. The [sitemap](site/sitemap.xml) lists public pages at their canonical URLs. Keep the sitemap, canonical tags and internal links in sync when changing a page path.
 
 ### Verify the URL-prefix property
 
@@ -63,13 +63,14 @@ Complete these steps after the website changes have been approved and published.
 
 ### Submit the sitemap and request indexing
 
-1. Open [the live sitemap](https://smcnab1.github.io/pokelet/sitemap.xml) in a private window. Confirm it loads and lists the three canonical HTTPS URLs below.
+1. Open [the live sitemap](https://smcnab1.github.io/pokelet/sitemap.xml) in a private window. Confirm it loads and lists the canonical HTTPS URLs below.
 2. In the verified property, open **Sitemaps**. Under **Add a new sitemap**, enter `sitemap.xml` after the displayed property prefix, then click **Submit**. If the field has no prefix, enter `https://smcnab1.github.io/pokelet/sitemap.xml`. Check **Submitted sitemaps** for **Success** after processing.
 3. In **URL Inspection**, paste each full URL below. Click **Test live URL**. Check that the page can be fetched and indexing is allowed, then click **Request indexing**. If the live test reports a blocking issue, correct it and repeat the test before requesting indexing.
 
    - `https://smcnab1.github.io/pokelet/`
    - `https://smcnab1.github.io/pokelet/animated-cursors-for-mac/`
    - `https://smcnab1.github.io/pokelet/presentation-pointer-for-mac/`
+   - `https://smcnab1.github.io/pokelet/privacy/`
 
 4. Revisit **URL Inspection** after Google processes the requests. Check **Page indexing** and compare the Google-selected canonical with the expected URL. Sitemap submission and indexing requests help discovery. Google decides when and whether to index each page.
 

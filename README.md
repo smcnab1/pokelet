@@ -73,7 +73,7 @@
 - **Pointer options.** Use Companion or Click-only, try Presenter Arm, or replace the cursor within eligible areas of the active Studio window.
 - **Playful interactions.** Customise click effects and add an optional sound in Pokelet Studio.
 - **Updates and version history.** See your installed version in Studio and read **What’s New** offline.
-- **Your Mac, your data.** Pokelet runs locally without an account or telemetry.
+- **Your Mac, your data.** Pointer features run locally without an account. Basic usage reporting is optional and starts off.
 
 ## Get started
 

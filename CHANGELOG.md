@@ -4,6 +4,10 @@ This file records release changes. Published notes, downloads and verification d
 
 ## Unreleased
 
+### Added
+
+- Privacy & Analytics in Studio → General. Configured builds offer basic usage reporting with your permission, off by default.
+
 ## [v1.3.1-beta.2] - 2026-11-23
 
 Build: 6

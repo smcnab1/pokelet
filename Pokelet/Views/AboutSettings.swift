@@ -40,7 +40,7 @@ struct AboutSettings: View {
                     }
                 }
                 StudioSection("Privacy and credits") {
-                    StudioNote("Preferences and imported sounds stay on this Mac. Pokelet has no account, telemetry or recording service.")
+                    StudioNote("Preferences and imported sounds stay on this Mac. Optional usage reporting is off by default. Manage it in General.")
                     link("Privacy details", symbol: "hand.raised", url: repository.appending(path: "blob/main/PRIVACY.md"))
                     StudioNote("Includes MIT-licensed overlay and shortcut code adapted from Quiet Pointer.")
                     link("Quiet Pointer", symbol: "hand.point.up.left", url: quietPointer)

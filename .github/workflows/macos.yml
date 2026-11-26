@@ -80,6 +80,8 @@ jobs:
           verify_metadata Debug build/debug/Build/Products/Debug/Pokelet.app
           verify_metadata Release dist/candidate/Pokelet.app
           plist=dist/candidate/Pokelet.app/Contents/Info.plist
+          test -z "$(plutil -extract PokeletTelemetryDeckAppID raw "$plist")"
+          test -z "$(plutil -extract PokeletTelemetryDeckNamespace raw "$plist")"
           test -z "$(plutil -extract SUFeedURL raw "$plist")"
           test -z "$(plutil -extract SUPublicEDKey raw "$plist")"
           test "$(plutil -extract SUVerifyUpdateBeforeExtraction raw "$plist")" = true

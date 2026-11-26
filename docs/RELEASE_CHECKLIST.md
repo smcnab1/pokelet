@@ -67,6 +67,10 @@ Check the staged file list against the approved asset list. Mount the DMG read-o
 
 Merging changes under `docs/site` or the Pages workflow deploys the website from `main`; obtain the required approval separately. Publishing a release also changes the existing website’s dynamically selected download.
 
+## Optional usage analytics
+
+Packages have usage reporting unavailable when no TelemetryDeck app ID is supplied. Before enabling reporting in a public build, complete the [analytics setup and privacy review](ANALYTICS.md#before-enabling-reporting). CI packages leave the app ID and namespace blank.
+
 ## Signed Sparkle updates
 
 Default local and CI builds use manual downloads. They retain offline version history and have no appcast or public key. Install the first update-enabled build manually from the verified installer. Existing manual-download builds, including Beta 3, continue to use GitHub Releases.

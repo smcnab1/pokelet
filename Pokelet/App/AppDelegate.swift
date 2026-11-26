@@ -86,12 +86,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
         }
         observe(NSWorkspace.activeSpaceDidChangeNotification, center: workspace) { $0.model.spaceChanged() }
         observe(NSWorkspace.willSleepNotification, center: workspace) { $0.systemSleeping = true; $0.updateSuspension() }
-        observe(NSWorkspace.didWakeNotification, center: workspace) { $0.systemSleeping = false; $0.updateSuspension() }
+        observe(NSWorkspace.didWakeNotification, center: workspace) {
+            $0.systemSleeping = false
+            $0.updateSuspension()
+            $0.model.analytics.check()
+        }
         observe(NSWorkspace.screensDidSleepNotification, center: workspace) { $0.setScreenSleeping(true) }
         observe(NSWorkspace.screensDidWakeNotification, center: workspace) { $0.setScreenSleeping(false) }
         observe(NSWorkspace.sessionDidResignActiveNotification, center: workspace) { $0.setSessionInactive(true) }
         observe(NSWorkspace.sessionDidBecomeActiveNotification, center: workspace) { $0.setSessionInactive(false) }
         updates.start()
+        model.analytics.check()
         if ProcessInfo.processInfo.arguments.contains("--settings") ||
             (model.isStudioAcceptance && !ProcessInfo.processInfo.arguments.contains("--background")) { openStudio() }
     }
@@ -118,6 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
 
     func applicationWillTerminate(_ notification: Notification) {
         tokens.removeAll()
+        model.analytics.stop()
         model.shutDown()
         removeStatusItem()
     }
