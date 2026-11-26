@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>Privacy | Pokelet</title>
-  <meta name="description" content="What stays on your Mac, how optional Pokelet usage reporting works, and how to manage your data.">
+  <meta name="description" content="What stays on your Mac, what happens when you check for updates, and how the website uses your browser.">
   <link rel="canonical" href="https://smcnab1.github.io/pokelet/privacy/">
   <link rel="icon" href="../assets/pokelet-icon.png" type="image/png" sizes="64x64">
   <link rel="stylesheet" href="../style.css">
@@ -22,33 +22,22 @@
   </header>
   <main class="wrap guide" id="main" tabindex="-1">
     <h1>Privacy</h1>
-    <p class="intro">Pokelet’s pointer runs on your Mac and requires no account. Basic usage reporting is optional and starts off.</p>
-
-    <section aria-labelledby="reporting">
-      <h2 id="reporting">Optional app analytics</h2>
-      <p>In an analytics-enabled build, go to <strong>Pokelet Studio → General → Privacy &amp; Analytics</strong>. If you turn on <strong>Share basic usage</strong>, Pokelet uses your consent to store a random installation code and send at most one report per UTC day. You can turn it off in the same place at any time. Pokelet’s features work the same either way. Automatic diagnostics are unavailable.</p>
-      <dl class="feature-list">
-        <div><dt>What the report contains</dt><dd>A hashed installation code, Pokelet version and build, and whether this is the first report or a later day of use. The service records the receipt time rounded to the hour.</dd></div>
-        <div><dt>Why it is collected</dt><dd>To estimate how many installations use Pokelet and which versions they run. Reports contain no cursor activity, screen contents, other app activity, character choices, location or device details.</dd></div>
-        <div><dt>What happens when you turn it off</dt><dd>Pokelet cancels pending transmission and clears its local installation code and consent record. It keeps only the last attempt date to prevent duplicate reports if you turn it on again. The app cannot recall reports already received.</dd></div>
-      </dl>
+    <p class="intro">Pokelet runs on your Mac without an account. It sends no usage reports and creates no analytics installation identifier.</p>
+    <section aria-labelledby="local">
+      <h2 id="local">What stays on your Mac</h2>
+      <p>Pointer effects use mouse events in memory. Preferences, your shortcut and imported sounds stay on your Mac. Pokelet does not collect screen contents.</p>
     </section>
-
-    <section aria-labelledby="service">
-      <h2 id="service">Who handles reports</h2>
-      <p>Sam McNab is responsible for Pokelet’s usage analytics. TelemetryDeck GmbH hosts the analytics service on Hetzner infrastructure in Germany and Finland. The UK recognises the EEA as providing adequate data protection. The receiving infrastructure sees your IP address to deliver the request. TelemetryDeck says it does not use your IP address for location or store it in analytics data, logs or backups. Its data agreement is part of its terms and states that it acts outside GDPR Article 28 for data it considers anonymous.</p>
-      <p>The free plan provides three months of dashboard history. Older reports can stay in cold storage, and raw ingestion backups have separate retention. TelemetryDeck offers deletion by month and has no lookup or deletion for a single installation. See the <a href="https://telemetrydeck.com/faq/subscription/">retention terms</a> and <a href="https://telemetrydeck.com/dpa/">data agreement</a>.</p>
-    </section>
-
-    <section aria-labelledby="rights">
-      <h2 id="rights">Contact and data rights</h2>
-      <p><a href="mailto:sam@sammcnab.co.uk">Email Sam McNab</a> to ask about your data or exercise applicable rights, including access, correction, erasure, restriction and portability. You can also complain to the <a href="https://ico.org.uk/make-a-complaint/">UK Information Commissioner’s Office</a> or your applicable data protection authority. See the <a href="https://github.com/smcnab1/pokelet/blob/main/PRIVACY.md">full Pokelet privacy policy</a> for permissions, GitHub feedback and software updates.</p>
+    <section aria-labelledby="updates">
+      <h2 id="updates">Updates and feedback</h2>
+      <p>When you check for updates, or enable background checks, Sparkle contacts GitHub for your installed channel. GitHub receives normal request data including your IP address and the app and updater versions. Sparkle’s optional system profile is disabled.</p>
+      <p>Reporting a problem opens an editable GitHub form. You choose whether to submit it.</p>
     </section>
 
     <section aria-labelledby="website">
       <h2 id="website">This website</h2>
       <p>The cursor demo stores preferences in your browser when available. The download link uses GitHub’s public release API. Listing badges load from MacNative, Product Hunt and AlternativeTo. Those providers receive normal browser requests. This website does not use TelemetryDeck.</p>
     </section>
+    <p>See the <a href="https://github.com/smcnab1/pokelet/blob/main/PRIVACY.md">full privacy policy</a> or <a href="mailto:sam@sammcnab.co.uk">contact Sam McNab</a> with a privacy question.</p>
   </main>
   <footer class="wrap site-footer">
     <nav aria-label="Footer">

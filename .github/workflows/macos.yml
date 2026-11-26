@@ -56,6 +56,9 @@ jobs:
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES build analyze
           ./script/test_studio_layout.sh build/debug/Build/Products/Debug
       - name: Validate the universal Release archive
+        env:
+          POKELET_TELEMETRYDECK_APP_ID: 00000000-0000-4000-8000-000000000001
+          POKELET_TELEMETRYDECK_NAMESPACE: org.example.qualification
         run: |
           ./script/package_release.sh
           ./script/package_dmg.sh --check-layout dist/candidate/Pokelet.app

@@ -69,7 +69,7 @@ Merging changes under `docs/site` or the Pages workflow deploys the website from
 
 ## Optional usage analytics
 
-Packages have usage reporting unavailable when no TelemetryDeck app ID is supplied. Before enabling reporting in a public build, complete the [analytics setup and privacy review](ANALYTICS.md#before-enabling-reporting). CI packages leave the app ID and namespace blank.
+Release packaging explicitly clears the TelemetryDeck app ID and namespace for both channels. Complete the [privacy review](ANALYTICS.md#before-enabling-reporting) before proposing a change to enable reporting.
 
 ## Signed Sparkle updates
 

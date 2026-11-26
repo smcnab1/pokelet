@@ -4,9 +4,24 @@ This file records release changes. Published notes, downloads and verification d
 
 ## Unreleased
 
+## [v1.4.0-beta.1] - 2026-11-26
+
+Build: 8
+Title: Pokelet 1.4.0 Beta 6
+
 ### Added
 
-- Privacy & Analytics in Studio → General. Configured builds offer basic usage reporting with your permission, off by default.
+- Privacy & Analytics in Studio → General. Usage reporting and additional diagnostics are unavailable in this beta.
+
+## [v1.3.1] - 2026-11-26
+
+Build: 7
+Title: Pokelet 1.3.1
+
+### Changed
+
+- Move from beta to stable by quitting Pokelet and replacing it with the verified stable download. Your settings and shortcut carry over.
+- Studio → Updates checks the signed stable feed. Background checks remain optional. This release sends no usage reports.
 
 ## [v1.3.1-beta.2] - 2026-11-23
 
