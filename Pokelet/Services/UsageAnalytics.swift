@@ -46,7 +46,7 @@ final class UsageAnalytics: ObservableObject {
     }
 
     private static let stateKey = "PokeletUsageAnalytics"
-    private static let noticeRevision = 1
+    private static let noticeRevision = 2
     private static let secondsPerDay: TimeInterval = 86_400
 
     @Published private(set) var isEnabled = false
@@ -64,7 +64,12 @@ final class UsageAnalytics: ObservableObject {
         self.configuration = configuration
         self.makeSession = makeSession
         isAvailable = configuration != nil && !defaults.bool(forKey: Self.developerExclusionKey)
-        isEnabled = isAvailable && state.consent?.revision == Self.noticeRevision
+        let stored = state
+        if let consent = stored.consent, consent.revision < Self.noticeRevision {
+            setEnabled(false)
+        } else {
+            isEnabled = isAvailable && stored.consent?.revision == Self.noticeRevision
+        }
     }
 
     private var state: State {

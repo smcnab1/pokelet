@@ -121,6 +121,36 @@ final class UsageAnalyticsTests: XCTestCase {
         await fulfillment(of: [extraRequest], timeout: 0.2)
     }
 
+    func testObsoleteConsentIsClearedBeforeReportingEvenWhenUnavailable() throws {
+        for configured in [false, true] {
+            let suite = UUID().uuidString
+            let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+            defer { defaults.removePersistentDomain(forName: suite) }
+            let key = "PokeletUsageAnalytics"
+            let oldID = UUID().uuidString
+            let attemptDay = Int(day.timeIntervalSince1970 / 86_400)
+            let old: [String: Any] = [
+                "consent": ["revision": 1, "grantedAt": 0, "installationID": oldID],
+                "lastAttemptDay": attemptDay
+            ]
+            defaults.set(try JSONSerialization.data(withJSONObject: old), forKey: key)
+            let analytics = configured ? makeAnalytics(defaults) : UsageAnalytics(configuration: nil, defaults: defaults)
+            defer { analytics.stop() }
+            XCTAssertFalse(analytics.isEnabled)
+            let cleared = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(defaults.data(forKey: key))) as? [String: Int])
+            XCTAssertEqual(cleared, ["lastAttemptDay": attemptDay])
+            analytics.setEnabled(true, now: day)
+            XCTAssertEqual(analytics.isEnabled, configured)
+            if configured {
+                let data = try XCTUnwrap(defaults.data(forKey: key))
+                let stored = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+                let consent = try XCTUnwrap(stored["consent"] as? [String: Any])
+                XCTAssertNotEqual(try XCTUnwrap(consent["installationID"] as? String), oldID)
+                XCTAssertEqual(consent["revision"] as? Int, 2)
+            }
+        }
+    }
+
     func testNamespaceStaysWithinOneIngestPathSegment() {
         let withoutNamespace = UsageAnalytics.Configuration(appID: appID, namespace: nil, version: "1.3.1", build: "6")
         XCTAssertEqual(withoutNamespace?.endpoint.absoluteString, "https://nom.telemetrydeck.com/v2/")

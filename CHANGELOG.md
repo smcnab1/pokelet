@@ -12,7 +12,7 @@ Title: Pokelet 1.4.0 Beta 6
 ### Added
 
 - Studio → Updates links to the stable installer. You choose whether to download and install it.
-- Privacy & Analytics in Studio → General. Usage reporting and additional diagnostics are unavailable in this beta.
+- Privacy & Analytics in Studio → General. Usage reporting is unavailable in this beta. A material change to the notice clears earlier consent and its installation code.
 
 ## [v1.3.1] - 2026-11-26
 
