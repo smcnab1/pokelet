@@ -1,10 +1,10 @@
 # Pokelet usage analytics
 
-Hosted Test Mode ingestion and the dashboard configuration passed verification. Production reporting is disabled in release packaging pending the provider response and approval of the [draft privacy notice](ANALYTICS_PRIVACY_DRAFT.md). Proposed next beta: `v1.4.0-beta.1`, build 8, after stable build 7.
+Hosted Test Mode ingestion and the dashboard configuration passed verification. Production reporting is disabled in release packaging pending the provider response and approval of the [draft privacy notice](ANALYTICS_PRIVACY_DRAFT.md). See the [processing record and risk assessment](ANALYTICS_PROCESSING.md). Proposed next beta: `v1.4.0-beta.1`, build 8, after stable build 7.
 
 ## Payload and counting
 
-Reporting requires both a configured Release build and opt-in in **Studio → General → Privacy & Analytics**. Debug, CI, acceptance profiles and developer-excluded installations are ineligible. Additional diagnostics are unavailable. The feature adds no collection or calls to the cursor path.
+Reporting requires both a configured Release build and opt-in in **Studio → General → Privacy & Analytics**. Debug, CI, acceptance profiles and developer-excluded installations are ineligible. The feature adds no collection or calls to the cursor path.
 
 | Sent over HTTPS to TelemetryDeck | Purpose |
 | --- | --- |
