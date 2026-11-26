@@ -6,16 +6,16 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
         <link>https://smcnab1.github.io/pokelet/updates/appcast.xml</link>
         <sparkle:bundleIdentifier>uk.co.sammcnab.Pokelet</sparkle:bundleIdentifier>
         <item>
-            <title>1.3.1</title>
+            <title>1.4.0</title>
             <pubDate>Thu, 26 Nov 2026 00:00:00 +0000</pubDate>
-            <sparkle:version>7</sparkle:version>
-            <sparkle:shortVersionString>1.3.1</sparkle:shortVersionString>
+            <sparkle:version>8</sparkle:version>
+            <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:releaseNotesLink sparkle:edSignature="zXqpGiGIKl0qJguRCachn++EQR8NnCQgR5D04TrOv32Q+Z7UsDl7V6mgnDIXftaYOo9cSjt9u5NLNYZ8tXweBg==" sparkle:length="510">https://smcnab1.github.io/pokelet/updates/Pokelet-1.3.1-build-7.md</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/smcnab1/pokelet/releases/download/v1.3.1/Pokelet-1.3.1-build-7.zip" length="3082292" type="application/octet-stream" sparkle:edSignature="sE1QYYiSSEK3LNRKpKMSa2NbO7elbOuAzYnvu7JLrf2IsH03ByaC10rzy95+dE30ojpr17i41M7jxWFA9nucBA=="></enclosure>
+            <sparkle:releaseNotesLink sparkle:edSignature="8WSNPEANxXYUiVh9M5R/s8vPUFmp+j6O7T55Qzh+FUAUECwHhrtwta6l82uBboDUHYaRN4vlapKoJVaRDjUTCw==" sparkle:length="455">https://smcnab1.github.io/pokelet/updates/Pokelet-1.4.0-build-8.md</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/smcnab1/pokelet/releases/download/v1.4.0/Pokelet-1.4.0-build-8.zip" length="3134773" type="application/octet-stream" sparkle:edSignature="xoBzUlTszAhHNs9VMsF4PpPCkEKDjecLE8D/UdTJRHNar6Tki76KEVo50hLJNeux6AADigt+cUhs6nEEyTGsAA=="></enclosure>
         </item>
     </channel>
 </rss><!-- sparkle-signatures:
-edSignature: c07dUC+ttHGfFZ6in9Gy5au5G5Bg0Cb7Kr+P2mU68/8EPT/GBZw+mwxUds5ADc0MtPldFZw/z2fsVcLlhgl7CQ==
+edSignature: H+I3Nbb7YStmAkXrOvvyjPVYJ47B6+x6GKH5za9zVbMPFCrmBgOV2HoSbBAihj18vwH3H5oweQ2yGr9oTDZGAQ==
 length: 1485
 -->
