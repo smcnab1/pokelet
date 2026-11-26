@@ -274,36 +274,13 @@ p { color: var(--muted); }
 }
 
 .hero-listing-link {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  transition:
-    transform 180ms ease,
-    filter 180ms ease;
+  color: inherit;
+  font-size: 0.85rem;
+  text-underline-offset: 0.2em;
 }
-
-.hero-listing-link img {
-  display: block;
-  width: 168px;
-  height: 44px;
-}
-
-@media (hover: hover) {
-  .hero-listing-link:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.15);
-  }
-}
-
 .hero-listing-link:focus-visible {
   outline: 2px solid #c9a9f3;
   outline-offset: 4px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-listing-link {
-    transition: none;
-  }
 }
 
 .cursor-picker { grid-area: cursor; }

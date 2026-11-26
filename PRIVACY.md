@@ -22,4 +22,8 @@ Ordinary pointer use requires neither Accessibility nor Input Monitoring. Intera
 
 The [website](https://smcnab1.github.io/pokelet/) remembers cursor preferences in local storage when available. It asks GitHub’s public API for release metadata to resolve the download link and caches the answer briefly in your browser tab. Click sounds start muted each time you load the page.
 
-GitHub hosts releases, the Wiki, Discussions and issue forms. Opening those pages or submitting feedback is subject to [GitHub’s privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). The website also loads MacNative, Product Hunt and AlternativeTo listing badges from those providers; your browser makes requests to them. Pokelet does not send native app usage data to these services.
+GitHub hosts releases, the Wiki, Discussions and issue forms. Opening those pages or submitting feedback is subject to [GitHub’s privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). The website links to MacNative, Product Hunt and AlternativeTo. Your browser contacts those directories when you follow a link. Pokelet does not send native app usage data to these services.
+
+## Privacy questions and complaints
+
+Email [Sam McNab](mailto:sam@sammcnab.co.uk) with your concern. Sam will acknowledge complaints within 30 days, investigate without undue delay, keep you informed and explain the outcome. If you remain dissatisfied, you can [complain to the ICO](https://ico.org.uk/make-a-complaint/).
