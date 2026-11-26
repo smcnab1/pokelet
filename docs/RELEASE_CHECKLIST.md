@@ -63,7 +63,7 @@ Check the staged file list against the approved asset list. Mount the DMG read-o
 2. Create and push only the approved tag. Verify its remote target. Create a draft release with the agreed prerelease status and approved files. Stop on any collision or upload failure; inspect the existing state before recovery.
 3. Download draft assets into a new directory. Compare the file list and digests with the approved manifest, then repeat checksum and signature verification on the downloaded bytes.
 4. Publish only within the explicit approval. Download published assets into another new directory and repeat the checks. Record release URL, source SHA and verified digests.
-5. Check the public website resolves the intended release and DMG, including prereleases. Release discovery is automatic; README, Wiki navigation and website labels should not need version edits. Retain a link to the release listing as fallback.
+5. Check the public website resolves the intended release and DMG, preferring stable once available. Release discovery is automatic; README, Wiki navigation and website labels should not need version edits. Retain a link to the release listing as fallback.
 
 Merging changes under `docs/site` or the Pages workflow deploys the website from `main`; obtain the required approval separately. Publishing a release also changes the existing website’s dynamically selected download.
 

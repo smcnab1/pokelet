@@ -1,7 +1,7 @@
 // @ts-check
 const listing = "https://github.com/smcnab1/pokelet/releases";
 const endpoint = "https://api.github.com/repos/smcnab1/pokelet/releases";
-const cacheKey = "pokelet-release-v1";
+const cacheKey = "pokelet-release-v2";
 const lifetime = 5 * 60_000;
 
 /** @param {unknown} value */
@@ -29,10 +29,11 @@ export function selectDownload(data) {
 
 /** @param {Record<string, unknown>[]} releases */
 function selectPublished(releases) {
-  const newest = releases.flatMap((release) => {
+  const published = releases.flatMap((release) => {
     const time = typeof release.published_at === "string" ? Date.parse(release.published_at) : NaN;
     return release.draft === false && Number.isFinite(time) ? [{ release, time, order: Number(release.id) || 0 }] : [];
-  }).sort((a, b) => b.time - a.time || b.order - a.order)[0]?.release;
+  }).sort((a, b) => b.time - a.time || b.order - a.order);
+  const newest = (published.find(({ release }) => release.prerelease === false) ?? published[0])?.release;
 
   if (!newest || typeof newest.tag_name !== "string" || !newest.tag_name.trim() || !Array.isArray(newest.assets)) return;
   const tag = newest.tag_name;
@@ -51,7 +52,7 @@ function selectPublished(releases) {
 
   const [{ asset, url }] = candidates;
   const snapshot = {
-    id: newest.id, draft: false, published_at: newest.published_at, tag_name: tag,
+    id: newest.id, draft: false, prerelease: newest.prerelease, published_at: newest.published_at, tag_name: tag,
     html_url: notes, assets: [asset],
   };
   return { tag, notes, url, snapshot };
