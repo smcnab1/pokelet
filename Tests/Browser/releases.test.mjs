@@ -13,12 +13,12 @@ test("resolves the published beta DMG and skips its checksum", () => {
   assert.equal(selectDownload([{ ...beta, assets: [checksum, ...beta.assets] }]).url, beta.assets[0].browser_download_url);
 });
 
-test("orders stable and beta releases by publication time regardless of API order", () => {
+test("prefers stable releases and selects the newest beta while only betas exist", () => {
   const draft = { ...stable, draft: true, published_at: "2026-12-31T10:00:00Z" };
   assert.equal(selectDownload([beta, draft, newerBeta]).url, newerBeta.assets[0].browser_download_url);
   assert.equal(selectDownload([beta, stable, newerBeta]).url, stable.assets[0].browser_download_url);
   const laterBeta = { ...newerBeta, published_at: "2026-12-19T10:00:00Z" };
-  assert.equal(selectDownload([stable, laterBeta]).tag, laterBeta.tag_name);
+  assert.equal(selectDownload([stable, laterBeta]).tag, stable.tag_name);
 });
 
 test("falls back for missing, ambiguous, incomplete or mismatched assets", () => {

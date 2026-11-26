@@ -44,7 +44,7 @@ Set `POKELET_SITE_URL` for a different local server, or `POKELET_CHROME_CHANNEL=
 
 ## How downloads are selected
 
-The site checks the [public GitHub Releases API](https://docs.github.com/en/rest/releases/releases#list-releases). It sorts non-draft releases by publication time, including beta and stable releases, and uses the newest one. The release must have exactly one uploaded, non-empty DMG with a GitHub download URL matching the repository, release tag and asset name. A missing or ambiguous DMG, blocked request or unavailable JavaScript sends visitors to the [releases listing](https://github.com/smcnab1/pokelet/releases).
+The site checks the [public GitHub Releases API](https://docs.github.com/en/rest/releases/releases#list-releases). It sorts non-draft releases by publication time, and selects the newest stable release. While only betas are published, it selects the newest beta. The release must have exactly one uploaded, non-empty DMG with a GitHub download URL matching the repository, release tag and asset name. A missing or ambiguous DMG, blocked request or unavailable JavaScript sends visitors to the [releases listing](https://github.com/smcnab1/pokelet/releases).
 
 The current result is cached for five minutes in the browser tab. An open page refreshes at expiry when visible and checks freshness when it returns to view. Publishing a new release needs no website change.
 
