@@ -31,7 +31,7 @@ In the [TelemetryDeck dashboard](https://dashboard.telemetrydeck.com/), select t
 | Daily active installations | `Usage.firstLaunch` OR `Usage.active` | Unique installations, day buckets. |
 | Weekly active installations | Same two event types | Unique installations, week buckets. |
 | Monthly active installations | Same two event types | Unique installations, calendar month buckets. Set a date range that includes at least one full month within available history. |
-| Version adoption | Same two event types | Breakdown on `Pokelet.App.version`, unique installations, last 30 days. Check with a synthetic upgrade that the breakdown attributes an installation to its latest version in the selected window. |
+| Installations by reported version | Same two event types | Breakdown on `Pokelet.App.version`, unique installations per version, last 30 days. The synthetic upgrade counted one installation under both reported builds. Version rows can overlap across an update and do not measure each installation’s latest build. |
 
 Use **Any event** for the activity and version queries if the Pokelet app is dedicated to these two types. If more event types are introduced, use an OR filter for the two usage types. Never sum daily unique counts to get weekly or monthly counts. The free dashboard updates in batches. See the provider guides for [custom dashboards](https://telemetrydeck.com/docs/articles/create-custom-dashboards/), [unique counting and breakdowns](https://telemetrydeck.com/docs/api/insights-reference/) and [monthly active insight intervals](https://telemetrydeck.com/docs/articles/insights-about-monthly-users/).
 
