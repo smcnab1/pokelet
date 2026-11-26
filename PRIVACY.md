@@ -1,6 +1,6 @@
 # Privacy
 
-Pokelet runs locally. It has no account or telemetry. Builds configured for software updates can contact GitHub for releases.
+Pokelet runs locally. The stable app requires no account, creates no analytics installation identifier and sends no usage reports. Builds configured for software updates can contact GitHub for releases.
 
 | Feature | Data and permission |
 | --- | --- |

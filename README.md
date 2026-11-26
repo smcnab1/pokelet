@@ -83,7 +83,7 @@
 
 **The universal build targets macOS 14 or later** on Apple silicon and Intel Macs.
 
-Get manual updates from [GitHub Releases](https://github.com/smcnab1/pokelet/releases). Builds configured for signed updates can check for stable releases in Studio, with optional background checks. For setup and troubleshooting, visit the [Pokelet Wiki](https://github.com/smcnab1/pokelet/wiki).
+Get manual updates from [GitHub Releases](https://github.com/smcnab1/pokelet/releases). To move from beta to stable, quit Pokelet and replace the app in Applications with the verified stable download. Your settings carry over. Studio → Updates checks the channel of the installed build. Background checks are optional. For setup and troubleshooting, visit the [Pokelet Wiki](https://github.com/smcnab1/pokelet/wiki).
 
 ### Build from source
 
