@@ -69,7 +69,7 @@ Merging changes under `docs/site` or the Pages workflow deploys the website from
 
 ## Optional usage analytics
 
-Release packaging explicitly clears the TelemetryDeck app ID and namespace for both channels. Complete the [activation steps in the processing record](ANALYTICS_PROCESSING.md) before proposing a change to enable reporting.
+Stable signed-update packages use the public Pokelet app ID and namespace. Packaging checks both values in the extracted ZIP. CI, manual-download builds and beta packages leave both values empty. See the [processing record](ANALYTICS_PROCESSING.md).
 
 ## Signed Sparkle updates
 

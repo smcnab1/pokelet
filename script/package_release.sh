@@ -70,6 +70,14 @@ if [[ "$ad_hoc_updates" == true || "$channel" == beta || -n "$UPDATE_TOOLS" || -
   fi
 fi
 
+# Only distributed stable update builds offer analytics. CI and developer packages stay offline.
+analytics_app_id=""
+analytics_namespace=""
+if [[ -n "$update_key" && "$channel" == stable && -z "${CI:-}" ]]; then
+  analytics_app_id="EEAB61E8-C58C-4181-B3F7-C0B44770C375"
+  analytics_namespace="uk.co.sammcnab"
+fi
+
 # Build locally. The opt-in Developer ID signing path obtains Apple's secure timestamps.
 xcodebuild -quiet -onlyUsePackageVersionsFromResolvedFile -project "$ROOT/Pokelet.xcodeproj" -scheme Pokelet -configuration Release \
   -destination 'generic/platform=macOS' -derivedDataPath "$STAGE/derived" \
@@ -78,7 +86,7 @@ xcodebuild -quiet -onlyUsePackageVersionsFromResolvedFile -project "$ROOT/Pokele
   CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO CODE_SIGN_ENTITLEMENTS="$entitlements" \
   POKELET_UPDATE_FEED_URL="$update_feed" POKELET_UPDATE_PUBLIC_KEY="$update_key" \
   POKELET_UPDATE_COMPILATION="$update_compilation" \
-  POKELET_TELEMETRYDECK_APP_ID= POKELET_TELEMETRYDECK_NAMESPACE= build
+  POKELET_TELEMETRYDECK_APP_ID="$analytics_app_id" POKELET_TELEMETRYDECK_NAMESPACE="$analytics_namespace" build
 
 mkdir "$STAGE/candidate" "$STAGE/extracted"
 APP="$STAGE/candidate/Pokelet.app"
@@ -102,6 +110,9 @@ unzip -tq "$ZIP"
 /usr/bin/ditto -x -k "$ZIP" "$STAGE/extracted"
 EXTRACTED="$STAGE/extracted/Pokelet.app"
 "$ROOT/script/test_native.sh" "$EXTRACTED"
+plist="$EXTRACTED/Contents/Info.plist"
+[[ "$(plutil -extract PokeletTelemetryDeckAppID raw "$plist")" == "$analytics_app_id" ]]
+[[ "$(plutil -extract PokeletTelemetryDeckNamespace raw "$plist")" == "$analytics_namespace" ]]
 BINARY="$EXTRACTED/Contents/MacOS/Pokelet"
 if [[ -n "$update_key" ]]; then
   for arch in arm64 x86_64; do

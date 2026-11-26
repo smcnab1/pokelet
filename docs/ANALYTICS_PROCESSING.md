@@ -1,6 +1,6 @@
 # Optional usage statistics
 
-**26 November 2026 · Sam McNab · sam@sammcnab.co.uk.** Release packages have an empty analytics configuration. The [public privacy policy](site/privacy/index.html) covers the app and website.
+**26 November 2026 · Sam McNab · sam@sammcnab.co.uk.** Signed-update stable release packages offer opt-in reporting. Local, CI and beta packages have empty analytics configuration. The [public privacy policy](site/privacy/index.html) covers the app and website.
 
 ## What we count
 
@@ -21,4 +21,4 @@ The first attempt consumes the day even when offline. Clearing app preferences c
 - **Roles and rights.** The provider's terms treat stored analytics as anonymous and disclaim an Article 28 processor relationship. With the shared literal, neither party has an installation key for lookup or deletion. Sam handles requests and considers any information that would enable identification. There is no reason to start collecting identifiers for that purpose. [Agreement](https://telemetrydeck.com/dpa/) · [Article 11](https://www.legislation.gov.uk/eur/2016/679/article/11)
 - **Retention.** Free provides three months of queryable history. Older events can remain in cold storage. Organisation settings allow deletion by month or whole organisation. The provider quotes up to three months for low-level backups after deletion but also describes a separate raw-ingest backup without a fixed expiry. Avoid promising a final deletion date. [Provider deletion and backup FAQ](https://telemetrydeck.com/faq/analytics-data-privacy/)
 
-**Before activation.** Make the policy available at the URL linked in Studio. On the documented app-ingest path, there is no evident need for a bespoke processor contract, individual erasure tool or backup deadline for anonymous counts. If identifiable request data is retained or processed on Sam’s behalf, resolve the role, retention and applicable Article 28 terms first. Sam should check any existing ICO fee registration or exemption against his activities as a whole. The free service adds no subscription fee. [ICO fee self-assessment](https://ico.org.uk/for-organisations/data-protection-fee/data-protection-fee-self-assessment/)
+**Owner decision, 26 November 2026.** Sam authorised activation and will handle the ICO fee assessment. Registration or exemption remains unconfirmed. The assessment covers the controller’s activities as a whole. [ICO fee self-assessment](https://ico.org.uk/for-organisations/data-protection-fee/data-protection-fee-self-assessment/)
