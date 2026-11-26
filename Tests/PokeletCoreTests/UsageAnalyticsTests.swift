@@ -46,7 +46,6 @@ final class UsageAnalyticsTests: XCTestCase {
         let next = try decode(requests[1])
         XCTAssertEqual(first["type"] as? String, "Usage.firstLaunch")
         XCTAssertEqual(next["type"] as? String, "Usage.active")
-        XCTAssertEqual(first["clientUser"] as? String, next["clientUser"] as? String)
         XCTAssertEqual(first["payload"] as? [String: String], ["Pokelet.App.version": "1.3.1 (build 6)"])
         XCTAssertEqual(next["payload"] as? [String: String], ["Pokelet.App.version": "1.3.1 (build 7)"])
     }
@@ -81,10 +80,9 @@ final class UsageAnalyticsTests: XCTestCase {
         await fulfillment(of: [extraRequest], timeout: 0.2)
         let requests = recorder.requests
         guard requests.count == 2 else { return XCTFail("Expected two requests, got \(requests.count)") }
-        let original = try decode(requests[0])
+        _ = try decode(requests[0])
         let renewed = try decode(requests[1])
         XCTAssertEqual(renewed["type"] as? String, "Usage.active")
-        XCTAssertNotEqual(original["clientUser"] as? String, renewed["clientUser"] as? String)
     }
 
     func testOfflineRequestIsNeverRetriedAndDeveloperExclusionPersists() async throws {
@@ -130,7 +128,7 @@ final class UsageAnalyticsTests: XCTestCase {
             let oldID = UUID().uuidString
             let attemptDay = Int(day.timeIntervalSince1970 / 86_400)
             let old: [String: Any] = [
-                "consent": ["revision": 1, "grantedAt": 0, "installationID": oldID],
+                "consent": ["revision": 2, "grantedAt": 0, "installationID": oldID],
                 "lastAttemptDay": attemptDay
             ]
             defaults.set(try JSONSerialization.data(withJSONObject: old), forKey: key)
@@ -145,8 +143,8 @@ final class UsageAnalyticsTests: XCTestCase {
                 let data = try XCTUnwrap(defaults.data(forKey: key))
                 let stored = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
                 let consent = try XCTUnwrap(stored["consent"] as? [String: Any])
-                XCTAssertNotEqual(try XCTUnwrap(consent["installationID"] as? String), oldID)
-                XCTAssertEqual(consent["revision"] as? Int, 2)
+                XCTAssertEqual(Set(consent.keys), ["grantedAt", "revision"])
+                XCTAssertEqual(consent["revision"] as? Int, 3)
             }
         }
     }
@@ -182,8 +180,7 @@ final class UsageAnalyticsTests: XCTestCase {
         let event = try XCTUnwrap(batch.first)
         XCTAssertEqual(Set(event.keys), ["appID", "clientUser", "type", "payload"])
         XCTAssertEqual(event["appID"] as? String, appID)
-        let hash = try XCTUnwrap(event["clientUser"] as? String)
-        XCTAssertNotNil(hash.range(of: "^[0-9a-f]{64}$", options: .regularExpression))
+        XCTAssertEqual(event["clientUser"] as? String, "pokelet")
         return event
     }
 

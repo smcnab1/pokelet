@@ -1,5 +1,4 @@
 import Combine
-import CryptoKit
 import Foundation
 
 @MainActor
@@ -30,7 +29,6 @@ final class UsageAnalytics: ObservableObject {
     private struct Consent: Codable {
         let revision: Int
         let grantedAt: Date
-        let installationID: UUID
     }
 
     private struct State: Codable {
@@ -40,13 +38,14 @@ final class UsageAnalytics: ObservableObject {
 
     private struct Event: Encodable {
         let appID: UUID
-        let clientUser: String
+        // The app ingest schema requires this field. All installations share it.
+        let clientUser = "pokelet"
         let type: String
         let payload: [String: String]
     }
 
     private static let stateKey = "PokeletUsageAnalytics"
-    private static let noticeRevision = 2
+    private static let noticeRevision = 3
     private static let secondsPerDay: TimeInterval = 86_400
 
     @Published private(set) var isEnabled = false
@@ -82,7 +81,7 @@ final class UsageAnalytics: ObservableObject {
         var state = state
         if enabled {
             guard !isEnabled, isAvailable, !defaults.bool(forKey: Self.developerExclusionKey) else { return }
-            state.consent = Consent(revision: Self.noticeRevision, grantedAt: now, installationID: UUID())
+            state.consent = Consent(revision: Self.noticeRevision, grantedAt: now)
             guard save(state) else { return }
             isEnabled = true
             check(now: now)
@@ -111,10 +110,8 @@ final class UsageAnalytics: ObservableObject {
         scheduleCheck(after: day)
         if let lastAttemptDay = state.lastAttemptDay, lastAttemptDay >= day { return }
 
-        let hash = SHA256.hash(data: Data((consent.installationID.uuidString + configuration.appID.uuidString).utf8))
         let event = Event(
             appID: configuration.appID,
-            clientUser: hash.map { String(format: "%02x", $0) }.joined(),
             type: state.lastAttemptDay == nil ? "Usage.firstLaunch" : "Usage.active",
             payload: ["Pokelet.App.version": configuration.version]
         )
