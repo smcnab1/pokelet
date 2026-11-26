@@ -38,6 +38,12 @@ struct UpdateSettings: View {
                     ))
                     StudioNote("Pokelet checks in the background and waits for you to open and install an available update.")
                 }
+                if updates.currentRelease?.isPrerelease == true {
+                    Link("Stable release available", destination: GitHubFeedback.repository
+                        .appending(path: "releases/download/v1.3.1/Pokelet-1.3.1-unnotarised.dmg"))
+                        .studioFont(.callout)
+                        .help("Download the Pokelet 1.3.1 stable installer")
+                }
                 if !updates.isAvailable || warning {
                     Link("Download from GitHub Releases", destination: GitHubFeedback.repository.appending(path: "releases"))
                         .studioFont(.callout)
