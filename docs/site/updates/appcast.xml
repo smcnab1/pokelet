@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Pokelet</title>
+        <link>https://smcnab1.github.io/pokelet/updates/appcast.xml</link>
+        <sparkle:bundleIdentifier>uk.co.sammcnab.Pokelet</sparkle:bundleIdentifier>
+        <item>
+            <title>1.3.1</title>
+            <pubDate>Thu, 26 Nov 2026 00:00:00 +0000</pubDate>
+            <sparkle:version>7</sparkle:version>
+            <sparkle:shortVersionString>1.3.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink sparkle:edSignature="zXqpGiGIKl0qJguRCachn++EQR8NnCQgR5D04TrOv32Q+Z7UsDl7V6mgnDIXftaYOo9cSjt9u5NLNYZ8tXweBg==" sparkle:length="510">https://smcnab1.github.io/pokelet/updates/Pokelet-1.3.1-build-7.md</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/smcnab1/pokelet/releases/download/v1.3.1/Pokelet-1.3.1-build-7.zip" length="3082292" type="application/octet-stream" sparkle:edSignature="sE1QYYiSSEK3LNRKpKMSa2NbO7elbOuAzYnvu7JLrf2IsH03ByaC10rzy95+dE30ojpr17i41M7jxWFA9nucBA=="></enclosure>
+        </item>
+    </channel>
+</rss><!-- sparkle-signatures:
+edSignature: c07dUC+ttHGfFZ6in9Gy5au5G5Bg0Cb7Kr+P2mU68/8EPT/GBZw+mwxUds5ADc0MtPldFZw/z2fsVcLlhgl7CQ==
+length: 1485
+-->
