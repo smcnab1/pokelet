@@ -4,17 +4,14 @@ This file records release changes. Published notes, downloads and verification d
 
 ## Unreleased
 
-- Optional usage statistics use no installation identifier. Sharing is off by default.
-
-## [v1.4.0-beta.1] - 2026-11-26
+## [v1.4.0] - 2026-11-26
 
 Build: 8
-Title: Pokelet 1.4.0 Beta 6
+Title: Pokelet 1.4.0
 
 ### Added
 
-- Studio → Updates links to the stable installer. You choose whether to download and install it.
-- Privacy & Analytics in Studio → General. Usage reporting is unavailable in this beta.
+- In Studio → General → Privacy & Analytics, you can choose to share basic usage. Sharing starts off. Reports count first participation, daily activity and app versions without an installation identifier.
 
 ## [v1.3.1] - 2026-11-26
 
