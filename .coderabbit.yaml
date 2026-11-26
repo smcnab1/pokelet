@@ -5,6 +5,10 @@ reviews:
   profile: chill
   request_changes_workflow: false
   high_level_summary: true
+  high_level_summary_instructions: "Summarise the practical impact in up to three short bullets."
+  estimate_code_review_effort: false
+  assess_linked_issues: false
+  related_issues: false
   collapse_walkthrough: true
   poem: false
   auto_review:
