@@ -1,33 +1,24 @@
-# Optional usage reporting — processing record and risk assessment
+# Optional usage statistics
 
-Reviewed 26 November 2026. Owner and controller: Sam McNab, [sam@sammcnab.co.uk](mailto:sam@sammcnab.co.uk). Production reporting is disabled. Hosted verification used synthetic events in Test Mode.
+**26 November 2026 · Sam McNab · sam@sammcnab.co.uk.** Release packages have an empty analytics configuration. The [public privacy policy](site/privacy/index.html) covers the app and website.
 
-## Processing record
+## What we count
 
-| Activity | Scope and safeguards |
+The Pokelet dashboard counts **events**. The app sends one event per participating installation per UTC day at most. The required `clientUser` is the literal `pokelet` in every request.
+
+| Estimate | TelemetryDeck insight |
 | --- | --- |
-| Purpose and participants | Estimate first participation, active installations and version adoption for users who opt in. No accounts, advertising, cross-app matching or individual decisions. |
-| Basis and local storage | Prior consent for analytics and its associated storage/access. The Mac holds the random identifier, grant time, notice revision and last attempt day. Withdrawal or an obsolete revision clears the grant and identifier. The last day limits duplicates. |
-| Data and recipients | Pokelet sends TelemetryDeck a pseudonymous installation digest, event type, app ID and version/build over HTTPS. Receipt adds timing and service metadata. The network handles the IP during receipt. No diagnostic or cursor stream. |
-| Retention and transfers | [Confirm raw event and cold storage retention, backup expiry and deletion after restore.] [Confirm hosting, subprocessors, international support access, transfers and any safeguards.] |
-| Processor and rights | [Confirm legal roles and Article 28 arrangements where applicable.] [Confirm secure matching, erasure feasibility and response steps.] Sam handles email requests and complaints and seeks provider assistance where appropriate. |
-| Security | Separate production/test reporting, developer exclusion, minimal payload, ephemeral transport, no redirects or retries, at most one attempt per UTC day. Restrict dashboard access to the owner. |
+| First-time reporting installations | Count `Usage.firstLaunch`. |
+| Daily activity | Count both `Usage.firstLaunch` and `Usage.active` in daily UTC buckets. |
+| Version adoption | Group both events by `Pokelet.App.version` within a day. Longer periods count installation-days. |
 
-Regular daily reporting is recurring processing. The under-250-employee exception does not remove the Article 30 record requirement for that activity. Maintaining this short record while disabled prepares for activation. [ICO documentation guidance](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/accountability-and-governance/guide-to-accountability-and-governance/documentation/)
+The first attempt consumes the day even when offline. Clearing app preferences can make an installation appear new. Reports cannot measure unique weekly or monthly users. The Free plan includes 50,000 monthly events and drops excess events without upgrading. [Free plan](https://dashboard.telemetrydeck.com/plans) · [Subscription FAQ](https://telemetrydeck.com/faq/subscription/)
 
-## Risks and decision
+## Processing decision
 
-| Risk to participants | Control and remaining decision |
-| --- | --- |
-| Reports reveal a pattern of use across days | A random pseudonym and coarse payload limit exposure. Reports remain linkable. Confirm who can access raw records, where and for how long. |
-| Reporting continues after a change of mind or notice | Opt-in defaults off. Withdrawal cancels delivery. A material revision discards the old code and requires fresh consent. Received reports need a separate rights process. |
-| A request cannot be matched, or data is disclosed to the wrong person | Assess each request privately, use only proportionate evidence, explain any demonstrated inability to identify and reconsider if further information enables a match. Confirm provider procedures before launch. |
-| Provider copies outlive the stated purpose | Require an agreed raw and backup expiry before enabling. Dashboard visibility alone cannot establish deletion. |
+- **Consent.** Prior opt-in covers analytics storage and access under PECR and any personal data processed for reporting under UK GDPR Article 6(1)(a). Consent time and notice revision stay on the Mac. Withdrawal cancels delivery and removes the grant. The last attempt day survives withdrawal to prevent duplicates. Debug, CI, automated tests, acceptance profiles and developer-excluded installations are ineligible. To exclude a local Release installation, quit and run `defaults write uk.co.sammcnab.Pokelet PokeletAnalyticsDeveloperExcluded -bool true`. [ICO guidance](https://ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies/what-are-the-pecr-rules/)
+- **Recipient and location.** TelemetryDeck GmbH applies its standard agreement to direct app ingestion. Hetzner hosts the standard service in Finland and Germany, covered by UK adequacy. The network handles the source IP for delivery. The provider says app ingestion neither retains it nor derives a location. Event time and a server-generated session value accompany the app ID, shared literal, event type and version/build. [Ingest FAQ](https://telemetrydeck.com/faq/ingest-api/) · [Hosting](https://telemetrydeck.com/faq/compliance/)
+- **Roles and rights.** The provider's terms treat stored analytics as anonymous and disclaim an Article 28 processor relationship. With the shared literal, neither party has an installation key for lookup or deletion. Sam handles requests and considers any information that would enable identification. There is no reason to start collecting identifiers for that purpose. [Agreement](https://telemetrydeck.com/dpa/) · [Article 11](https://www.legislation.gov.uk/eur/2016/679/article/11)
+- **Retention.** Free provides three months of queryable history. Older events can remain in cold storage. Organisation settings allow deletion by month or whole organisation. The provider quotes up to three months for low-level backups after deletion but also describes a separate raw-ingest backup without a fixed expiry. Avoid promising a final deletion date. [Provider deletion and backup FAQ](https://telemetrydeck.com/faq/analytics-data-privacy/)
 
-**DPIA screening.** On the current small-scale design, limited voluntary events support aggregate counts. There is no sensitive payload, location tracking, cross-service profiling or consequential decision about a user. Likely high risk has not been identified on these facts. Reassess once the provider answers, or if scale, data or purpose changes. A formal DPIA is mandatory before processing likely to pose high risk. This short screening is the proportionate record for now. [ICO DPIA criteria](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/accountability-and-governance/data-protection-impact-assessments-dpias/when-do-we-need-to-do-a-dpia/)
-
-**ICO fee.** A UK controller using personal information must pay unless exempt. A free, open-source licence alone establishes no exemption. The installation digest is treated as personal data, and recurring product analytics may fall outside the exempt purposes. Sam should complete the ICO assessment for the controller’s activities as a whole and check any existing registration. Register and pay if liable, or record the applicable exemption. The current tier 1 fee is £52 if that tier applies. Turnover, staffing and any other processing are owner facts. [ICO assessment](https://ico.org.uk/for-organisations/data-protection-fee/data-protection-fee-self-assessment/) · [Fee guidance](https://ico.org.uk/for-organisations/data-protection-fee/data-protection-fee)
-
-**Complaints.** UK law requires an accessible route, acknowledgement within 30 days, appropriate enquiries, progress updates and an outcome without undue delay. The email route in the notice is the implementation choice. A separate ticket system is unnecessary. [Data Protection Act 2018, section 164A](https://www.legislation.gov.uk/ukpga/2018/12/section/164A)
-
-**Website badges.** In a fresh Chromium session the published landing page requested images from all three listing services. Product Hunt returned one Set-Cookie header and the browser stored one listing cookie. The other two responses had no Set-Cookie header in this observation. The staged site uses ordinary links with no campaign parameters or referrer. This avoids contacting those providers during page load.
+**Before activation.** Make the policy available at the URL linked in Studio. On the documented app-ingest path, there is no evident need for a bespoke processor contract, individual erasure tool or backup deadline for anonymous counts. If identifiable request data is retained or processed on Sam’s behalf, resolve the role, retention and applicable Article 28 terms first. Sam should check any existing ICO fee registration or exemption against his activities as a whole. The free service adds no subscription fee. [ICO fee self-assessment](https://ico.org.uk/for-organisations/data-protection-fee/data-protection-fee-self-assessment/)
