@@ -121,8 +121,17 @@ final class UsageAnalyticsTests: XCTestCase {
         await fulfillment(of: [extraRequest], timeout: 0.2)
     }
 
+    func testNamespaceStaysWithinOneIngestPathSegment() {
+        let withoutNamespace = UsageAnalytics.Configuration(appID: appID, namespace: nil, version: "1.3.1", build: "6")
+        XCTAssertEqual(withoutNamespace?.endpoint.absoluteString, "https://nom.telemetrydeck.com/v2/")
+        for namespace in [".", "..", "com..example", "com.example.", "example/other", "example%2Fother", "example\n"] {
+            XCTAssertNil(UsageAnalytics.Configuration(appID: appID, namespace: namespace, version: "1.3.1", build: "6"),
+                         "Accepted unsafe namespace \(namespace.debugDescription)")
+        }
+    }
+
     private func makeAnalytics(_ defaults: UserDefaults, build: String = "6") -> UsageAnalytics {
-        let config = UsageAnalytics.Configuration(appID: appID, namespace: "test-namespace", version: "1.3.1", build: build)
+        let config = UsageAnalytics.Configuration(appID: appID, namespace: "com.example.pokelet", version: "1.3.1", build: build)
         return UsageAnalytics(configuration: config, defaults: defaults) {
             let session = URLSessionConfiguration.ephemeral
             session.protocolClasses = [RecordingProtocol.self]
@@ -131,7 +140,7 @@ final class UsageAnalyticsTests: XCTestCase {
     }
 
     private func decode(_ request: URLRequest) throws -> [String: Any] {
-        XCTAssertEqual(request.url?.absoluteString, "https://nom.telemetrydeck.com/v2/namespace/test-namespace/")
+        XCTAssertEqual(request.url?.absoluteString, "https://nom.telemetrydeck.com/v2/namespace/com.example.pokelet/")
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json; charset=utf-8")
         XCTAssertEqual(request.value(forHTTPHeaderField: "User-Agent"), "Pokelet")

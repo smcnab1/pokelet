@@ -15,9 +15,10 @@ final class UsageAnalytics: ObservableObject {
             guard let appID, let identifier = UUID(uuidString: appID),
                   let version, let build, !version.isEmpty, !build.isEmpty else { return nil }
             let namespace = namespace ?? ""
-            guard namespace.utf8.allSatisfy({
-                (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || $0 == 45 || $0 == 95
-            }) else { return nil }
+            let namespacePattern = #"\A[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*\z"#
+            guard namespace.isEmpty || namespace.range(of: namespacePattern, options: .regularExpression) != nil else {
+                return nil
+            }
             let path = namespace.isEmpty ? "/v2/" : "/v2/namespace/\(namespace)/"
             guard let endpoint = URL(string: "https://nom.telemetrydeck.com" + path) else { return nil }
             self.appID = identifier

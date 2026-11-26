@@ -43,7 +43,7 @@ if [[ -z "${CI:-}" ]]; then
   analytics_namespace="${POKELET_TELEMETRYDECK_NAMESPACE:-}"
 fi
 if [[ ( -n "$analytics_app_id" && ! "$analytics_app_id" =~ ^[[:xdigit:]]{8}(-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}$ ) ||
-      ( -n "$analytics_namespace" && ( -z "$analytics_app_id" || ! "$analytics_namespace" =~ ^[A-Za-z0-9_-]+$ ) ) ]]; then
+      ( -n "$analytics_namespace" && ( -z "$analytics_app_id" || ! "$analytics_namespace" =~ ^[A-Za-z0-9_-]+([.][A-Za-z0-9_-]+)*$ ) ) ]]; then
   printf 'Use a TelemetryDeck app UUID and, if assigned, its organisation namespace.\n' >&2
   exit 2
 fi
