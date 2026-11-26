@@ -77,7 +77,8 @@ xcodebuild -quiet -onlyUsePackageVersionsFromResolvedFile -project "$ROOT/Pokele
   'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
   CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO CODE_SIGN_ENTITLEMENTS="$entitlements" \
   POKELET_UPDATE_FEED_URL="$update_feed" POKELET_UPDATE_PUBLIC_KEY="$update_key" \
-  POKELET_UPDATE_COMPILATION="$update_compilation" build
+  POKELET_UPDATE_COMPILATION="$update_compilation" \
+  POKELET_TELEMETRYDECK_APP_ID= POKELET_TELEMETRYDECK_NAMESPACE= build
 
 mkdir "$STAGE/candidate" "$STAGE/extracted"
 APP="$STAGE/candidate/Pokelet.app"

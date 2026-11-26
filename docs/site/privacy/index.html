@@ -22,22 +22,34 @@
   </header>
   <main class="wrap guide" id="main" tabindex="-1">
     <h1>Privacy</h1>
-    <p class="intro">Pokelet runs on your Mac without an account. It sends no usage reports and creates no analytics installation identifier.</p>
+    <p class="intro">Pokelet runs on your Mac without an account. Current releases send no usage reports.</p>
     <section aria-labelledby="local">
       <h2 id="local">What stays on your Mac</h2>
-      <p>Pointer effects use mouse events in memory. Preferences, your shortcut and imported sounds stay on your Mac. Pokelet does not collect screen contents.</p>
+      <p>Pointer effects use mouse events in memory. Your preferences, shortcut and imported sounds stay on your Mac. Reset Settings removes the imported copy. macOS manages launch at login. Pokelet does not collect screen contents.</p>
+      <p>Ordinary pointer use needs no Accessibility or Input Monitoring permission. Interactive click sounds can use existing Accessibility access to check a control’s role and available actions. Pokelet discards the result after the click. Experimental Debug presentation sessions also observe gestures and Escape locally.</p>
+    </section>
+    <section aria-labelledby="usage">
+      <h2 id="usage">Optional usage statistics</h2>
+      <p>In a build where sharing is available, you can turn on <strong>Share basic usage</strong> in Studio → General → Privacy &amp; Analytics. It starts off. Your consent lets Sam McNab count first-time reporting installations, estimate daily activity and see which Pokelet versions are in use.</p>
+      <p>At most once per UTC day, Pokelet sends TelemetryDeck the app version and build, along with whether this is your first report. Every installation sends the same app and client values. Reports exclude pointer activity, screen contents and installation identifiers.</p>
+      <p>TelemetryDeck receives reports in Finland and hosts them in Finland and Germany. The internet connection uses your IP address. The provider says it does not store it or use it to locate you. Reports include receipt time. Three months are available in the dashboard and older events can remain in cold storage and backups.</p>
+      <p>Turn sharing off at any time using the same switch. This stops future reports and clears the consent time and notice version from your Mac. The last attempt day stays locally to prevent duplicate reports. Sam has no installation key to look up your past reports. <a href="https://telemetrydeck.com/faq/analytics-data-privacy/">How TelemetryDeck handles reports</a>.</p>
     </section>
     <section aria-labelledby="updates">
       <h2 id="updates">Updates and feedback</h2>
       <p>When you check for updates, or enable background checks, Sparkle contacts GitHub for your installed channel. GitHub receives normal request data including your IP address and the app and updater versions. Sparkle’s optional system profile is disabled.</p>
-      <p>Reporting a problem opens an editable GitHub form. You choose whether to submit it.</p>
+      <p>Report a problem opens an editable GitHub form with the app version and build, macOS version, architecture and pointer mode. You choose whether to submit it. Copy system information copies those details to your clipboard. <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub’s privacy statement</a> covers its services.</p>
     </section>
 
     <section aria-labelledby="website">
       <h2 id="website">This website</h2>
-      <p>The cursor demo stores preferences in your browser when available. The download link uses GitHub’s public release API. Listing badges load from MacNative, Product Hunt and AlternativeTo. Those providers receive normal browser requests. This website does not use TelemetryDeck.</p>
+      <p>The cursor demo stores preferences in your browser when available. The download link uses GitHub’s public release API and briefly caches its answer in your browser tab. The listing links open MacNative, Product Hunt or AlternativeTo when you choose one. This website does not use TelemetryDeck.</p>
     </section>
-    <p>See the <a href="https://github.com/smcnab1/pokelet/blob/main/PRIVACY.md">full privacy policy</a> or <a href="mailto:sam@sammcnab.co.uk">contact Sam McNab</a> with a privacy question.</p>
+    <section aria-labelledby="contact">
+      <h2 id="contact">Your rights and contact details</h2>
+      <p>You can withdraw consent in Studio. You can also ask for access, correction, erasure, restriction or a copy of personal data where applicable. If Sam cannot identify a report as yours, he will explain why and consider any further information you provide.</p>
+      <p>For a privacy question, a request about your data or a complaint, <a href="mailto:sam@sammcnab.co.uk">email Sam McNab</a>, the controller for Pokelet. Sam will acknowledge a complaint within 30 days, investigate promptly, keep you informed and explain the outcome. You can also <a href="https://ico.org.uk/make-a-complaint/">complain to the ICO</a>.</p>
+    </section>
   </main>
   <footer class="wrap site-footer">
     <nav aria-label="Footer">

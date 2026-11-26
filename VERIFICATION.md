@@ -5,7 +5,7 @@ This page describes the available checks. A command listed here is not evidence 
 | Check | Coverage | Limit |
 | --- | --- | --- |
 | `./script/lint_swift.sh` | Hash-verified SwiftLint over app Swift source; selected failure and security rules. | Targeted rules are not a complete security review. |
-| `swift test -Xswiftc -warnings-as-errors` | Preferences and migration, geometry, rendering, cursor recovery decisions, click cadence, gesture pairing, audio import, feedback URLs, bundled release notes and upgrade history. | SwiftPM excludes app entry points, views and several native services. |
+| `swift test -Xswiftc -warnings-as-errors` | Preferences and migration, geometry, rendering, cursor recovery decisions, click cadence, gesture pairing, audio import, feedback URLs, bundled release notes, upgrade history and opt-in analytics requests captured by URLSession interception. | SwiftPM excludes app entry points, views and several native services. |
 | `./script/test_native.sh` | Build or inspect a supplied app; metadata, signatures, Sparkle helper architectures, licences, icon and audio decoding. | Does not establish live pointer behaviour or Apple distribution trust. |
 | `./script/test_studio_layout.sh` | Offscreen native layouts across window sizes, appearances and text sizes, plus Sparkle build ordering. | Does not establish VoiceOver or complete keyboard usability. |
 | `./script/test_pointer_visual.sh /tmp/pokelet-visual-results` | Offscreen pointer contact-point and effect alignment. | Does not prove physical mouse or multi-display behaviour. |

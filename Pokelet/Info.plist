@@ -26,6 +26,10 @@
     <string>public.app-category.utilities</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2026 Sam McNab. Includes MIT-licensed Quiet Pointer code.</string>
+    <key>PokeletTelemetryDeckAppID</key>
+    <string>$(POKELET_TELEMETRYDECK_APP_ID)</string>
+    <key>PokeletTelemetryDeckNamespace</key>
+    <string>$(POKELET_TELEMETRYDECK_NAMESPACE)</string>
     <key>SUFeedURL</key>
     <string>$(POKELET_UPDATE_FEED_URL)</string>
     <key>SUPublicEDKey</key>

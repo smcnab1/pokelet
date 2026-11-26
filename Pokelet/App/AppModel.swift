@@ -18,6 +18,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var inputMonitoringGranted = false
     @Published private(set) var needsInputMonitoring = false
 
+    let analytics: UsageAnalytics
     let isAcceptanceProfile: Bool
     let isStudioAcceptance: Bool
     let presentationAvailable: Bool
@@ -66,10 +67,35 @@ final class AppModel: ObservableObject {
         presentationAvailable = false
         isAcceptanceProfile = false
         #endif
+        analytics = UsageAnalytics(configuration: Self.analyticsConfiguration(), defaults: defaults)
         let store = PreferenceStore(defaults: defaults)
         self.store = store
         prefs = store.load()
         sound = SoundPlayer(supportDirectory: supportDirectory)
+    }
+
+    private static func analyticsConfiguration() -> UsageAnalytics.Configuration? {
+        #if DEBUG || POKELET_UPDATE_ACCEPTANCE
+        return nil
+        #else
+        let process = ProcessInfo.processInfo
+        let bundle = Bundle.main
+        guard bundle.bundleIdentifier == "uk.co.sammcnab.Pokelet",
+              process.environment["CI"] == nil,
+              process.environment["XCTestConfigurationFilePath"] == nil,
+              process.environment["XCTestBundlePath"] == nil,
+              process.environment["XCODE_RUNNING_FOR_PREVIEWS"] == nil,
+              !process.arguments.contains(where: {
+                  $0.hasPrefix("--acceptance-") || $0.hasSuffix("-acceptance")
+              }) else { return nil }
+
+        return UsageAnalytics.Configuration(
+            appID: bundle.object(forInfoDictionaryKey: "PokeletTelemetryDeckAppID") as? String,
+            namespace: bundle.object(forInfoDictionaryKey: "PokeletTelemetryDeckNamespace") as? String,
+            version: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+            build: bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        )
+        #endif
     }
 
     func start() {
@@ -308,6 +334,7 @@ final class AppModel: ObservableObject {
     }
 
     func reset() {
+        analytics.setEnabled(false)
         interactiveClickSound.cancel()
         endPresentation(nil)
         mode.setPointer(false)
